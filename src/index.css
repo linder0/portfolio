@@ -265,3 +265,578 @@ a:hover {
   background-color: var(--text);
   color: var(--bg);
 }
+
+/* =====================================================
+   OSCILLOSCOPE DISPLAY
+   ===================================================== */
+
+/* Oscilloscope CSS Variables */
+.oscilloscope-housing {
+  --osc-font: 'Arial', sans-serif;
+  --osc-text-dark: #333;
+  --osc-text-mid: #444;
+  --osc-text-light: #555;
+  --osc-label-green: #2a6a4a;
+  --osc-accent-green: #00a86b;
+  --osc-phosphor: #00ffb4;
+  --osc-phosphor-blue: rgba(0, 200, 255, 0.15);
+  --osc-beige-light: #e0dcd0;
+  --osc-beige-mid: #c8c4b8;
+  --osc-beige-dark: #b0aca0;
+  --osc-spacing-xs: clamp(4px, 0.5vw, 8px);
+  --osc-spacing-sm: clamp(6px, 0.8vw, 12px);
+  --osc-spacing-md: clamp(8px, 1vw, 16px);
+  --osc-spacing-lg: clamp(12px, 1.5vw, 20px);
+  --osc-font-xs: clamp(0.35rem, 0.5vw, 0.5rem);
+  --osc-font-sm: clamp(0.4rem, 0.6vw, 0.6rem);
+  --osc-font-md: clamp(0.5rem, 0.7vw, 0.75rem);
+  --osc-font-lg: clamp(0.55rem, 0.8vw, 0.85rem);
+}
+
+/* Main housing - Tektronix beige/cream plastic */
+.oscilloscope-housing {
+  background: linear-gradient(180deg,
+    #e0dcd0 0%,
+    #d4d0c4 15%,
+    #c8c4b8 40%,
+    #bbb8ac 70%,
+    #b0aca0 100%
+  );
+  border-radius: 10px;
+  padding: clamp(10px, 1.5vw, 18px) clamp(14px, 2vw, 22px);
+  box-shadow:
+    inset 2px 2px 4px rgba(255, 255, 255, 0.5),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.1),
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  width: 100%;
+  min-width: 600px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header with branding */
+.oscilloscope-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+}
+
+.oscilloscope-brand {
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #2a2a2a;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.oscilloscope-model {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.oscilloscope-model-number {
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  font-size: 1.25rem;
+  color: #1a1a1a;
+}
+
+.oscilloscope-model-desc {
+  font-family: 'Arial', sans-serif;
+  font-size: 0.65rem;
+  color: #4a4a4a;
+  letter-spacing: 0.1em;
+}
+
+/* Body layout */
+.oscilloscope-body {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: stretch;
+}
+
+/* Footer ventilation */
+.oscilloscope-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 8px;
+}
+
+.oscilloscope-vent {
+  flex: 1;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 10%,
+    rgba(0, 0, 0, 0.15) 90%,
+    transparent 100%
+  );
+  border-radius: 2px;
+}
+
+/* =====================================================
+   OSCILLOSCOPE SCREEN
+   ===================================================== */
+
+.oscilloscope-screen-container {
+  width: 70%;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.oscilloscope-bezel {
+  background: linear-gradient(145deg, #6a6a6a 0%, #4a4a4a 30%, #3a3a3a 70%, #2a2a2a 100%);
+  border-radius: 8px;
+  padding: clamp(8px, 1.2vw, 14px);
+  width: 100%;
+  box-shadow:
+    inset 2px 2px 4px rgba(255, 255, 255, 0.15),
+    inset -2px -2px 6px rgba(0, 0, 0, 0.5),
+    4px 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.oscilloscope-screen {
+  background: radial-gradient(ellipse at center, #0a1820 0%, #061015 60%, #030a0d 100%);
+  border-radius: 6px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 100px rgba(0, 180, 255, 0.06),
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    inset 0 0 2px 1px rgba(0, 200, 255, 0.1);
+}
+
+/* Grid overlay - 8x10 divisions */
+.oscilloscope-grid {
+  position: absolute;
+  inset: 4%;
+  background-image:
+    linear-gradient(rgba(0, 200, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 200, 255, 0.15) 1px, transparent 1px);
+  background-size: 10% 12.5%;
+  pointer-events: none;
+  border: 1px solid rgba(0, 200, 255, 0.2);
+}
+
+/* Center crosshairs */
+.oscilloscope-center-marker {
+  position: absolute;
+  background: rgba(0, 255, 180, 0.2);
+  pointer-events: none;
+}
+
+.oscilloscope-center-h {
+  left: 5%;
+  right: 5%;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.oscilloscope-center-v {
+  top: 5%;
+  bottom: 5%;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+/* Waveform SVG */
+.oscilloscope-wave {
+  position: absolute;
+  inset: 5%;
+  width: 90%;
+  height: 90%;
+  z-index: 2;
+}
+
+.oscilloscope-wave-path {
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 2px #00ffb4) drop-shadow(0 0 6px #00ffb4) drop-shadow(0 0 12px rgba(0, 255, 180, 0.5));
+}
+
+/* CRT curved glass reflection effect */
+.oscilloscope-reflection {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 30%
+    );
+  pointer-events: none;
+  z-index: 3;
+  border-radius: 6px;
+}
+
+/* Scanline effect */
+.oscilloscope-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0.5;
+}
+
+/* Scale labels */
+.oscilloscope-scale-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.oscilloscope-scale-label {
+  position: absolute;
+  font-family: var(--osc-font);
+  font-size: var(--osc-font-md);
+  color: var(--osc-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.oscilloscope-scale-label.top {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.oscilloscope-scale-label.left {
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+}
+
+/* =====================================================
+   OSCILLOSCOPE CONTROLS
+   ===================================================== */
+
+.oscilloscope-controls {
+  width: calc(30% - 12px);
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #B8B4A8 0%, #A8A498 100%);
+  border-radius: 4px;
+  padding: clamp(8px, 1.2vw, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vw, 16px);
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.oscilloscope-controls-header {
+  display: flex;
+  justify-content: space-around;
+  padding: 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.oscilloscope-label-group {
+  text-align: center;
+}
+
+.oscilloscope-label-title {
+  display: block;
+  font-family: var(--osc-font);
+  font-size: var(--osc-font-lg);
+  font-weight: bold;
+  color: var(--osc-label-green);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.oscilloscope-label-subtitle {
+  display: block;
+  font-family: var(--osc-font);
+  font-size: var(--osc-font-xs);
+  color: var(--osc-accent-green);
+  letter-spacing: 0.03em;
+}
+
+.oscilloscope-controls-main {
+  display: flex;
+  gap: clamp(4px, 0.8vw, 16px);
+  flex: 1;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.oscilloscope-channel {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(4px, 0.5vw, 8px);
+  background: linear-gradient(180deg, #b8b4a8 0%, #a8a498 100%);
+  border-radius: 6px;
+  padding: clamp(6px, 0.8vw, 12px);
+  box-shadow:
+    inset 1px 1px 3px rgba(0, 0, 0, 0.15),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.4);
+}
+
+.oscilloscope-channel-header {
+  text-align: center;
+}
+
+.oscilloscope-channel-label {
+  font-family: var(--osc-font);
+  font-size: var(--osc-font-sm);
+  color: var(--osc-text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-align: center;
+  white-space: nowrap;
+  white-space: nowrap;
+}
+
+.oscilloscope-knob-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Knob styling */
+.oscilloscope-knob {
+  position: relative;
+  border-radius: 50%;
+  background:
+    conic-gradient(from 0deg, #666 0deg, #888 15deg, #555 30deg, #777 45deg, #555 60deg, #888 75deg, #666 90deg, #888 105deg, #555 120deg, #777 135deg, #555 150deg, #888 165deg, #666 180deg, #888 195deg, #555 210deg, #777 225deg, #555 240deg, #888 255deg, #666 270deg, #888 285deg, #555 300deg, #777 315deg, #555 330deg, #888 345deg, #666 360deg);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+/* Outer metallic ring */
+.oscilloscope-knob::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #aaa 0%, #777 50%, #555 100%);
+  z-index: -1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.oscilloscope-knob:hover {
+  transform: scale(1.02);
+}
+
+.oscilloscope-knob-large {
+  width: clamp(40px, 5vw, 64px);
+  height: clamp(40px, 5vw, 64px);
+}
+
+.oscilloscope-knob-indicator {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 6px;
+  background: #fff;
+  border-radius: 1px;
+}
+
+.oscilloscope-knob-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(14px, 1.8vw, 24px);
+  height: clamp(14px, 1.8vw, 24px);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, #ccc 0%, #999 50%, #777 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.oscilloscope-knob-inner span {
+  font-family: var(--osc-font);
+  font-size: var(--osc-font-xs);
+  color: var(--osc-text-dark);
+  font-weight: bold;
+}
+
+.oscilloscope-knob-scale {
+  display: flex;
+  gap: 4px;
+  font-family: var(--osc-font);
+  font-size: var(--osc-font-xs);
+  color: var(--osc-text-light);
+}
+
+/* Controls footer */
+.oscilloscope-controls-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: clamp(8px, 1vw, 16px);
+  margin-top: auto;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  gap: clamp(8px, 1.2vw, 20px);
+  flex-wrap: wrap;
+}
+
+.oscilloscope-switches {
+  display: flex;
+  gap: clamp(6px, 0.8vw, 14px);
+}
+
+.oscilloscope-switch-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.oscilloscope-switch-group span {
+  font-family: var(--osc-font);
+  font-size: var(--osc-font-sm);
+  color: var(--osc-text-mid);
+}
+
+.oscilloscope-switch {
+  width: clamp(12px, 1.5vw, 20px);
+  height: clamp(18px, 2.5vw, 30px);
+  background: linear-gradient(180deg, #eee 0%, #ccc 50%, #999 100%);
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* BNC Connectors */
+.oscilloscope-connectors {
+  display: flex;
+  gap: clamp(6px, 0.8vw, 14px);
+}
+
+.oscilloscope-bnc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.oscilloscope-bnc span {
+  font-family: var(--osc-font);
+  font-size: var(--osc-font-sm);
+  color: var(--osc-text-mid);
+}
+
+.oscilloscope-bnc-outer {
+  width: clamp(20px, 2.5vw, 32px);
+  height: clamp(20px, 2.5vw, 32px);
+  border-radius: 50%;
+  background:
+    conic-gradient(from 45deg, #b8a030 0deg, #d4c050 30deg, #a08020 60deg, #c8b040 90deg, #b8a030 120deg, #d4c050 150deg, #a08020 180deg, #c8b040 210deg, #b8a030 240deg, #d4c050 270deg, #a08020 300deg, #c8b040 330deg, #b8a030 360deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+    0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+.oscilloscope-bnc-inner {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d4af37;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Power LED */
+.oscilloscope-power {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.oscilloscope-power span {
+  font-family: var(--osc-font);
+  font-size: var(--osc-font-sm);
+  color: var(--osc-text-mid);
+}
+
+.oscilloscope-led {
+  width: clamp(8px, 1vw, 14px);
+  height: clamp(8px, 1vw, 14px);
+  border-radius: 50%;
+  background: #2d5a2d;
+  box-shadow:
+    0 0 4px rgba(0, 255, 100, 0.5),
+    0 0 8px rgba(0, 255, 100, 0.3);
+}
+
+/* LED glows in dark mode */
+[data-theme="dark"] .oscilloscope-led {
+  background: #4ade80;
+  box-shadow:
+    0 0 8px rgba(74, 222, 128, 0.8),
+    0 0 16px rgba(74, 222, 128, 0.5),
+    0 0 24px rgba(74, 222, 128, 0.3);
+}
+
+/* Responsive adjustments - stack vertically on small screens */
+@media (max-width: 900px) {
+  .oscilloscope-body {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .oscilloscope-screen-container {
+    flex: none;
+    width: 100%;
+  }
+
+  .oscilloscope-controls {
+    flex: none;
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .oscilloscope-controls-main {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .oscilloscope-channel {
+    flex: 0 0 auto;
+  }
+}

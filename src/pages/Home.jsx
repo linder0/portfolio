@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ProjectCard from '../components/ProjectCard'
+import OscilloscopeDisplay from '../components/OscilloscopeDisplay'
 import { projects } from '../data/projects'
 import { fadeUp, ease } from '../utils/motion'
 
@@ -9,27 +10,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen pt-32 pb-24">
-      {/* Hero Section - GIF Frame + Text side by side */}
+      {/* Hero Section - Oscilloscope Display */}
       <section className="page-padding mb-24">
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.8, ease }}
-          className="flex gap-8 items-end"
-        >
-          {/* GIF Frame - 75% width */}
-          <div
-            className="w-[75%] aspect-[16/9] border border-current/20 rounded-lg flex items-center justify-center shrink-0"
-          >
-            <span className="text-sm uppercase tracking-widest opacity-30">
-              GIF Placeholder
-            </span>
-          </div>
-
-          {/* Text - right side */}
-          <p className="text-lg md:text-xl opacity-60 flex-1">
-            Web design, digital design, music, video — crafting experiences across mediums.
-          </p>
-        </motion.div>
+        <OscilloscopeDisplay />
       </section>
 
       {/* Featured Projects */}
