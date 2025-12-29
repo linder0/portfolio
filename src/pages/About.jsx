@@ -18,7 +18,7 @@ const contacts = [
 
 export default function About() {
   return (
-    <main className="min-h-screen pt-32 pb-24">
+    <main className="min-h-screen pt-32 pb-24 content-container">
       <section className="page-padding">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
           {/* Left Column - Bio */}

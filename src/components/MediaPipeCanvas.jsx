@@ -14,8 +14,8 @@ const BASE_WIDTH = 1200 // Reference width for scaling
 const DISPLAY_TEXT = 'Linda Xue'
 const BUTTON_CLASS = `p-2 bg-theme/80 hover:bg-theme hover:scale-110 cursor-pointer
                       opacity-80 hover:opacity-100 rounded-full backdrop-blur-md
-                      transition-all duration-200 border border-current/20 hover:border-current/40`
-const EDGE_FADE_CLASS = 'absolute inset-y-0 w-24 md:w-40 z-20 pointer-events-none'
+                      transition-theme border border-current/20 hover:border-current/40`
+const EDGE_FADE_CLASS = 'absolute inset-y-0 w-24 md:w-40 z-20 pointer-events-none transition-theme'
 
 // Map normalized point to canvas coordinates (mirror if using camera)
 const mapPoint = (point, offsetX, offsetY, renderWidth, renderHeight, mirror = false) => ({
@@ -448,7 +448,7 @@ export default function MediaPipeCanvas() {
   }, [])
 
   return (
-    <div className="relative w-full aspect-[3/1] overflow-hidden bg-theme">
+    <div className="relative w-full aspect-[3/1] overflow-hidden bg-theme transition-theme">
       {/* Video element - fades in when loaded */}
       <video
         ref={videoRef}
@@ -474,7 +474,7 @@ export default function MediaPipeCanvas() {
 
       {/* Error state */}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-theme/90">
+        <div className="absolute inset-0 flex items-center justify-center bg-theme/90 transition-theme">
           <div className="text-center px-8">
             <p className="text-red-500 text-sm mb-2">Error</p>
             <p className="opacity-50 text-xs">{error}</p>

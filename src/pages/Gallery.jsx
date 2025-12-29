@@ -18,7 +18,7 @@ export default function Gallery() {
   }
 
   return (
-    <main className="min-h-screen pt-32 pb-24">
+    <main className="min-h-screen pt-32 pb-24 content-container">
       <section className="page-padding">
         {/* Header */}
         <motion.div

@@ -9,7 +9,7 @@ export default function Home() {
   const featuredProjects = projects.slice(0, 4)
 
   return (
-    <main className="min-h-screen pt-32 pb-24 bg-theme">
+    <main className="min-h-screen pt-32 pb-24 bg-theme content-container">
       {/* Hero Section - MediaPipe Webcam */}
       <section className="page-padding mb-8 md:mb-16">
         <motion.div

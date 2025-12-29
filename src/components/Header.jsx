@@ -29,12 +29,12 @@ export default function Header() {
       <div className="header-bg-blur absolute inset-0 pointer-events-none" />
 
       {/* Content layer - stays opaque */}
-      <div className={`relative page-padding flex items-center justify-between transition-all duration-500 !pl-14 ${
+      <div className={`relative page-padding content-container flex items-center justify-between transition-theme !pl-14 ${
         scrolled ? 'py-2' : 'py-8'
       }`}>
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <span className={`font-display font-medium tracking-tight transition-all duration-500 ${
+          <span className={`font-display font-medium tracking-tight transition-theme ${
             scrolled ? 'text-lg' : 'text-xl'
           }`}>
             Linda Xue

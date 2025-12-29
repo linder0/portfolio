@@ -69,6 +69,7 @@ body {
 /* Main text color */
 #root {
   color: var(--text);
+  transition: color var(--transition-theme);
 }
 
 /* Override for inverse elements */
@@ -127,10 +128,17 @@ h1, h2, h3, h4, h5, h6 {
    ===================================================== */
 .bg-theme {
   background-color: var(--bg);
+  transition: background-color var(--transition-theme);
 }
 
 .text-theme {
   color: var(--text);
+  transition: color var(--transition-theme);
+}
+
+/* Apply theme transition to all elements using CSS variables */
+.transition-theme {
+  transition: all var(--transition-theme);
 }
 
 .bg-inverse {
@@ -155,6 +163,22 @@ h1, h2, h3, h4, h5, h6 {
 .page-padding {
   padding-left: 80px;
   padding-right: 80px;
+}
+
+/* Max-width container for ultra-wide screens */
+.content-container {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+/* Ultra-wide: more padding to keep content comfortable */
+@media (min-width: 1920px) {
+  .page-padding {
+    padding-left: 120px;
+    padding-right: 120px;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -203,6 +227,7 @@ h1, h2, h3, h4, h5, h6 {
     color-mix(in srgb, var(--bg) 15%, transparent) 75%,
     transparent 100%
   );
+  transition: background var(--transition-theme);
   -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.25) 75%, transparent 100%);
   mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.25) 75%, transparent 100%);
 }
@@ -215,6 +240,7 @@ h1, h2, h3, h4, h5, h6 {
     color-mix(in srgb, var(--bg) 15%, transparent) 75%,
     transparent 100%
   );
+  transition: background var(--transition-theme);
   -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.25) 75%, transparent 100%);
   mask-image: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.25) 75%, transparent 100%);
 }
