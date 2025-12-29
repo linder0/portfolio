@@ -29,8 +29,8 @@ export default function Header() {
       <div className="header-bg-blur absolute inset-0 pointer-events-none" />
 
       {/* Content layer - stays opaque */}
-      <div className={`relative page-padding flex items-center justify-between transition-all duration-500 ${
-        scrolled ? 'py-2 !pl-15' : 'py-8 !pl-10'
+      <div className={`relative page-padding flex items-center justify-between transition-all duration-500 !pl-14 ${
+        scrolled ? 'py-2' : 'py-8'
       }`}>
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">

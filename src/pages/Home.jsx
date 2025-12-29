@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ProjectCard from '../components/ProjectCard'
-import OscilloscopeDisplay from '../components/OscilloscopeDisplay'
+import MediaPipeCanvas from '../components/MediaPipeCanvas'
 import { projects } from '../data/projects'
 import { fadeUp, ease } from '../utils/motion'
 
@@ -9,10 +9,16 @@ export default function Home() {
   const featuredProjects = projects.slice(0, 4)
 
   return (
-    <main className="min-h-screen pt-32 pb-24">
-      {/* Hero Section - Oscilloscope Display */}
-      <section className="page-padding mb-24">
-        <OscilloscopeDisplay />
+    <main className="min-h-screen pt-32 pb-24 bg-theme">
+      {/* Hero Section - MediaPipe Webcam */}
+      <section className="page-padding mb-8 md:mb-16">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, ease }}
+        >
+          <MediaPipeCanvas />
+        </motion.div>
       </section>
 
       {/* Featured Projects */}
