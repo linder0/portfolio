@@ -73,10 +73,6 @@ export default function About() {
             {...fadeUp}
             transition={{ duration: 0.8, delay: 0.2, ease }}
           >
-            <h2 className="label opacity-50 mb-8">
-              Disciplines
-            </h2>
-
             <div className="space-y-0">
               {disciplines.map((discipline, index) => (
                 <motion.div
@@ -88,7 +84,7 @@ export default function About() {
                     delay: 0.3 + index * 0.1,
                     ease
                   }}
-                  className="group py-6 border-b border-current/10 cursor-default"
+                  className={`group py-6 cursor-default ${index < disciplines.length - 1 ? 'border-b border-current/10' : ''}`}
                 >
                   <div className="flex items-center gap-6 transition-transform duration-300 group-hover:translate-x-4">
                     <span className="text-sm opacity-30 font-mono">

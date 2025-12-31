@@ -34,11 +34,13 @@ export default function Header() {
       }`}>
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <span className={`font-display font-medium tracking-tight transition-theme ${
-            scrolled ? 'text-lg' : 'text-xl'
-          }`}>
-            Linda Xue
-          </span>
+          {location.pathname !== '/' && (
+            <span className={`font-display font-medium tracking-tight transition-theme ${
+              scrolled ? 'text-lg' : 'text-xl'
+            }`}>
+              Linda Xue
+            </span>
+          )}
           <AnimatePresence>
             {scrolled && location.pathname !== '/' && (
               <motion.span

@@ -1,59 +1,45 @@
-import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import ProjectCard from '../components/ProjectCard'
 import MediaPipeCanvas from '../components/MediaPipeCanvas'
+import FeaturedCard from '../components/FeaturedCard'
 import { projects } from '../data/projects'
 import { fadeUp, ease } from '../utils/motion'
 
 export default function Home() {
-  const featuredProjects = projects.slice(0, 4)
+  const featuredProjects = projects.filter(p => p.featured).slice(0, 4)
 
   return (
-    <main className="min-h-screen pt-32 pb-24 bg-theme content-container">
+    <main className="min-h-screen pb-24 bg-theme md:h-screen md:pb-0 md:flex md:flex-col md:overflow-hidden">
       {/* Hero Section - MediaPipe Webcam */}
-      <section className="page-padding mb-8 md:mb-16">
+      <section className="mb-8 md:mb-0 md:flex-1 md:min-h-0">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, ease }}
+          className="h-full"
         >
-          <MediaPipeCanvas />
+          <MediaPipeCanvas className="md:h-full" />
         </motion.div>
       </section>
 
       {/* Featured Projects */}
-      <section className="page-padding">
+      <section className="md:flex-shrink-0 md:py-6">
         <motion.div
           {...fadeUp}
           transition={{ duration: 0.8, delay: 0.2, ease }}
         >
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="label opacity-50">
-              Featured Work
-            </h2>
-            <Link
-              to="/gallery"
-              className="label hover:opacity-100 transition-opacity"
-            >
-              View All →
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="
+            grid grid-cols-1 gap-4 px-6
+            md:flex md:items-center md:overflow-x-auto md:gap-5 md:pl-5 md:pr-0
+          ">
             {featuredProjects.map((project, index) => (
-              <motion.div
+              <FeaturedCard
                 key={project.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.6,
-                  delay: 0.3 + index * 0.1,
-                  ease
-                }}
-              >
-                <ProjectCard project={project} />
-              </motion.div>
+                project={project}
+                index={index}
+              />
             ))}
+            {/* Right padding spacer */}
+            <div className="hidden md:block md:flex-shrink-0 md:w-5" />
           </div>
         </motion.div>
       </section>

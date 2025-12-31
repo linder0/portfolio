@@ -1,58 +1,93 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import ProjectCard from '../components/ProjectCard'
-import GridToggle from '../components/GridToggle'
-import { projects } from '../data/projects'
-import { fadeUpSmall, ease } from '../utils/motion'
+import { NetworkCanvas } from '../components/NodeNetwork'
+import { projects, categories } from '../data/projects'
+import { ease } from '../utils/motion'
+import { getCategoryColor, GOLDEN_COLOR } from '../utils/graphLayout'
 
 export default function Gallery() {
-  const [gridCols, setGridCols] = useState(4)
+  const [searchParams] = useSearchParams()
+  const [activeCategory, setActiveCategory] = useState('all')
 
-  const getGridClass = () => {
-    switch (gridCols) {
-      case 5: return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
-      case 4: return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
-      case 2: return 'grid-cols-1 sm:grid-cols-2'
-      default: return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
+  // Get initial project from URL query param
+  const initialProjectId = searchParams.get('project')
+
+  // Lock scroll on mount, restore on unmount
+  useEffect(() => {
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    document.body.style.height = '100vh'
+    return () => {
+      document.documentElement.style.overflow = ''
+      document.body.style.overflow = ''
+      document.body.style.height = ''
     }
-  }
+  }, [])
 
   return (
-    <main className="min-h-screen pt-32 pb-24 content-container">
-      <section className="page-padding">
-        {/* Header */}
-        <motion.div
-          {...fadeUpSmall}
-          transition={{ duration: 0.6, ease }}
-          className="flex items-center justify-between mb-12"
-        >
-          <h1 className="font-display text-4xl md:text-5xl">Gallery</h1>
-          <GridToggle activeSize={gridCols} onSizeChange={setGridCols} />
-        </motion.div>
+    <main className="h-screen overflow-hidden relative">
+      {/* Node Network Canvas - full page */}
+      <div className="absolute inset-0">
+        <NetworkCanvas
+          projects={projects}
+          activeCategory={activeCategory}
+          initialFocusId={initialProjectId}
+        />
+      </div>
 
-        {/* Projects Grid */}
+      {/* Category filter pills - stacked on left edge */}
         <motion.div
-          layout
-          className={`grid ${getGridClass()} gap-4`}
-          transition={{ duration: 0.4, ease }}
-        >
-          {projects.map((project, index) => (
-            <motion.div
-              key={project.id}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.5,
-                delay: index * 0.05,
-                ease
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, ease }}
+        className="absolute left-12 top-1/2 -translate-y-1/2 z-10 flex flex-col gap-2"
+      >
+        {categories.map((category) => {
+          const isActive = activeCategory === category
+          // Special gold color for 'featured', text color for 'all', category color for others
+          const color = category === 'featured'
+            ? GOLDEN_COLOR
+            : category === 'all'
+              ? 'var(--text)'
+              : getCategoryColor(category)
+
+          return (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-4 py-2 rounded-full text-sm transition-all duration-300 backdrop-blur-sm text-center cursor-pointer hover:scale-105 ${!isActive ? 'hover:opacity-100' : ''}`}
+              style={{
+                backgroundColor: isActive ? color : 'color-mix(in srgb, var(--bg) 80%, transparent)',
+                color: isActive ? (category === 'all' ? 'var(--bg)' : 'white') : 'inherit',
+                opacity: isActive ? 1 : 0.7,
               }}
             >
-              <ProjectCard project={project} showYear />
-            </motion.div>
-          ))}
+              <span className="label" style={{ fontSize: '0.7rem' }}>
+                {category === 'featured' ? '★ featured' : category}
+              </span>
+            </button>
+          )
+        })}
         </motion.div>
-      </section>
+
+      {/* Reset hint */}
+      {activeCategory !== 'all' && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
+        >
+          <button
+            onClick={() => setActiveCategory('all')}
+            className="label opacity-60 hover:opacity-100 transition-all duration-300 px-4 py-2 rounded-full backdrop-blur-sm cursor-pointer hover:scale-105"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--bg) 80%, transparent)' }}
+          >
+            ← Show all projects
+          </button>
+        </motion.div>
+      )}
     </main>
   )
 }

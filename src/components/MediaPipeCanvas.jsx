@@ -15,7 +15,7 @@ const DISPLAY_TEXT = 'Linda Xue'
 const BUTTON_CLASS = `p-2 bg-theme/80 hover:bg-theme hover:scale-110 cursor-pointer
                       opacity-80 hover:opacity-100 rounded-full backdrop-blur-md
                       transition-theme border border-current/20 hover:border-current/40`
-const EDGE_FADE_CLASS = 'absolute inset-y-0 w-24 md:w-40 z-20 pointer-events-none transition-theme'
+const EDGE_FADE_CLASS = 'absolute inset-y-0 w-8 sm:w-16 md:w-40 z-20 pointer-events-none transition-theme'
 
 // Map normalized point to canvas coordinates (mirror if using camera)
 const mapPoint = (point, offsetX, offsetY, renderWidth, renderHeight, mirror = false) => ({
@@ -108,7 +108,7 @@ class Letter {
   }
 }
 
-export default function MediaPipeCanvas() {
+export default function MediaPipeCanvas({ className = '' }) {
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -241,10 +241,34 @@ export default function MediaPipeCanvas() {
     const totalWidth = chars.length * charWidth
     const startX = (width - totalWidth) / 2 + charWidth / 2
 
+    // Offset Y to center text in visible area below header (~80px header height)
+    const headerOffset = 40
+    const centerY = (height + headerOffset) / 2
+
     lettersRef.current = chars.map((char, i) =>
-      new Letter(char, startX + i * charWidth, height / 2, fontSize, scale)
+      new Letter(char, startX + i * charWidth, centerY, fontSize, scale)
     )
   }
+
+  // Handle container resize
+  useEffect(() => {
+    const canvas = canvasRef.current
+    const container = canvas?.parentElement
+    if (!container) return
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          initializeLetters(width, height)
+        }
+      }
+    })
+
+    resizeObserver.observe(container)
+
+    return () => resizeObserver.disconnect()
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -448,7 +472,7 @@ export default function MediaPipeCanvas() {
   }, [])
 
   return (
-    <div className="relative w-full aspect-[3/1] overflow-hidden bg-theme transition-theme">
+    <div className={`relative w-full h-[65vh] min-h-[300px] md:h-full overflow-hidden bg-theme transition-theme ${className}`}>
       {/* Video element - fades in when loaded */}
       <video
         ref={videoRef}
@@ -468,9 +492,29 @@ export default function MediaPipeCanvas() {
         className="absolute inset-0 w-full h-full z-10"
       />
 
-      {/* Edge fade overlays */}
-      <div className={`${EDGE_FADE_CLASS} left-0 bg-gradient-to-r from-[var(--bg)] to-transparent`} />
-      <div className={`${EDGE_FADE_CLASS} right-0 bg-gradient-to-l from-[var(--bg)] to-transparent`} />
+      {/* Edge fade overlays - subtle curved fade */}
+      <div
+        className={`${EDGE_FADE_CLASS} left-0`}
+        style={{
+          background: `linear-gradient(to right in oklab,
+            color-mix(in oklab, var(--bg) 65%, transparent) 0%,
+            color-mix(in oklab, var(--bg) 45%, transparent) 25%,
+            color-mix(in oklab, var(--bg) 25%, transparent) 50%,
+            color-mix(in oklab, var(--bg) 10%, transparent) 75%,
+            transparent 100%)`
+        }}
+      />
+      <div
+        className={`${EDGE_FADE_CLASS} right-0`}
+        style={{
+          background: `linear-gradient(to left in oklab,
+            color-mix(in oklab, var(--bg) 65%, transparent) 0%,
+            color-mix(in oklab, var(--bg) 45%, transparent) 25%,
+            color-mix(in oklab, var(--bg) 25%, transparent) 50%,
+            color-mix(in oklab, var(--bg) 10%, transparent) 75%,
+            transparent 100%)`
+        }}
+      />
 
       {/* Error state */}
       {error && (
