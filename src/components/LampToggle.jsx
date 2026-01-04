@@ -1,24 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useTheme } from '../hooks/useTheme'
 
 export default function LampToggle() {
-  const [theme, setTheme] = useState('light')
+  const { toggleTheme } = useTheme()
   const [isPulling, setIsPulling] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light'
-    setTheme(savedTheme)
-    document.documentElement.setAttribute('data-theme', savedTheme)
-  }, [])
-
-  const toggleTheme = () => {
+  const handlePull = () => {
     setIsPulling(true)
     setTimeout(() => {
-      const newTheme = theme === 'light' ? 'dark' : 'light'
-      setTheme(newTheme)
-      localStorage.setItem('theme', newTheme)
-      document.documentElement.setAttribute('data-theme', newTheme)
+      toggleTheme()
       setIsPulling(false)
     }, 200)
   }
@@ -32,7 +24,7 @@ export default function LampToggle() {
 
   return (
     <button
-      onClick={toggleTheme}
+      onClick={handlePull}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       className="fixed top-0 right-12 z-[999] flex flex-col items-center cursor-pointer group"

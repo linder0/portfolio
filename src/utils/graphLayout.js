@@ -99,7 +99,7 @@ export function calculateSphericalLayout(projects, radius = 4) {
 // Category colors
 export const categoryColors = {
   web: '#4F46E5',      // Indigo
-  digital: '#EC4899',  // Pink
+  design: '#EC4899',  // Pink
   music: '#8B5CF6',    // Purple
   video: '#F59E0B',    // Amber
 }
@@ -121,4 +121,22 @@ export const RING_SCALE = {
 
 export function getCategoryColor(category) {
   return categoryColors[category] || '#6B7280'
+}
+
+/**
+ * Check if a project matches the active category filter
+ */
+export function matchesCategoryFilter(project, activeCategory) {
+  if (activeCategory === 'all') return true
+  if (activeCategory === 'featured') return project.featured
+  return project.category === activeCategory
+}
+
+/**
+ * Check if an edge matches the active category filter
+ */
+export function edgeMatchesCategoryFilter(edge, activeCategory) {
+  if (activeCategory === 'all') return true
+  if (activeCategory === 'featured') return edge.isGoldenThread
+  return edge.category === activeCategory
 }

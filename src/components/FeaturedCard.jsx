@@ -83,7 +83,7 @@ export default function FeaturedCard({ project, index = 0 }) {
           <h3
             className="
               absolute top-3 left-3 right-3
-              font-display text-xl md:text-2xl font-medium
+              text-xl md:text-2xl font-medium
               [--offset:calc(88px-100%)] md:[--offset:calc(104px-100%)]
               group-hover:[--offset:0px]
               translate-y-[var(--offset)]

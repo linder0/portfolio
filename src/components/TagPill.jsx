@@ -4,6 +4,7 @@
  * Variants:
  * - featured: More prominent styling for featured badge
  * - default: Standard muted tag styling
+ * - badge: Bordered badge style for filterable items
  */
 
 export default function TagPill({
@@ -17,6 +18,7 @@ export default function TagPill({
     featured: 'bg-theme/50',
     default: 'bg-theme/30 opacity-70',
     subtle: 'opacity-50',
+    badge: 'border border-current opacity-60',
   }
 
   return (

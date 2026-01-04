@@ -1,31 +1,48 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, Suspense } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Html, Line, Billboard } from '@react-three/drei'
+import { OrbitControls, Html, Line, Billboard, useTexture } from '@react-three/drei'
 import { AnimatePresence } from 'framer-motion'
 import * as THREE from 'three'
 import FocusPanel from './FocusPanel'
+import { usePanelState } from '../../context/PanelContext'
+import { useIsMobile } from '../../hooks/useMediaQuery'
 import {
   calculateSphericalLayout,
   getCategoryColor,
   GOLDEN_COLOR,
   NODE_SIZES,
-  RING_SCALE
+  matchesCategoryFilter,
+  edgeMatchesCategoryFilter
 } from '../../utils/graphLayout'
 
-// Individual project node as a 3D sphere
-function ProjectNode({ project, position, onClick, isFiltered, isFocused, isHovered, onHover }) {
-  const meshRef = useRef()
+// Get the image URL from project media
+function getImageUrl(project) {
+  if (!project.media) return null
+  if (project.media.type === 'image') return project.media.url
+  if (project.media.thumbnail) return project.media.thumbnail
+  return null
+}
+
+// Individual project node as glass bubble
+function ProjectNode({ project, position, onClick, isFiltered, isFocused, isHovered, isDimmed, onHover, hideLabelOnMobile }) {
+  const groupRef = useRef()
+  const imageUrl = getImageUrl(project)
 
   // Featured projects are significantly larger
   const size = project.featured ? NODE_SIZES.featured : NODE_SIZES.regular
   const color = getCategoryColor(project.category)
-  const opacity = isFiltered ? 0.15 : 1
+
+  // Opacity logic (priority order):
+  // 1. Filtered out by category → very dim
+  // 2. Another node is focused (dimmed) → semi-dim
+  // 3. Normal → full opacity
+  const opacity = isFiltered ? 0.1 : isDimmed ? 0.3 : 1
 
   // Animate scale on hover/focus
   useFrame(() => {
-    if (meshRef.current) {
-      const targetScale = isFocused ? 1.4 : (isHovered ? 1.2 : 1)
-      meshRef.current.scale.lerp(
+    if (groupRef.current) {
+      const targetScale = isFocused ? 1.3 : (isHovered ? 1.15 : 1)
+      groupRef.current.scale.lerp(
         new THREE.Vector3(targetScale, targetScale, targetScale),
         0.1
       )
@@ -33,56 +50,58 @@ function ProjectNode({ project, position, onClick, isFiltered, isFocused, isHove
   })
 
   return (
-    <group position={position}>
-      {/* Glow ring on hover/focus - always faces camera */}
-      {/* Ring scales proportionally with orb size */}
-      {(isHovered || isFocused) && !isFiltered && (
-        <Billboard>
-          <mesh>
-            <ringGeometry args={[size * RING_SCALE.inner, size * RING_SCALE.outer, 32]} />
-            <meshBasicMaterial
-              color={color}
-              transparent
-              opacity={isFocused ? 0.8 : 0.5}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        </Billboard>
-      )}
+    <group position={position} ref={groupRef}>
+      {/* Flat image - always faces camera, fills entire bubble */}
+      <Billboard>
+        <mesh
+          onClick={(e) => {
+            e.stopPropagation()
+            if (!isFiltered) onClick()
+          }}
+          onPointerOver={(e) => {
+            e.stopPropagation()
+            document.body.style.cursor = isFiltered ? 'default' : 'pointer'
+            if (!isFiltered) onHover(true)
+          }}
+          onPointerOut={(e) => {
+            document.body.style.cursor = 'default'
+            onHover(false)
+          }}
+        >
+          <circleGeometry args={[size, 64]} />
+          {imageUrl ? (
+            <Suspense fallback={<meshBasicMaterial color={color} transparent opacity={opacity} />}>
+              <FlatImageMaterial url={imageUrl} opacity={opacity} />
+            </Suspense>
+          ) : (
+            <meshBasicMaterial color={color} transparent opacity={opacity} />
+          )}
+        </mesh>
+      </Billboard>
 
-      {/* Main sphere */}
-      <mesh
-        ref={meshRef}
-        onClick={(e) => {
-          e.stopPropagation()
-          if (!isFiltered) onClick()
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation()
-          document.body.style.cursor = isFiltered ? 'default' : 'pointer'
-          if (!isFiltered) onHover(true)
-        }}
-        onPointerOut={(e) => {
-          document.body.style.cursor = 'default'
-          onHover(false)
-        }}
-      >
-        <sphereGeometry args={[size, 32, 32]} />
-        <meshStandardMaterial
-          color={color}
-          transparent
-          opacity={opacity}
-          roughness={project.featured ? 0.2 : 0.4}
-          metalness={project.featured ? 0.3 : 0.1}
-          emissive={project.featured ? color : '#000000'}
-          emissiveIntensity={project.featured && !isFiltered ? 0.15 : 0}
-        />
-      </mesh>
+      {/* Vignette effect - darkens edges */}
+      <VignetteOverlay size={size} opacity={opacity} />
 
-      {/* Label on hover */}
-      {(isHovered || isFocused) && !isFiltered && (
+      {/* Glass bubble overlay - PNG overlay for 3D effect (optional) */}
+      <GlassBubbleOverlay size={size} opacity={opacity} />
+
+      {/* Colored rim/border */}
+      <Billboard>
+        <mesh position={[0, 0, 0.01]}>
+          <ringGeometry args={[size * 0.99, size * 1.01, 64]} />
+          <meshBasicMaterial
+            color={color}
+            transparent
+            opacity={opacity * ((isHovered || isFocused) ? 0.7 : 0.3)}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      </Billboard>
+
+      {/* Label on hover - hidden on mobile when panel is open */}
+      {(isHovered || isFocused) && !isFiltered && !hideLabelOnMobile && (
         <Html
-          position={[0, -size - 0.3, 0]}
+          position={[0, -size - 0.4, 0]}
           center
           style={{ pointerEvents: 'none' }}
         >
@@ -96,6 +115,88 @@ function ProjectNode({ project, position, onClick, isFiltered, isFocused, isHove
         </Html>
       )}
     </group>
+  )
+}
+
+// Flat image material for billboard
+function FlatImageMaterial({ url, opacity }) {
+  const texture = useTexture(url)
+
+  return (
+    <meshBasicMaterial
+      map={texture}
+      transparent
+      opacity={opacity}
+      side={THREE.DoubleSide}
+    />
+  )
+}
+
+// Vignette overlay - radial gradient darkening at edges
+function VignetteOverlay({ size, opacity }) {
+  const vignetteTexture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 256
+    canvas.height = 256
+    const ctx = canvas.getContext('2d')
+
+    // Create radial gradient: transparent center → subtle gray edges
+    const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
+    gradient.addColorStop(0, 'rgba(100, 100, 100, 0)')
+    gradient.addColorStop(0.6, 'rgba(100, 100, 100, 0)')
+    gradient.addColorStop(0.8, 'rgba(80, 80, 80, 0.1)')
+    gradient.addColorStop(0.92, 'rgba(70, 70, 70, 0.25)')
+    gradient.addColorStop(1, 'rgba(60, 60, 60, 0.4)')
+
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, 256, 256)
+
+    const texture = new THREE.CanvasTexture(canvas)
+    return texture
+  }, [])
+
+  return (
+    <Billboard>
+      <mesh position={[0, 0, 0.005]}>
+        <circleGeometry args={[size, 64]} />
+        <meshBasicMaterial
+          map={vignetteTexture}
+          transparent
+          opacity={opacity}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+    </Billboard>
+  )
+}
+
+// Glass bubble overlay - uses PNG texture
+function GlassBubbleOverlay({ size, opacity }) {
+  return (
+    <Billboard>
+      <mesh position={[0, 0, 0.02]}>
+        <planeGeometry args={[size * 2.4, size * 2.3]} />
+        <Suspense fallback={<meshBasicMaterial transparent opacity={0} />}>
+          <GlassOverlayMaterial opacity={opacity} />
+        </Suspense>
+      </mesh>
+    </Billboard>
+  )
+}
+
+// Glass overlay texture loader
+function GlassOverlayMaterial({ opacity }) {
+  const texture = useTexture('/textures/glass-bubble-overlay.png')
+
+  return (
+    <meshBasicMaterial
+      map={texture}
+      transparent
+      opacity={opacity * 0.8}
+      side={THREE.DoubleSide}
+      depthWrite={false}
+    />
   )
 }
 
@@ -148,9 +249,9 @@ function CameraController({ focusedNode, focusedProject }) {
 
       shouldAnimateCamera.current = true
     } else {
-      // When unfocusing, keep current orientation but zoom out to default distance
-      const currentDirection = camera.position.clone().normalize()
-      targetCameraPos.current = currentDirection.multiplyScalar(14)
+      // When unfocusing, zoom out slightly while keeping the same viewing angle
+      const pullBackDirection = camera.position.clone().normalize()
+      targetCameraPos.current = pullBackDirection.multiplyScalar(14)
       shouldAnimateCamera.current = true
     }
   }, [focusedNode, camera])
@@ -188,7 +289,7 @@ function CameraController({ focusedNode, focusedProject }) {
 }
 
 // Scene content
-function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocusedProject, focusedNode, setFocusedNode }) {
+function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocusedProject, focusedNode, setFocusedNode, isMobile }) {
   const [hoveredProject, setHoveredProject] = useState(null)
 
   const handleNodeClick = (project, position) => {
@@ -213,28 +314,12 @@ function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocu
 
       {/* Edges */}
       {edges.map((edge, index) => {
-        // Golden threads are always visible (but dimmed when filtering by other category)
-        // Regular edges filtered by category
-        let isFiltered = false
-        let edgeOpacity = focusedProject ? 0.1 : 0.4
+        // Hide edges that don't match filter
+        if (!edgeMatchesCategoryFilter(edge, activeCategory)) return null
 
-        if (edge.isGoldenThread) {
-          // Golden threads: always visible, but dimmed if filtering by non-featured category
-          if (activeCategory !== 'all' && activeCategory !== 'featured') {
-            edgeOpacity = 0.15
-          } else {
-            edgeOpacity = focusedProject ? 0.2 : 0.6 // Golden threads are more visible
-          }
-        } else {
-          // Regular category edges
-          if (activeCategory === 'featured') {
-            isFiltered = true // Hide category edges when filtering by featured
-          } else if (activeCategory !== 'all' && edge.category !== activeCategory) {
-            isFiltered = true
-          }
-        }
-
-        if (isFiltered) return null
+        // Opacity: dimmer when something is focused, brighter for golden threads
+        const baseOpacity = edge.isGoldenThread ? 0.6 : 0.4
+        const edgeOpacity = focusedProject ? baseOpacity * 0.3 : baseOpacity
 
         return (
           <CategoryEdge
@@ -253,11 +338,10 @@ function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocu
         const project = projects.find(p => p.id === node.id)
         if (!project) return null
 
-        // Handle 'featured' filter
-        const isFiltered = activeCategory === 'featured'
-          ? !project.featured
-          : activeCategory !== 'all' && node.category !== activeCategory
+        // Node visibility: isFiltered (doesn't match filter), isDimmed (other focused), isFocused
+        const isFiltered = !matchesCategoryFilter(project, activeCategory)
         const isFocused = focusedProject?.id === node.id
+        const isDimmed = focusedProject && !isFocused
         const isHovered = hoveredProject === node.id
 
         return (
@@ -268,8 +352,10 @@ function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocu
             onClick={() => handleNodeClick(project, node.position)}
             isFiltered={isFiltered}
             isFocused={isFocused}
+            isDimmed={isDimmed}
             isHovered={isHovered}
             onHover={(hovered) => setHoveredProject(hovered ? node.id : null)}
+            hideLabelOnMobile={isMobile && !!focusedProject}
           />
         )
       })}
@@ -277,10 +363,62 @@ function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocu
   )
 }
 
+// Hook to calculate camera distance based on viewport size
+function useResponsiveCameraZ() {
+  const [cameraZ, setCameraZ] = useState(() => {
+    if (typeof window !== 'undefined') {
+      // Use the smaller dimension to ensure the graph fits
+      const minDimension = Math.min(window.innerWidth, window.innerHeight)
+      // Reference: 800px = z of 14 (base desktop), scale proportionally
+      // Smaller screens get closer camera (smaller z)
+      const baseZ = 14
+      const referenceSize = 800
+      return Math.max(8, Math.min(16, (minDimension / referenceSize) * baseZ))
+    }
+    return 14
+  })
+
+  useEffect(() => {
+    const updateCameraZ = () => {
+      const minDimension = Math.min(window.innerWidth, window.innerHeight)
+      const baseZ = 14
+      const referenceSize = 800
+      setCameraZ(Math.max(8, Math.min(16, (minDimension / referenceSize) * baseZ)))
+    }
+    window.addEventListener('resize', updateCameraZ)
+    return () => window.removeEventListener('resize', updateCameraZ)
+  }, [])
+
+  return cameraZ
+}
+
 export default function NetworkCanvas({ projects, activeCategory = 'all', initialFocusId = null }) {
   const [focusedProject, setFocusedProject] = useState(null)
   const [focusedNode, setFocusedNode] = useState(null)
   const [hasInitialized, setHasInitialized] = useState(false)
+  const { setIsPanelOpen } = usePanelState()
+  const isMobile = useIsMobile()
+
+  // Camera distance: scales with viewport size
+  const cameraZ = useResponsiveCameraZ()
+
+  // Sync panel open state with context
+  useEffect(() => {
+    setIsPanelOpen(!!focusedProject)
+  }, [focusedProject, setIsPanelOpen])
+
+  // Reset panel state on unmount (e.g., navigating away)
+  useEffect(() => {
+    return () => setIsPanelOpen(false)
+  }, [setIsPanelOpen])
+
+  // Clear focus when category filter changes and focused project doesn't match
+  useEffect(() => {
+    if (focusedProject && !matchesCategoryFilter(focusedProject, activeCategory)) {
+      setFocusedProject(null)
+      setFocusedNode(null)
+    }
+  }, [activeCategory, focusedProject])
 
   // Calculate spherical layout
   const { nodes, edges } = useMemo(() => {
@@ -310,7 +448,7 @@ export default function NetworkCanvas({ projects, activeCategory = 'all', initia
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Canvas
-        camera={{ position: [0, 0, 14], fov: 50 }}
+        camera={{ position: [0, 0, cameraZ], fov: 50 }}
         style={{ background: 'var(--bg)' }}
         raycaster={{ params: { Line: { threshold: 0.1 } } }}
         onPointerMissed={handleClearFocus}
@@ -324,6 +462,7 @@ export default function NetworkCanvas({ projects, activeCategory = 'all', initia
           setFocusedProject={setFocusedProject}
           focusedNode={focusedNode}
           setFocusedNode={setFocusedNode}
+          isMobile={isMobile}
         />
       </Canvas>
 
