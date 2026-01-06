@@ -1,11 +1,26 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { NetworkCanvas } from '../components/NodeNetwork'
 import { projects, categories } from '../data/projects'
 import { ease } from '../utils/motion'
 import { getCategoryColor, GOLDEN_COLOR } from '../utils/graphLayout'
 import { useScrollLockOnMount } from '../hooks/useScrollLock'
+
+// Lazy load the heavy 3D graph so tag toggle renders immediately
+const NetworkCanvas = lazy(() => import('../components/NodeNetwork/NetworkCanvas'))
+
+// Loading state for the graph - subtle fade-in
+const GraphLoading = () => (
+  <div className="w-full h-full flex items-center justify-center">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 0.3 }}
+      className="label text-muted"
+    >
+      loading...
+    </motion.div>
+  </div>
+)
 
 export default function Gallery() {
   const [searchParams] = useSearchParams()
@@ -19,13 +34,15 @@ export default function Gallery() {
 
   return (
     <main className="h-screen overflow-hidden relative">
-      {/* Node Network Canvas - full page */}
+      {/* Node Network Canvas - full page, lazy loaded */}
       <div className="absolute inset-0">
-        <NetworkCanvas
-          projects={projects}
-          activeCategory={activeCategory}
-          initialFocusId={initialProjectId}
-        />
+        <Suspense fallback={<GraphLoading />}>
+          <NetworkCanvas
+            projects={projects}
+            activeCategory={activeCategory}
+            initialFocusId={initialProjectId}
+          />
+        </Suspense>
       </div>
 
       {/* Category filter - vertical on desktop left, horizontal bottom on mobile */}

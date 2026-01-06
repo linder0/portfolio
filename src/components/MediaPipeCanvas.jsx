@@ -545,12 +545,18 @@ export default function MediaPipeCanvas({ className = '' }) {
         </div>
       )}
 
-      {/* Control buttons - show early as loading indicator, disabled until ready */}
+      {/* Control buttons - fade in slowly during loading, complete when video starts */}
       {!error && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: [0.4, 0, 0.2, 1] }}
+          animate={{
+            opacity: isLoading ? 0.4 : 1,
+            y: 0
+          }}
+          transition={{
+            duration: isLoading ? 2.5 : 0.6,
+            ease: [0.4, 0, 0.2, 1]
+          }}
           className="absolute inset-x-0 bottom-4 z-30 flex justify-between px-4"
         >
           {/* Play/Pause - left */}
