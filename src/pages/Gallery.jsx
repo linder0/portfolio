@@ -1,30 +1,16 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { NetworkCanvas } from '../components/NodeNetwork'
 import { projects, categories } from '../data/projects'
 import { ease } from '../utils/motion'
 import { getCategoryColor, GOLDEN_COLOR } from '../utils/graphLayout'
 import { useScrollLockOnMount } from '../hooks/useScrollLock'
 
-// Lazy load the heavy 3D graph so tag toggle renders immediately
-const NetworkCanvas = lazy(() => import('../components/NodeNetwork/NetworkCanvas'))
-
-// Loading state for the graph - subtle fade-in
-const GraphLoading = () => (
-  <div className="w-full h-full flex items-center justify-center">
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 0.3 }}
-      className="label text-muted"
-    >
-      loading...
-    </motion.div>
-  </div>
-)
-
 export default function Gallery() {
   const [searchParams] = useSearchParams()
   const [activeCategory, setActiveCategory] = useState('all')
+  const [isLoaded, setIsLoaded] = useState(false)
 
   // Get initial project from URL query param
   const initialProjectId = searchParams.get('focus')
@@ -32,20 +18,43 @@ export default function Gallery() {
   // Lock scroll on mount, restore on unmount
   useScrollLockOnMount()
 
+  // Called when 3D canvas is ready
+  const handleReady = useCallback(() => setIsLoaded(true), [])
+
   return (
-    <main className="h-screen overflow-hidden relative">
-      {/* Node Network Canvas - full page, lazy loaded */}
+    <main className="h-screen overflow-hidden relative bg-theme">
+      {/* Loading screen */}
+      <AnimatePresence>
+        {!isLoaded && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-theme"
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              transition={{ duration: 0.3 }}
+              className="label"
+            >
+              loading...
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Node Network Canvas - full page */}
       <div className="absolute inset-0">
-        <Suspense fallback={<GraphLoading />}>
-          <NetworkCanvas
-            projects={projects}
-            activeCategory={activeCategory}
-            initialFocusId={initialProjectId}
-          />
-        </Suspense>
+        <NetworkCanvas
+          projects={projects}
+          activeCategory={activeCategory}
+          initialFocusId={initialProjectId}
+          onReady={handleReady}
+        />
       </div>
 
-      {/* Category filter - vertical on desktop left, horizontal bottom on mobile */}
+      {/* Category filter - loads immediately */}
       <motion.nav
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}

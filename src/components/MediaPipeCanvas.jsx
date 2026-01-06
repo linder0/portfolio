@@ -545,25 +545,19 @@ export default function MediaPipeCanvas({ className = '' }) {
         </div>
       )}
 
-      {/* Control buttons - fade in slowly during loading, complete when video starts */}
+      {/* Control buttons - fade in with cards */}
       {!error && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{
-            opacity: isLoading ? 0.4 : 1,
-            y: 0
-          }}
-          transition={{
-            duration: isLoading ? 2.5 : 0.6,
-            ease: [0.4, 0, 0.2, 1]
-          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
           className="absolute inset-x-0 bottom-4 z-30 flex justify-between px-4"
         >
           {/* Play/Pause - left */}
           <button
             onClick={togglePlayPause}
             disabled={isLoading}
-            className={`${BUTTON_CLASS} ${isLoading ? 'opacity-30 cursor-wait' : ''}`}
+            className={`${BUTTON_CLASS} ${isLoading ? 'cursor-wait' : ''}`}
             aria-label={isPlaying ? 'Pause video' : 'Play video'}
           >
             {isPlaying ? <Pause size={16} /> : <Play size={16} />}
@@ -574,7 +568,7 @@ export default function MediaPipeCanvas({ className = '' }) {
             <button
               onClick={toggleCamera}
               disabled={isLoading}
-              className={`${BUTTON_CLASS} ${isLoading ? 'opacity-30 cursor-wait' : ''}`}
+              className={`${BUTTON_CLASS} ${isLoading ? 'cursor-wait' : ''}`}
               aria-label={useCamera ? 'Switch to video' : 'Enable camera'}
             >
               {useCamera ? <VideoOff size={16} /> : <Video size={16} />}
@@ -582,7 +576,7 @@ export default function MediaPipeCanvas({ className = '' }) {
             <button
               onClick={() => setShowOverlay(!showOverlay)}
               disabled={isLoading}
-              className={`${BUTTON_CLASS} ${isLoading ? 'opacity-30 cursor-wait' : ''}`}
+              className={`${BUTTON_CLASS} ${isLoading ? 'cursor-wait' : ''}`}
               aria-label={showOverlay ? 'Hide mesh overlay' : 'Show mesh overlay'}
             >
               {showOverlay ? <Eye size={16} /> : <EyeClosed size={16} />}

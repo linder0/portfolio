@@ -51,26 +51,33 @@ function FlatImageMaterial({ url, opacity }) {
   )
 }
 
+// Shared vignette texture - created once and reused across all nodes
+let sharedVignetteTexture = null
+function getVignetteTexture() {
+  if (sharedVignetteTexture) return sharedVignetteTexture
+
+  const canvas = document.createElement('canvas')
+  canvas.width = 256
+  canvas.height = 256
+  const ctx = canvas.getContext('2d')
+
+  const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
+  gradient.addColorStop(0, 'rgba(100, 100, 100, 0)')
+  gradient.addColorStop(0.6, 'rgba(100, 100, 100, 0)')
+  gradient.addColorStop(0.8, 'rgba(80, 80, 80, 0.1)')
+  gradient.addColorStop(0.92, 'rgba(70, 70, 70, 0.25)')
+  gradient.addColorStop(1, 'rgba(60, 60, 60, 0.4)')
+
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, 0, 256, 256)
+
+  sharedVignetteTexture = new THREE.CanvasTexture(canvas)
+  return sharedVignetteTexture
+}
+
 // Vignette overlay - radial gradient darkening at edges
 function VignetteOverlay({ size, opacity }) {
-  const vignetteTexture = useMemo(() => {
-    const canvas = document.createElement('canvas')
-    canvas.width = 256
-    canvas.height = 256
-    const ctx = canvas.getContext('2d')
-
-    const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
-    gradient.addColorStop(0, 'rgba(100, 100, 100, 0)')
-    gradient.addColorStop(0.6, 'rgba(100, 100, 100, 0)')
-    gradient.addColorStop(0.8, 'rgba(80, 80, 80, 0.1)')
-    gradient.addColorStop(0.92, 'rgba(70, 70, 70, 0.25)')
-    gradient.addColorStop(1, 'rgba(60, 60, 60, 0.4)')
-
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, 256, 256)
-
-    return new THREE.CanvasTexture(canvas)
-  }, [])
+  const vignetteTexture = useMemo(() => getVignetteTexture(), [])
 
   return (
     <Billboard>

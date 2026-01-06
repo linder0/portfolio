@@ -8,8 +8,14 @@ const Home = lazy(() => import('./pages/Home'))
 const Gallery = lazy(() => import('./pages/Gallery'))
 const About = lazy(() => import('./pages/About'))
 
-// Prefetch Gallery after initial load (it's the heaviest page)
-const prefetchGallery = () => import('./pages/Gallery')
+// Prefetch Gallery and its heavy dependencies after initial load
+const prefetchGallery = () => {
+  // Load Gallery page and NodeNetwork in parallel for faster navigation
+  return Promise.all([
+    import('./pages/Gallery'),
+    import('./components/NodeNetwork/NetworkCanvas'),
+  ])
+}
 
 // Minimal loading fallback - just empty space to avoid layout shift
 const PageFallback = () => <div className="min-h-screen bg-theme" />
@@ -17,10 +23,10 @@ const PageFallback = () => <div className="min-h-screen bg-theme" />
 export default function App() {
   // Prefetch Gallery after initial page load for faster navigation
   useEffect(() => {
-    // Wait for page to be interactive, then prefetch heavy chunks
+    // Wait briefly for initial render, then prefetch heavy chunks
     const timer = setTimeout(() => {
       prefetchGallery()
-    }, 2000) // 2s after mount
+    }, 500) // 500ms - start prefetch quickly after initial paint
     return () => clearTimeout(timer)
   }, [])
 

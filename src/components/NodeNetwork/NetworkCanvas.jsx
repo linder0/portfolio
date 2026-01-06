@@ -220,10 +220,16 @@ function useResponsiveCameraZ() {
   return cameraZ
 }
 
-export default function NetworkCanvas({ projects, activeCategory = 'all', initialFocusId = null }) {
+export default function NetworkCanvas({ projects, activeCategory = 'all', initialFocusId = null, onReady }) {
   const [focusedProject, setFocusedProject] = useState(null)
   const [focusedNode, setFocusedNode] = useState(null)
   const [hasInitialized, setHasInitialized] = useState(false)
+
+  // Signal ready after first render
+  useEffect(() => {
+    const timer = setTimeout(() => onReady?.(), 100)
+    return () => clearTimeout(timer)
+  }, [onReady])
   const { setIsPanelOpen } = usePanelState()
   const isMobile = useIsMobile()
   const { theme } = useTheme()
