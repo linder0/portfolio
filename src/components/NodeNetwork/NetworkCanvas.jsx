@@ -220,16 +220,39 @@ function useResponsiveCameraZ() {
   return cameraZ
 }
 
+// Helper to get thumbnail URL from project
+function getThumbnailUrl(project) {
+  if (!project.media) return null
+  if (project.media.type === 'image') return project.media.url
+  if (project.media.thumbnail) return project.media.thumbnail
+  return null
+}
+
+// Preload all project thumbnails
+function preloadThumbnails(projects) {
+  const urls = projects.map(getThumbnailUrl).filter(Boolean)
+  return Promise.all(
+    urls.map(url => new Promise((resolve) => {
+      const img = new Image()
+      img.onload = resolve
+      img.onerror = resolve // Don't block on failed loads
+      img.src = url
+    }))
+  )
+}
+
 export default function NetworkCanvas({ projects, activeCategory = 'all', initialFocusId = null, onReady }) {
   const [focusedProject, setFocusedProject] = useState(null)
   const [focusedNode, setFocusedNode] = useState(null)
   const [hasInitialized, setHasInitialized] = useState(false)
 
-  // Signal ready after first render
+  // Preload thumbnails then signal ready
   useEffect(() => {
-    const timer = setTimeout(() => onReady?.(), 100)
-    return () => clearTimeout(timer)
-  }, [onReady])
+    preloadThumbnails(projects).then(() => {
+      // Small delay to ensure Three.js has rendered
+      setTimeout(() => onReady?.(), 200)
+    })
+  }, [projects, onReady])
   const { setIsPanelOpen } = usePanelState()
   const isMobile = useIsMobile()
   const { theme } = useTheme()

@@ -123,7 +123,7 @@ class Letter {
   }
 }
 
-export default function MediaPipeCanvas({ className = '' }) {
+export default function MediaPipeCanvas({ className = '', onReady }) {
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -332,6 +332,7 @@ export default function MediaPipeCanvas({ className = '' }) {
         }
 
         setIsLoading(false)
+        onReady?.()
 
         // Small delay + double RAF ensures the transition always animates
         setTimeout(() => {
