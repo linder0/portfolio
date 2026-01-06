@@ -17,6 +17,7 @@ export const contacts = [
   { label: 'LinkedIn', href: 'https://linkedin.com/in/lindalxue' },
   { label: 'Instagram', href: 'https://instagram.com/_lindaxue' },
   { label: 'TikTok', href: 'https://tiktok.com/@greenteaslurper' },
+  { label: 'Spotify', href: 'https://open.spotify.com/artist/0BtCnaxMvgGy54GU3RRhJq' },
 ]
 
 // Status badge content (used in Header)
