@@ -38,6 +38,8 @@ export default function CategoryEdge({
       lineWidth={lineWidth}
       transparent
       opacity={opacity}
+      depthWrite={false}
+      renderOrder={-1}
     />
   )
 }
