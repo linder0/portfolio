@@ -103,9 +103,8 @@ export const projects = [
       { url: "/images/chameleon/chameleon-4.jpeg", label: "Detail 3" },
       { url: "/images/chameleon/chameleon-6.jpeg", label: "Detail 4" }
     ],
-    videos: [
-      { url: "/videos/chameleon/assembly.MOV", label: "Assembly" }
-    ],
+    // TODO: Add YouTube embed for assembly video
+    videos: [],
     links: [],
     tools: ["CAD", "Electronics", "Color Sensor", "Gyroscope", "Silicone Molding"],
     role: "UROP Researcher",
