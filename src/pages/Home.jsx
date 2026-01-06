@@ -7,14 +7,14 @@ import { fadeUp, ease } from '../utils/motion'
 import { useIsDesktop } from '../hooks/useMediaQuery'
 
 export default function Home() {
-  const [isHovered, setIsHovered] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
   const [hasDragged, setHasDragged] = useState(false)
   const marqueeRef = useRef(null)
   const containerRef = useRef(null)
   const positionRef = useRef(0)
   const animationRef = useRef(null)
   const dragStartRef = useRef({ x: 0, position: 0 })
+  const isHoveredRef = useRef(false)
+  const isDraggingRef = useRef(false)
   const isDesktop = useIsDesktop()
 
   // Duplicate projects for seamless infinite scroll (desktop only)
@@ -34,7 +34,7 @@ export default function Home() {
       lastTime = currentTime
 
       // Speed: pixels per second (stop when hovered or dragging)
-      const speed = (isHovered || isDragging) ? 0 : 30
+      const speed = (isHoveredRef.current || isDraggingRef.current) ? 0 : 30
       positionRef.current += (speed * deltaTime) / 1000
 
       // Get half width for seamless loop (we duplicated the projects)
@@ -59,7 +59,7 @@ export default function Home() {
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [isHovered, isDragging, isDesktop])
+  }, [isDesktop])
 
   // Add non-passive wheel listener to allow preventDefault
   useEffect(() => {
@@ -78,13 +78,13 @@ export default function Home() {
 
   // Drag handlers for manual scrolling
   const handleDragStart = (clientX) => {
-    setIsDragging(true)
+    isDraggingRef.current = true
     setHasDragged(false)
     dragStartRef.current = { x: clientX, position: positionRef.current }
   }
 
   const handleDragMove = (clientX) => {
-    if (!isDragging) return
+    if (!isDraggingRef.current) return
     const delta = dragStartRef.current.x - clientX
     // Only consider it a drag if moved more than 5px (prevents accidental drags on clicks)
     if (Math.abs(delta) > 5) {
@@ -94,7 +94,7 @@ export default function Home() {
   }
 
   const handleDragEnd = () => {
-    setIsDragging(false)
+    isDraggingRef.current = false
     // Reset hasDragged after a brief delay so click events are properly blocked/allowed
     setTimeout(() => setHasDragged(false), 0)
   }
@@ -105,7 +105,7 @@ export default function Home() {
   const onMouseUp = () => handleDragEnd()
   const onMouseLeave = () => {
     handleDragEnd()
-    setIsHovered(false)
+    isHoveredRef.current = false
   }
 
   // Touch events
@@ -152,7 +152,7 @@ export default function Home() {
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
             onMouseLeave={onMouseLeave}
-            onMouseEnter={() => setIsHovered(true)}
+            onMouseEnter={() => { isHoveredRef.current = true }}
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
