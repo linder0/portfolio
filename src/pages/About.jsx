@@ -37,7 +37,7 @@ export default function About() {
         {/* Portrait - desktop: centered horizontally, aligned to bottom */}
         <div className="lg:h-full lg:flex lg:items-end lg:justify-center">
           <motion.img
-            src="/images/linda.png"
+            src="/images/site/linda.png"
             alt="Linda"
             className="block w-auto max-w-[80vw] mx-auto lg:max-w-none lg:mx-0 lg:h-[75vh] object-contain"
             {...fadeUp}

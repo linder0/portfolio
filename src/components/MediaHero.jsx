@@ -5,10 +5,11 @@
  * Props: { media: { type: 'image'|'video'|'audio', url, thumbnail? } }
  */
 
-export default function MediaHero({ media, className = '' }) {
+export default function MediaHero({ media, className = '', onImageClick }) {
   if (!media?.url) return null
 
   const baseClasses = `w-full rounded-lg overflow-hidden ${className}`
+  const clickableClasses = onImageClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''
 
   switch (media.type) {
     case 'video':
@@ -35,6 +36,7 @@ export default function MediaHero({ media, className = '' }) {
               src={media.url}
               poster={media.thumbnail}
               controls
+              preload="metadata"
               className="w-full h-full object-cover"
             />
           )}
@@ -48,12 +50,15 @@ export default function MediaHero({ media, className = '' }) {
             <img
               src={media.thumbnail}
               alt=""
+              loading="lazy"
+              decoding="async"
               className="w-full aspect-square object-cover mb-3"
             />
           )}
           <audio
             src={media.url}
             controls
+            preload="metadata"
             className="w-full"
           />
         </div>
@@ -62,11 +67,13 @@ export default function MediaHero({ media, className = '' }) {
     case 'image':
     default:
       return (
-        <div className={baseClasses}>
+        <div className={`${baseClasses} ${clickableClasses}`} onClick={onImageClick}>
           <img
             src={media.url}
             alt=""
-            className="w-full aspect-video object-cover"
+            loading="lazy"
+            decoding="async"
+            className="w-full h-auto object-contain"
           />
         </div>
       )

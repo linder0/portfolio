@@ -1,6 +1,21 @@
 import { useRef, useEffect, useState } from 'react'
-import { HandLandmarker, FilesetResolver } from '@mediapipe/tasks-vision'
+import { motion } from 'framer-motion'
 import { Eye, EyeClosed, Video, VideoOff, Play, Pause } from 'lucide-react'
+
+// Lazy load MediaPipe - this is ~20MB and shouldn't block initial render
+let HandLandmarker = null
+let FilesetResolver = null
+let mediaPipePromise = null
+
+async function loadMediaPipe() {
+  if (mediaPipePromise) return mediaPipePromise
+  mediaPipePromise = import('@mediapipe/tasks-vision').then(module => {
+    HandLandmarker = module.HandLandmarker
+    FilesetResolver = module.FilesetResolver
+    return module
+  })
+  return mediaPipePromise
+}
 
 // Physics constants
 const FLOW_RADIUS = 180
@@ -159,7 +174,7 @@ export default function MediaPipeCanvas({ className = '' }) {
     if (useCamera) {
       stopCameraStream()
       video.srcObject = null
-      video.src = '/videos/intro.mp4'
+      video.src = '/videos/site/intro.mp4'
       await video.play()
       setUseCamera(false)
     } else {
@@ -275,6 +290,9 @@ export default function MediaPipeCanvas({ className = '' }) {
 
     async function init() {
       try {
+        // Lazy load MediaPipe (deferred to avoid blocking initial render)
+        await loadMediaPipe()
+
         // Initialize MediaPipe vision
         const vision = await FilesetResolver.forVisionTasks(
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
@@ -476,7 +494,7 @@ export default function MediaPipeCanvas({ className = '' }) {
       {/* Video element - fades in when loaded */}
       <video
         ref={videoRef}
-        src={useCamera ? undefined : '/videos/intro.mp4'}
+        src={useCamera ? undefined : '/videos/site/intro.mp4'}
         className={`absolute inset-0 w-full h-full object-cover blur-[3px] grayscale transition-opacity duration-[5000ms] [transition-timing-function:cubic-bezier(0.7,0,0.3,1)] ${
           showThumbnail ? 'opacity-0' : 'opacity-100'
         } ${useCamera ? 'scale-x-[-1]' : ''}`}
@@ -484,6 +502,7 @@ export default function MediaPipeCanvas({ className = '' }) {
         muted
         loop
         autoPlay
+        preload="metadata"
       />
 
       {/* Canvas for overlays and text - always on top */}
@@ -526,20 +545,25 @@ export default function MediaPipeCanvas({ className = '' }) {
         </div>
       )}
 
-      {/* Control buttons */}
+      {/* Control buttons - fade in when loaded */}
       {!isLoading && !error && (
-        <>
-          {/* Play/Pause - bottom left */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="absolute inset-x-0 bottom-4 z-30 flex justify-between px-4"
+        >
+          {/* Play/Pause - left */}
           <button
             onClick={togglePlayPause}
-            className={`absolute bottom-4 left-4 z-30 ${BUTTON_CLASS}`}
+            className={BUTTON_CLASS}
             aria-label={isPlaying ? 'Pause video' : 'Play video'}
           >
             {isPlaying ? <Pause size={16} /> : <Play size={16} />}
           </button>
 
-          {/* Camera & Overlay toggles - bottom right */}
-          <div className="absolute bottom-4 right-4 z-30 flex gap-2">
+          {/* Camera & Overlay toggles - right */}
+          <div className="flex gap-2">
             <button
               onClick={toggleCamera}
               className={BUTTON_CLASS}
@@ -555,7 +579,7 @@ export default function MediaPipeCanvas({ className = '' }) {
               {showOverlay ? <Eye size={16} /> : <EyeClosed size={16} />}
             </button>
           </div>
-        </>
+        </motion.div>
       )}
     </div>
   )

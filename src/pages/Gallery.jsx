@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { NetworkCanvas } from '../components/NodeNetwork'
@@ -12,7 +12,7 @@ export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState('all')
 
   // Get initial project from URL query param
-  const initialProjectId = searchParams.get('project')
+  const initialProjectId = searchParams.get('focus')
 
   // Lock scroll on mount, restore on unmount
   useScrollLockOnMount()
@@ -28,14 +28,15 @@ export default function Gallery() {
         />
       </div>
 
-      {/* Category filter - horizontal footer style */}
+      {/* Category filter - vertical on desktop left, horizontal bottom on mobile */}
       <motion.nav
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease }}
-        className="absolute z-10 bottom-6 lg:bottom-8 left-0 right-0
-          flex justify-center gap-6 lg:gap-8 overflow-x-auto
-          px-4 pb-2"
+        className="absolute z-10
+          lg:left-8 lg:top-1/2 lg:-translate-y-1/2 lg:flex-col lg:items-start lg:gap-4
+          bottom-6 left-0 right-0 flex justify-center gap-6 overflow-x-auto px-4 pb-2
+          lg:bottom-auto lg:right-auto lg:px-0 lg:pb-0"
       >
         {categories.map((category) => {
           const isActive = activeCategory === category
@@ -50,30 +51,40 @@ export default function Gallery() {
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
-              className="relative label py-1 transition-opacity duration-300 cursor-pointer shrink-0 hover:opacity-100"
+              className="relative label py-1 lg:pl-3 lg:py-0 transition-opacity duration-300 cursor-pointer shrink-0 hover:opacity-100"
               style={{ opacity: isActive ? 1 : 0.5 }}
             >
               {category === 'featured' ? '★ featured' : category}
               {isActive && (
-                <motion.div
-                  layoutId="category-underline"
-                  className="absolute bottom-0 left-0 right-0 h-px"
-                  style={{ backgroundColor: color }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
+                <>
+                  {/* Mobile: horizontal underline */}
+                  <motion.div
+                    layoutId="category-underline"
+                    className="lg:hidden absolute bottom-0 left-0 right-0 h-px"
+                    style={{ backgroundColor: color }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  />
+                  {/* Desktop: vertical left line */}
+                  <motion.div
+                    layoutId="category-sideline"
+                    className="hidden lg:block absolute left-0 top-0 bottom-0 w-px"
+                    style={{ backgroundColor: color }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  />
+                </>
               )}
             </button>
           )
         })}
       </motion.nav>
 
-      {/* Reset hint - positioned above filter bar */}
+      {/* Show all button - bottom center for both mobile and desktop */}
       {activeCategory !== 'all' && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
-          className="absolute bottom-14 lg:bottom-16 left-1/2 -translate-x-1/2 z-10"
+          className="absolute bottom-14 lg:bottom-8 left-1/2 -translate-x-1/2 z-10"
         >
           <button
             onClick={() => setActiveCategory('all')}

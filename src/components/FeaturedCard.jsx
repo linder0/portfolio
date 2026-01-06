@@ -1,110 +1,124 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ease } from '../utils/motion'
-import TagPill from './TagPill'
 import { ArrowUpRightLarge } from './Icons'
 
 /**
- * FeaturedCard - Animated project card for homepage
+ * FeaturedCard - Animated project card for homepage marquee
  *
- * Default state: Tags/Year at top, Title at bottom
- * Hover state: Title slides to top, Tagline fades in at bottom, Open icon appears
+ * Features:
+ * - Thumbnail image background with gradient overlay
+ * - Tags/year visible by default, fade on hover
+ * - Title slides from bottom to top on hover
+ * - Tagline fades in on hover
+ * - Title links to external site, card links to gallery
  */
 
-// Animation timing constants
+// Animation timing (ms)
 const TIMING = {
-  fade: 300,      // ms - for fade transitions
-  slide: 500,     // ms - for title slide
-  delay: 200,     // ms - tagline appears after title starts moving
+  fade: 300,
+  slide: 500,
+  delay: 200,
 }
 
-// Stagger delay between cards (in seconds for framer-motion)
-const STAGGER_BASE = 0.3
-const STAGGER_INCREMENT = 0.1
+// Shared styles
+const STYLES = {
+  tag: 'label text-[10px] uppercase tracking-wider',
+  // Title positioned at top, translated down so bottom aligns with card bottom
+  // On hover, translateY(0) brings top edge flush with top
+  title: `
+    absolute top-3 left-3 right-3
+    text-2xl md:text-3xl font-light uppercase tracking-wider leading-tight
+    translate-y-[calc(120px-100%)] md:translate-y-[calc(152px-100%)]
+    group-hover:translate-y-0
+    transition-transform duration-500 ease-out
+  `,
+}
+
+// Get thumbnail URL from project media
+function getImageUrl(project) {
+  if (!project.media) return null
+  return project.media.thumbnail || (project.media.type === 'image' ? project.media.url : null)
+}
 
 export default function FeaturedCard({ project, index = 0 }) {
+  const imageUrl = getImageUrl(project)
+  const externalLink = project.links?.[0]?.url
+
   return (
-    <Link to={`/gallery?project=${project.id}`}>
+    <Link to={`/gallery?focus=${project.id}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{
-          duration: 0.6,
-          delay: STAGGER_BASE + index * STAGGER_INCREMENT,
-          ease
-        }}
-        className="
-          md:flex-shrink-0 md:w-[360px]
-          cursor-pointer group
-        "
+        transition={{ duration: 0.6, delay: 0.3 + index * 0.1, ease }}
+        className="w-full md:flex-shrink-0 md:w-[420px] cursor-pointer group"
       >
-        <div className="
-          relative p-3 h-28 md:h-32
-          rounded-xl accent-bg
-          transition-theme overflow-hidden
-        ">
-          {/* Top row: Tags & Year - fades out on hover */}
+        <div className="relative p-3 h-36 md:h-44 rounded-xl overflow-hidden">
+          {/* Background */}
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="absolute inset-0 accent-bg" />
+          )}
+
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+
+          {/* Tags & Year - fade out on hover */}
           <div
-            className="
-              flex justify-between items-start gap-2
-              transition-opacity ease-out group-hover:opacity-0
-            "
-            style={{ transitionDuration: `${TIMING.fade}ms` }}
+            className="relative z-10 flex justify-between items-start gap-2 transition-opacity ease-out group-hover:opacity-0"
+            style={{ transitionDuration: `${TIMING.fade}ms`, color: 'rgba(255,255,255,0.7)' }}
           >
-            {/* Tags: Featured + project tags */}
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-3">
               {project.featured && (
-                <TagPill variant="featured">Featured</TagPill>
+                <span className={STYLES.tag} style={{ color: 'white' }}>Featured</span>
               )}
               {project.tags?.slice(0, 2).map((tag) => (
-                <TagPill key={tag}>{tag}</TagPill>
+                <span key={tag} className={STYLES.tag}>{tag}</span>
               ))}
             </div>
-            <span className="label opacity-50 flex-shrink-0">{project.year}</span>
+            <span className="label flex-shrink-0">{project.year}</span>
           </div>
 
-          {/* Open icon - fades in on hover (top right) */}
+          {/* Arrow icon - fade in on hover */}
           <div
-            className="
-              absolute top-3 right-3
-              opacity-0 transition-opacity ease-out group-hover:opacity-70
-            "
-            style={{
-              transitionDuration: `${TIMING.fade}ms`,
-              transitionDelay: `${TIMING.delay}ms`
-            }}
+            className="absolute top-3 right-3 z-10 opacity-0 transition-opacity ease-out group-hover:opacity-70"
+            style={{ color: 'white', transitionDuration: `${TIMING.fade}ms`, transitionDelay: `${TIMING.delay}ms` }}
           >
             <ArrowUpRightLarge />
           </div>
 
-          {/* Title - positioned at top, uses CSS var for dynamic translation */}
-          {/* --offset: content_height - title_height, calculated via calc(88px - 100%) */}
-          {/* On hover, --offset becomes 0, sliding title to top */}
-          <h3
-            className="
-              absolute top-3 left-3 right-3
-              text-xl md:text-2xl font-medium
-              [--offset:calc(88px-100%)] md:[--offset:calc(104px-100%)]
-              group-hover:[--offset:0px]
-              translate-y-[var(--offset)]
-              transition-transform ease-out
-            "
-            style={{ transitionDuration: `${TIMING.slide}ms` }}
+          {/* Title - slides up on hover */}
+          <span
+            className={`${STYLES.title} ${externalLink ? 'z-20' : 'z-10'}`}
+            style={{ color: 'white', fontWeight: 300 }}
           >
-            {project.title}
-          </h3>
+            {externalLink ? (
+              <a
+                href={externalLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="hover:underline"
+                style={{ transition: 'none', opacity: 1 }}
+              >
+                {project.title}
+              </a>
+            ) : (
+              project.title
+            )}
+          </span>
 
-          {/* Tagline - fades in at bottom after title moves */}
+          {/* Tagline - fade in on hover */}
           <p
-            className="
-              absolute bottom-3 left-3 right-3
-              text-sm opacity-0 line-clamp-2
-              transition-opacity ease-out group-hover:opacity-70
-            "
-            style={{
-              transitionDuration: `${TIMING.fade}ms`,
-              transitionDelay: `${TIMING.delay}ms`
-            }}
+            className="absolute bottom-3 left-3 right-3 z-10 text-sm opacity-0 line-clamp-2 transition-opacity ease-out group-hover:opacity-70"
+            style={{ color: 'white', transitionDuration: `${TIMING.fade}ms`, transitionDelay: `${TIMING.delay}ms` }}
           >
             {project.tagline}
           </p>

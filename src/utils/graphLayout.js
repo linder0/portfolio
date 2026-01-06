@@ -36,12 +36,16 @@ export function calculateSphericalLayout(projects, radius = 4) {
   })
 
   // Create edges between nodes of the same category
+  // Handle both string and array categories
   const categoryGroups = {}
   projects.forEach((project, index) => {
-    if (!categoryGroups[project.category]) {
-      categoryGroups[project.category] = []
-    }
-    categoryGroups[project.category].push(index)
+    const categories = Array.isArray(project.category) ? project.category : [project.category]
+    categories.forEach(cat => {
+      if (!categoryGroups[cat]) {
+        categoryGroups[cat] = []
+      }
+      categoryGroups[cat].push(index)
+    })
   })
 
   Object.entries(categoryGroups).forEach(([category, indices]) => {
@@ -75,15 +79,18 @@ export function calculateSphericalLayout(projects, radius = 4) {
   })
 
   // Create golden threads connecting ALL featured projects to each other
+  // Use the first project's category for the line color
   const featuredNodes = nodes.filter(node => node.featured)
   for (let i = 0; i < featuredNodes.length; i++) {
     for (let j = i + 1; j < featuredNodes.length; j++) {
+      // Use source node's category for line color
+      const sourceCategory = featuredNodes[i].category
       edges.push({
         source: featuredNodes[i].position,
         target: featuredNodes[j].position,
         sourceId: featuredNodes[i].id,
         targetId: featuredNodes[j].id,
-        category: 'featured',
+        category: sourceCategory,
         isGoldenThread: true,
       })
     }
@@ -96,12 +103,12 @@ export function calculateSphericalLayout(projects, radius = 4) {
  * Design tokens for the gallery
  */
 
-// Category colors
+// Category colors (only used categories)
 export const categoryColors = {
-  web: '#4F46E5',      // Indigo
-  design: '#EC4899',  // Pink
-  music: '#8B5CF6',    // Purple
-  video: '#F59E0B',    // Amber
+  research: '#10B981', // Emerald
+  design: '#EC4899',   // Pink
+  software: '#3B82F6', // Blue
+  hardware: '#F97316', // Orange
 }
 
 // Special colors
@@ -113,30 +120,23 @@ export const NODE_SIZES = {
   regular: 0.4,
 }
 
-// Ring proportions for hover state
-export const RING_SCALE = {
-  inner: 1.15,
-  outer: 1.35,
-}
-
 export function getCategoryColor(category) {
-  return categoryColors[category] || '#6B7280'
+  // Handle array categories - use first one for color
+  const cat = Array.isArray(category) ? category[0] : category
+  return categoryColors[cat] || '#6B7280'
 }
 
 /**
  * Check if a project matches the active category filter
+ * Supports both string and array categories
  */
 export function matchesCategoryFilter(project, activeCategory) {
   if (activeCategory === 'all') return true
   if (activeCategory === 'featured') return project.featured
-  return project.category === activeCategory
-}
 
-/**
- * Check if an edge matches the active category filter
- */
-export function edgeMatchesCategoryFilter(edge, activeCategory) {
-  if (activeCategory === 'all') return true
-  if (activeCategory === 'featured') return edge.isGoldenThread
-  return edge.category === activeCategory
+  // Handle array or string category
+  if (Array.isArray(project.category)) {
+    return project.category.includes(activeCategory)
+  }
+  return project.category === activeCategory
 }

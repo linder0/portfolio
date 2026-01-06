@@ -7,4 +7,16 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split Three.js ecosystem into its own chunk for better caching
+          'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
+          // MediaPipe in its own chunk (loaded on-demand)
+          'mediapipe': ['@mediapipe/tasks-vision'],
+        },
+      },
+    },
+  },
 })

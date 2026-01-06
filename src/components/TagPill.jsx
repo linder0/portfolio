@@ -19,6 +19,8 @@ export default function TagPill({
     default: 'bg-theme/30 opacity-70',
     subtle: 'opacity-50',
     badge: 'border border-current opacity-60',
+    overlay: 'text-white/70',
+    'overlay-featured': 'text-white',
   }
 
   return (

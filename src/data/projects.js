@@ -1,222 +1,227 @@
 export const projects = [
   {
-    id: 1,
-    title: "Ethereal Soundscapes",
-    tagline: "Ambient audio experiences for immersive installations",
-    description: "A collection of ambient soundscapes designed for immersive art installations. Each piece explores the boundaries between music and environmental sound, creating spaces where listeners can lose themselves in texture and atmosphere.",
-    category: "music",
-    tags: ["ambient", "installation", "sound-design"],
-    media: { type: "image", url: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&h=800&fit=crop" },
-    links: [
-      { type: "live", url: "https://soundcloud.com", label: "Listen" }
+    id: 22,
+    title: "Hangful",
+    tagline: "Replace ads with real-world hangouts",
+    description: "A platform that sponsors real-world social experiences for brands targeting college communities. Brands create campaigns, students participate in verified hangouts, and track results with real-time analytics. Features identity verification, viral multiplier tracking, and campus reach across UCLA and USC.",
+    category: ["software", "design"],
+    tags: ["startup", "product", "full-stack"],
+    media: { type: "image", url: "/images/hangful/thumbnail.png" },
+    images: [
+      { url: "/images/hangful/demo.png", label: "App Demo" }
     ],
-    tools: ["Ableton Live", "Max/MSP", "Field Recording"],
-    role: "Sound Designer & Composer",
-    client: "Gallery Exhibition",
-    duration: "2 months",
-    year: "2024",
+    links: [
+      { type: "live", url: "https://hangful.com", label: "Visit Hangful" }
+    ],
+    tools: ["React", "Full-Stack", "Product Design", "Analytics"],
+    role: "Co-founder",
+    duration: "2025",
+    year: "2025",
     featured: true
   },
   {
-    id: 2,
-    title: "Neon Dreams Editorial",
-    tagline: "Bold visual identity for a digital-first magazine",
-    description: "Complete visual identity system for a cutting-edge digital magazine focused on emerging technology and culture. The design language embraces bold colors and dynamic typography to capture the energy of the digital age.",
-    category: "design",
-    tags: ["branding", "editorial", "identity"],
-    media: { type: "image", url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=800&fit=crop" },
-    links: [
-      { type: "case-study", url: "#", label: "Read Case Study" }
+    id: 21,
+    title: "Gemini Clone",
+    tagline: "Recreation of Google's Gemini AI interface",
+    description: "A faithful recreation of Google's Gemini AI chat interface, featuring conversation management, user authentication, and a clean modern UI. Frustrated with native Gemini image generation, I built a LangGraph agent for improved image generation with better chat memory and context retention.",
+    category: "software",
+    tags: ["ai", "full-stack", "clone"],
+    media: { type: "video", url: "/videos/gemini/demo.mp4", thumbnail: "/images/gemini/monkeyyy.png" },
+    images: [
+      { url: "/images/gemini/home.png", label: "Home" },
+      { url: "/images/gemini/library.png", label: "My Stuff" }
     ],
-    tools: ["Figma", "After Effects", "Illustrator"],
-    role: "Art Director",
-    client: "Neon Dreams Magazine",
-    duration: "3 months",
-    year: "2024",
-    featured: true
+    links: [
+      { type: "live", url: "https://geminiclone-blue-sigma.vercel.app", label: "Try it" },
+      { type: "github", url: "https://github.com/linder0/geminiclone", label: "GitHub" }
+    ],
+    tools: ["React", "LangGraph", "AI Integration"],
+    role: "Developer",
+    duration: "2025",
+    year: "2025",
+    featured: false
   },
   {
-    id: 3,
-    title: "Minimal Commerce",
-    tagline: "E-commerce platform with intentional simplicity",
-    description: "A full-stack e-commerce platform built with a focus on performance and user experience. The minimal design puts products front and center while the React-based architecture ensures lightning-fast interactions.",
-    category: "web",
-    tags: ["e-commerce", "react", "full-stack"],
-    media: { type: "image", url: "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&h=800&fit=crop" },
-    links: [
-      { type: "live", url: "#", label: "View Site" },
-      { type: "github", url: "#", label: "Source Code" }
+    id: 20,
+    title: "Monography",
+    tagline: "AI-powered research paper copilot",
+    description: "A full-stack web app for managing, annotating, and analyzing research papers with AI assistance. Features a LangGraph agent with autonomous multi-step reasoning, semantic search via pgvector, PDF viewing with text extraction, arXiv integration, and real-time streaming chat. Built with SvelteKit 5, Supabase, and integrations with OpenAI, Anthropic, Tavily, and ElevenLabs.",
+    category: ["software", "design"],
+    tags: ["ai", "full-stack", "startup", "product"],
+    media: { type: "image", url: "/images/monography/logo.png" },
+    images: [
+      { url: "/images/monography/homepage.png", label: "App Interface" }
     ],
-    tools: ["React", "Node.js", "Stripe", "PostgreSQL"],
+    tweets: [
+      { id: "1995546938557825183", label: "Demo 1" },
+      { id: "1994080526085374168", label: "Demo 2" }
+    ],
+    links: [
+      { type: "live", url: "https://monography.io", label: "Visit Monography" }
+    ],
+    tools: ["SvelteKit", "LangGraph", "pgvector", "Supabase", "OpenAI", "Stripe", "Vercel"],
     role: "Full-Stack Developer",
-    client: "Independent Brand",
-    duration: "4 months",
-    year: "2024",
-    featured: false
-  },
-  {
-    id: 4,
-    title: "Motion Reel 2024",
-    tagline: "Compiled showcase of motion design work",
-    description: "A curated compilation of motion design and animation projects from 2024. From kinetic typography to 3D product visualizations, this reel showcases versatility across styles and techniques.",
-    category: "video",
-    tags: ["motion", "animation", "showreel"],
-    media: { type: "video", url: "https://vimeo.com/123456789", thumbnail: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&h=800&fit=crop" },
-    links: [
-      { type: "live", url: "https://vimeo.com", label: "Watch Reel" }
-    ],
-    tools: ["After Effects", "Cinema 4D", "Premiere Pro"],
-    role: "Motion Designer",
-    client: "Self-Initiated",
-    duration: "Ongoing",
-    year: "2024",
+    duration: "2025",
+    year: "2025",
     featured: true
   },
   {
-    id: 5,
-    title: "Brand Identity System",
-    tagline: "Comprehensive identity for a tech startup",
-    description: "End-to-end brand identity development for an AI-focused startup. The system includes logo design, color palette, typography, iconography, and comprehensive brand guidelines for consistent application across all touchpoints.",
-    category: "design",
-    tags: ["branding", "identity", "guidelines"],
-    media: { type: "image", url: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=800&fit=crop" },
-    links: [
-      { type: "case-study", url: "#", label: "View Project" }
+    id: 19,
+    title: "Pookie",
+    tagline: "AI unified inbox for all your messages",
+    description: "Every message in one place. Pookie combines emails, texts, and DMs with semantic search, AI autodrafting that learns your tone, vim keyboard shortcuts, and custom smart-tagging. Native integrations for Gmail, Outlook, WhatsApp, and LinkedIn. Original idea accepted into Y Combinator F25, garnering 500k+ impressions and 2.5k waitlist signups.",
+    category: ["software", "design"],
+    tags: ["startup", "ai", "yc-f25", "product"],
+    media: { type: "image", url: "/images/pookie/thumbnail.png" },
+    tweets: [
+      { id: "1985801327310778541", label: "Demo 1" },
+      { id: "1968329094208381154", label: "Demo 2" },
+      { id: "1947680537746845954", label: "Demo 3" }
     ],
-    tools: ["Figma", "Illustrator", "Notion"],
-    role: "Brand Designer",
-    client: "AI Startup",
-    duration: "2 months",
-    year: "2023",
-    featured: false
+    links: [
+      { type: "live", url: "https://pookie.work", label: "Visit Pookie" }
+    ],
+    tools: ["Svelte", "AI/ML", "Semantic Search", "Product Design"],
+    role: "Co-founder",
+    client: "Y Combinator F25",
+    collaborators: ["Mathias"],
+    duration: "2025",
+    year: "2025",
+    featured: true
   },
   {
-    id: 6,
-    title: "Ambient Textures Vol. 2",
-    tagline: "Second volume of textural sound explorations",
-    description: "The follow-up to the original Ambient Textures collection, this volume explores deeper, darker sonic territories. Each track is designed to work both as standalone listening and as source material for other artists.",
-    category: "music",
-    tags: ["ambient", "electronic", "sample-pack"],
-    media: { type: "image", url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=800&fit=crop" },
-    links: [
-      { type: "live", url: "https://bandcamp.com", label: "Listen & Buy" }
+    id: 18,
+    title: "Chameleon Gradient",
+    tagline: "Color-sensing device that creates gradients from real-world colors",
+    description: "Digital Metaphors bring digital concepts into the real world. The Chameleon Gradient uses a color sensor to capture colors, and a gyroscope to translate angle into a gradient. In progress as UROP with Tangible Media Group @ MIT Media Lab.",
+    category: ["hardware", "research", "design"],
+    tags: ["hardware", "electronics", "mit-media-lab", "in-progress"],
+    media: { type: "image", url: "/images/chameleon/render.png" },
+    images: [
+      { url: "/images/chameleon/chameleon-thumb.jpeg", label: "Detail 1" },
+      { url: "/images/chameleon/chameleon-3.jpeg", label: "Detail 2" },
+      { url: "/images/chameleon/chameleon-4.jpeg", label: "Detail 3" },
+      { url: "/images/chameleon/chameleon-6.jpeg", label: "Detail 4" }
     ],
-    tools: ["Ableton Live", "Analog Synths", "Tape Machines"],
-    role: "Producer & Sound Designer",
-    client: "Self-Released",
-    duration: "6 months",
-    year: "2023",
-    featured: false
+    videos: [
+      { url: "/videos/chameleon/assembly.MOV", label: "Assembly" }
+    ],
+    links: [],
+    tools: ["CAD", "Electronics", "Color Sensor", "Gyroscope", "Silicone Molding"],
+    role: "UROP Researcher",
+    client: "MIT Media Lab — Tangible Media Group",
+    duration: "Ongoing",
+    year: "2025",
+    featured: true
   },
   {
-    id: 7,
-    title: "Portfolio Redesign",
-    tagline: "Personal portfolio with experimental interactions",
-    description: "A complete redesign of my personal portfolio, featuring experimental interactions including webcam-based effects and 3D node networks. Built with React and Three.js with a focus on memorable user experiences.",
-    category: "web",
-    tags: ["portfolio", "react", "threejs", "experimental"],
-    media: { type: "image", url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop" },
-    links: [
-      { type: "live", url: "#", label: "You're Here!" },
-      { type: "github", url: "#", label: "Source Code" }
+    id: 17,
+    title: "Inflatable Chimes",
+    tagline: "Modular roly-poly controllers for interactive soundscapes",
+    description: "Inspired by Budaoweng (Chinese roly-poly dolls), I designed modular bases with Bluetooth/gyroscope components that serve as controllers for a soundscape. Final project for 4.021 MIT Intro to Design. Exhibited in the lobby of Stratton Student Center.",
+    category: ["hardware", "design"],
+    tags: ["hardware", "sound-design", "interactive", "3d-printing"],
+    media: { type: "video", url: "/videos/chimes/chimes-demo.mp4", thumbnail: "/images/chimes/chimes-thumb.jpg" },
+    images: [
+      { url: "/images/chimes/chimes-thumbnail.jpeg", label: "Overview" },
+      { url: "/images/chimes/chimes-sideview.jpeg", label: "Side View" },
+      { url: "/images/chimes/chimes-topview.jpeg", label: "Top View" },
+      { url: "/images/chimes/chimes-gallery.gif", label: "Gallery" }
     ],
-    tools: ["React", "Three.js", "Framer Motion", "MediaPipe"],
+    links: [],
+    tools: ["CAD", "3D Printing", "Bluetooth", "Gyroscope", "Sound Design"],
     role: "Designer & Developer",
-    client: "Self-Initiated",
-    duration: "3 months",
+    client: "MIT 4.021 Intro to Design",
+    duration: "1 semester",
+    year: "2025",
+    featured: true
+  },
+  {
+    id: 16,
+    title: "Magnetic Petri Dishes",
+    tagline: "Automated cotton subculturing system for Galy Co.",
+    description: "Designed a magnetic petri dish system to automate cotton subculturing. Features magnetic fittings for alignment, a silicone ring for airtight seal, and ridges for lid stability. Completed for Galy Co. through MIT Consulting Group.",
+    category: "hardware",
+    tags: ["hardware", "cad", "consulting"],
+    media: { type: "video", url: "/videos/petri-dishes/petri-dishes.mp4", thumbnail: "/images/petri-dishes/petri-dishes-thumb.jpg" },
+    images: [
+      { url: "/images/petri-dishes/petri-dishes.png", label: "Prototype" }
+    ],
+    links: [],
+    tools: ["CAD", "3D Printing", "UR Arms", "Prototyping"],
+    role: "Product Designer",
+    client: "Galy Co. / MIT Consulting Group",
+    duration: "1 semester",
+    year: "2024",
+    featured: true
+  },
+  {
+    id: 15,
+    title: "Nanostalgia",
+    tagline: "iPod Nano shaped mirror with playlists on USB sticks",
+    description: "A nostalgic hardware project reimagining the iconic iPod Nano as a mirror device that plays curated playlists from USB sticks. Combining electronics and CAD design to create a functional art piece that bridges past and present music experiences. Built during the 2025 Formlabs Harvard/MIT IAP Hackathon.",
+    category: ["hardware", "design"],
+    tags: ["hardware", "electronics", "cad", "hackathon"],
+    media: { type: "video", url: "/videos/nanostalgia/nanostalgia.mp4", thumbnail: "/images/nanostalgia/nanostalgia-thumb.jpg" },
+    images: [
+      { url: "/images/nanostalgia/nanostalgia-render.png", label: "Render" }
+    ],
+    links: [
+      { type: "case-study", url: "https://docs.google.com/presentation/d/1nSg1uNUub7X9DMToT73ELBfUN78l4MJth-KzaMByAMc/edit?usp=drive_link", label: "View Presentation" }
+    ],
+    tools: ["Electronics", "CAD", "3D Printing"],
+    role: "Electronics, CAD",
+    client: "Formlabs 2025 Harvard & MIT Hackathon",
+    collaborators: ["Emily Pan", "Pria Sawhney", "Layla Stanton"],
+    duration: "Hackathon",
+    year: "2025",
+    featured: true
+  },
+  {
+    id: 13,
+    title: "Social Isolation in Madagascar Hissing Cockroaches",
+    tagline: "Behavioral and physiological effects of isolation on G. Portentosa",
+    description: "Using Gromphadorhina Portentosa (Madagascar Hissing Cockroach) as a model organism, this independent research examines how social isolation affects exploratory behavior (via AI video analysis) and glucose metabolism (via hemolymph glucose levels). A 2x2 randomized design with four treatment groups revealed that social isolation reduced exploratory behavior—with early instars affected more than late instars—and increased glucose levels while causing weight loss in early instars. These findings highlight the behavioral and biological impacts of social isolation, with implications for understanding pandemic-era health disparities.",
+    category: "research",
+    tags: ["neuroscience", "behavior", "independent-research"],
+    media: { type: "image", url: "/images/roach/roach.jpeg" },
+    links: [
+      { type: "case-study", url: "https://docs.google.com/document/d/1MbZcIGNLB-VMer3fTyWKVkRW79Zilmhvg813xIlSiYE/edit?tab=t.0", label: "Read Paper" }
+    ],
+    tools: ["AI Video Analysis", "Statistical Analysis", "Lab Equipment"],
+    role: "Independent Researcher",
+    client: "MIT",
+    duration: "1 semester",
     year: "2023",
     featured: true
   },
   {
-    id: 8,
-    title: "Documentary Short",
-    tagline: "Personal documentary exploring urban solitude",
-    description: "A short documentary exploring themes of solitude and connection in urban environments. Shot over three months in various cities, the film uses observational techniques to capture quiet moments of human experience.",
-    category: "video",
-    tags: ["documentary", "film", "personal"],
-    media: { type: "video", url: "https://vimeo.com/987654321", thumbnail: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&h=800&fit=crop" },
-    links: [
-      { type: "live", url: "https://vimeo.com", label: "Watch Film" }
+    id: 14,
+    title: "Gaze to the Stars",
+    tagline: "Interactive eye projections on the MIT Dome",
+    description: "The eyes are a window to the soul. By documenting them, this project tells untold stories by projecting them onto the MIT Dome. I created the scheduling program and sound design for the experience, and worked with UR arms for visual presentations. Awarded the MIT first-year award in performance and fine arts.",
+    category: ["design", "research"],
+    tags: ["installation", "sound-design", "mit-media-lab"],
+    media: { type: "image", url: "/images/gaze/gaze-stars.jpg" },
+    audio: [
+      { url: "/audio/gaze.wav", label: "Gaze" },
+      { url: "/audio/struggle.wav", label: "Struggle" }
     ],
-    tools: ["Sony A7III", "DaVinci Resolve", "Premiere Pro"],
-    role: "Director & Editor",
-    client: "Personal Project",
-    duration: "3 months",
-    year: "2023",
-    featured: false
-  },
-  {
-    id: 9,
-    title: "Typography Exhibition",
-    tagline: "Interactive type specimen for variable fonts",
-    description: "An interactive digital exhibition showcasing the possibilities of variable fonts. Visitors can manipulate type in real-time, exploring the continuous design space between weight, width, and custom axes.",
-    category: "design",
-    tags: ["typography", "interactive", "exhibition"],
-    media: { type: "image", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&h=800&fit=crop" },
-    links: [
-      { type: "live", url: "#", label: "Experience" }
+    videos: [
+      { url: "/videos/gaze/braille-machine.mp4", label: "Braille Machine" },
+      { url: "/videos/gaze/eye-display.mp4", label: "Eye Display" },
+      { url: "/videos/gaze/gaze-dj.mp4", label: "DJ Performance" }
     ],
-    tools: ["WebGL", "GSAP", "Variable Fonts"],
-    role: "Creative Developer",
-    client: "Type Foundry",
-    duration: "6 weeks",
-    year: "2023",
-    featured: false
-  },
-  {
-    id: 10,
-    title: "Studio Sessions",
-    tagline: "Behind-the-scenes recording documentation",
-    description: "A photo and audio documentation series capturing the creative process in various recording studios. The project pairs intimate photography with audio snippets, revealing the spaces and moments where music comes to life.",
-    category: "music",
-    tags: ["photography", "documentary", "behind-the-scenes"],
-    media: { type: "image", url: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=800&fit=crop" },
     links: [
-      { type: "case-study", url: "#", label: "View Series" }
+      { type: "live", url: "https://gazetothestars.com", label: "View Project" }
     ],
-    tools: ["Leica M10", "Ableton Live", "Lightroom"],
-    role: "Photographer & Producer",
-    client: "Various Artists",
-    duration: "Ongoing",
-    year: "2022",
-    featured: false
-  },
-  {
-    id: 11,
-    title: "E-Commerce Platform",
-    tagline: "Scalable marketplace for independent sellers",
-    description: "A multi-vendor e-commerce platform designed for independent sellers and small businesses. Features include real-time inventory management, integrated payment processing, and a custom CMS for each vendor.",
-    category: "web",
-    tags: ["e-commerce", "marketplace", "full-stack"],
-    media: { type: "image", url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=800&fit=crop" },
-    links: [
-      { type: "live", url: "#", label: "Visit Platform" }
-    ],
-    tools: ["Next.js", "Supabase", "Stripe Connect", "Tailwind"],
-    role: "Lead Developer",
-    client: "Startup",
-    duration: "6 months",
-    year: "2022",
-    featured: false
-  },
-  {
-    id: 12,
-    title: "Music Video Direction",
-    tagline: "Visual narrative for indie artist release",
-    description: "Music video direction for an indie artist's lead single. The concept explores themes of memory and nostalgia through a combination of practical effects, 16mm film, and subtle digital compositing.",
-    category: "video",
-    tags: ["music-video", "direction", "film"],
-    media: { type: "video", url: "https://youtube.com/watch?v=dQw4w9WgXcQ", thumbnail: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&h=800&fit=crop" },
-    links: [
-      { type: "live", url: "https://youtube.com", label: "Watch Video" }
-    ],
-    tools: ["16mm Film", "After Effects", "DaVinci Resolve"],
-    role: "Director & DP",
-    client: "Indie Artist",
-    duration: "2 months",
-    year: "2022",
-    featured: false
+    tools: ["Sound Design", "Python", "UR Arms", "Projection Mapping"],
+    role: "Sound Designer & Developer",
+    client: "MIT Media Lab — Critical Media Group",
+    duration: "1 semester",
+    year: "2025",
+    featured: true
   }
 ];
 
-export const categories = ['all', 'featured', 'web', 'design', 'music', 'video'];
+export const categories = ['all', 'research', 'design', 'software', 'hardware'];

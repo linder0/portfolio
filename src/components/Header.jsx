@@ -53,8 +53,9 @@ export default function Header() {
 
       {/* Content layer - stays opaque, shifts when panel is open */}
       <div
-        className={`relative z-[80] page-padding content-container flex items-center justify-between transition-all duration-400 ease-out !pl-6 md:!pl-14 ${
-          scrolled ? 'py-2' : 'py-6 md:py-8'
+        className={`relative z-[80] flex items-center justify-between transition-all duration-400 ease-out
+          px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 ${
+          scrolled ? 'py-2' : 'py-4 sm:py-6 md:py-8'
         } ${mobileMenuOpen ? 'bg-theme' : ''}`}
         style={{ paddingRight: isPanelOpen && isDesktop ? 'calc(28rem + 3.5rem)' : undefined }}
       >
@@ -100,7 +101,7 @@ export default function Header() {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="relative w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 hover:opacity-70"
+            className="relative w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 hover:opacity-70 cursor-pointer"
             aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -164,7 +165,7 @@ export default function Header() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.25 }}
                 onClick={toggleTheme}
-                className="mt-4 opacity-50 hover:opacity-100 transition-opacity"
+                className="mt-4 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
                 aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
               >
                 {theme === 'light' ? <MoonIcon /> : <SunIcon />}

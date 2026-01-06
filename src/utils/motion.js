@@ -33,3 +33,4 @@ export const transitionFast = {
   duration: 0.5,
   ease,
 }
+

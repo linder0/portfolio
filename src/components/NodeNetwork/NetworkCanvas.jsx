@@ -1,221 +1,15 @@
-import { useState, useMemo, useRef, useEffect, Suspense } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Html, Line, Billboard, useTexture } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { AnimatePresence } from 'framer-motion'
 import * as THREE from 'three'
 import FocusPanel from './FocusPanel'
+import ProjectNode from './ProjectNode'
+import CategoryEdge from './CategoryEdge'
 import { usePanelState } from '../../context/PanelContext'
 import { useIsMobile } from '../../hooks/useMediaQuery'
-import {
-  calculateSphericalLayout,
-  getCategoryColor,
-  GOLDEN_COLOR,
-  NODE_SIZES,
-  matchesCategoryFilter,
-  edgeMatchesCategoryFilter
-} from '../../utils/graphLayout'
-
-// Get the image URL from project media
-function getImageUrl(project) {
-  if (!project.media) return null
-  if (project.media.type === 'image') return project.media.url
-  if (project.media.thumbnail) return project.media.thumbnail
-  return null
-}
-
-// Individual project node as glass bubble
-function ProjectNode({ project, position, onClick, isFiltered, isFocused, isHovered, isDimmed, onHover, hideLabelOnMobile }) {
-  const groupRef = useRef()
-  const imageUrl = getImageUrl(project)
-
-  // Featured projects are significantly larger
-  const size = project.featured ? NODE_SIZES.featured : NODE_SIZES.regular
-  const color = getCategoryColor(project.category)
-
-  // Opacity logic (priority order):
-  // 1. Filtered out by category → very dim
-  // 2. Another node is focused (dimmed) → semi-dim
-  // 3. Normal → full opacity
-  const opacity = isFiltered ? 0.1 : isDimmed ? 0.3 : 1
-
-  // Animate scale on hover/focus
-  useFrame(() => {
-    if (groupRef.current) {
-      const targetScale = isFocused ? 1.3 : (isHovered ? 1.15 : 1)
-      groupRef.current.scale.lerp(
-        new THREE.Vector3(targetScale, targetScale, targetScale),
-        0.1
-      )
-    }
-  })
-
-  return (
-    <group position={position} ref={groupRef}>
-      {/* Flat image - always faces camera, fills entire bubble */}
-      <Billboard>
-        <mesh
-          onClick={(e) => {
-            e.stopPropagation()
-            if (!isFiltered) onClick()
-          }}
-          onPointerOver={(e) => {
-            e.stopPropagation()
-            document.body.style.cursor = isFiltered ? 'default' : 'pointer'
-            if (!isFiltered) onHover(true)
-          }}
-          onPointerOut={(e) => {
-            document.body.style.cursor = 'default'
-            onHover(false)
-          }}
-        >
-          <circleGeometry args={[size, 64]} />
-          {imageUrl ? (
-            <Suspense fallback={<meshBasicMaterial color={color} transparent opacity={opacity} />}>
-              <FlatImageMaterial url={imageUrl} opacity={opacity} />
-            </Suspense>
-          ) : (
-            <meshBasicMaterial color={color} transparent opacity={opacity} />
-          )}
-        </mesh>
-      </Billboard>
-
-      {/* Vignette effect - darkens edges */}
-      <VignetteOverlay size={size} opacity={opacity} />
-
-      {/* Glass bubble overlay - PNG overlay for 3D effect (optional) */}
-      <GlassBubbleOverlay size={size} opacity={opacity} />
-
-      {/* Colored rim/border */}
-      <Billboard>
-        <mesh position={[0, 0, 0.01]}>
-          <ringGeometry args={[size * 0.99, size * 1.01, 64]} />
-          <meshBasicMaterial
-            color={color}
-            transparent
-            opacity={opacity * ((isHovered || isFocused) ? 0.7 : 0.3)}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      </Billboard>
-
-      {/* Label on hover - hidden on mobile when panel is open */}
-      {(isHovered || isFocused) && !isFiltered && !hideLabelOnMobile && (
-        <Html
-          position={[0, -size - 0.4, 0]}
-          center
-          style={{ pointerEvents: 'none' }}
-        >
-          <div
-            className="label bg-inverse text-inverse px-3 py-1.5 rounded-full whitespace-nowrap flex items-center gap-1.5"
-            style={{ fontSize: '10px' }}
-          >
-            {project.featured && <span>★</span>}
-            {project.title}
-          </div>
-        </Html>
-      )}
-    </group>
-  )
-}
-
-// Flat image material for billboard
-function FlatImageMaterial({ url, opacity }) {
-  const texture = useTexture(url)
-
-  return (
-    <meshBasicMaterial
-      map={texture}
-      transparent
-      opacity={opacity}
-      side={THREE.DoubleSide}
-    />
-  )
-}
-
-// Vignette overlay - radial gradient darkening at edges
-function VignetteOverlay({ size, opacity }) {
-  const vignetteTexture = useMemo(() => {
-    const canvas = document.createElement('canvas')
-    canvas.width = 256
-    canvas.height = 256
-    const ctx = canvas.getContext('2d')
-
-    // Create radial gradient: transparent center → subtle gray edges
-    const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
-    gradient.addColorStop(0, 'rgba(100, 100, 100, 0)')
-    gradient.addColorStop(0.6, 'rgba(100, 100, 100, 0)')
-    gradient.addColorStop(0.8, 'rgba(80, 80, 80, 0.1)')
-    gradient.addColorStop(0.92, 'rgba(70, 70, 70, 0.25)')
-    gradient.addColorStop(1, 'rgba(60, 60, 60, 0.4)')
-
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, 256, 256)
-
-    const texture = new THREE.CanvasTexture(canvas)
-    return texture
-  }, [])
-
-  return (
-    <Billboard>
-      <mesh position={[0, 0, 0.005]}>
-        <circleGeometry args={[size, 64]} />
-        <meshBasicMaterial
-          map={vignetteTexture}
-          transparent
-          opacity={opacity}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
-    </Billboard>
-  )
-}
-
-// Glass bubble overlay - uses PNG texture
-function GlassBubbleOverlay({ size, opacity }) {
-  return (
-    <Billboard>
-      <mesh position={[0, 0, 0.02]}>
-        <planeGeometry args={[size * 2.4, size * 2.3]} />
-        <Suspense fallback={<meshBasicMaterial transparent opacity={0} />}>
-          <GlassOverlayMaterial opacity={opacity} />
-        </Suspense>
-      </mesh>
-    </Billboard>
-  )
-}
-
-// Glass overlay texture loader
-function GlassOverlayMaterial({ opacity }) {
-  const texture = useTexture('/textures/glass-bubble-overlay.png')
-
-  return (
-    <meshBasicMaterial
-      map={texture}
-      transparent
-      opacity={opacity * 0.8}
-      side={THREE.DoubleSide}
-      depthWrite={false}
-    />
-  )
-}
-
-// 3D line connecting nodes
-function CategoryEdge({ start, end, category, opacity, isGoldenThread }) {
-  // Golden threads get special gold color, others use category color
-  const color = isGoldenThread ? GOLDEN_COLOR : getCategoryColor(category)
-  const lineWidth = isGoldenThread ? 2 : 1.5
-
-  return (
-    <Line
-      points={[start, end]}
-      color={color}
-      lineWidth={lineWidth}
-      transparent
-      opacity={opacity}
-    />
-  )
-}
+import { useTheme } from '../../hooks/useTheme'
+import { calculateSphericalLayout, matchesCategoryFilter } from '../../utils/graphLayout'
 
 // Camera controller to animate focus on nodes
 function CameraController({ focusedNode, focusedProject }) {
@@ -223,6 +17,8 @@ function CameraController({ focusedNode, focusedProject }) {
   const { camera } = useThree()
   const targetCameraPos = useRef(new THREE.Vector3(0, 0, 14))
   const shouldAnimateCamera = useRef(false)
+  const [isUserInteracting, setIsUserInteracting] = useState(false)
+  const interactionTimeout = useRef(null)
 
   // When focused node changes, calculate the target camera position
   useEffect(() => {
@@ -256,6 +52,26 @@ function CameraController({ focusedNode, focusedProject }) {
     }
   }, [focusedNode, camera])
 
+  // Handle user interaction - pause auto-rotate and camera animation during interaction
+  const handleInteractionStart = () => {
+    setIsUserInteracting(true)
+    // Only stop camera animation when NOT focused on a project
+    // When focused, let the camera animation complete for proper positioning
+    if (!focusedProject) {
+      shouldAnimateCamera.current = false
+    }
+    if (interactionTimeout.current) {
+      clearTimeout(interactionTimeout.current)
+    }
+  }
+
+  const handleInteractionEnd = () => {
+    // Resume auto-rotate after a delay
+    interactionTimeout.current = setTimeout(() => {
+      setIsUserInteracting(false)
+    }, 3000) // 3 second delay before resuming auto-rotate
+  }
+
   useFrame(() => {
     if (controlsRef.current && shouldAnimateCamera.current) {
       // Smoothly move camera to target position
@@ -282,14 +98,16 @@ function CameraController({ focusedNode, focusedProject }) {
       rotateSpeed={0.5}
       minDistance={6}
       maxDistance={18}
-      autoRotate={!focusedProject}
+      autoRotate={!focusedProject && !isUserInteracting}
       autoRotateSpeed={0.2}
+      onStart={handleInteractionStart}
+      onEnd={handleInteractionEnd}
     />
   )
 }
 
 // Scene content
-function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocusedProject, focusedNode, setFocusedNode, isMobile }) {
+function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocusedProject, focusedNode, setFocusedNode, isMobile, isDarkTheme }) {
   const [hoveredProject, setHoveredProject] = useState(null)
 
   const handleNodeClick = (project, position) => {
@@ -314,8 +132,17 @@ function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocu
 
       {/* Edges */}
       {edges.map((edge, index) => {
-        // Hide edges that don't match filter
-        if (!edgeMatchesCategoryFilter(edge, activeCategory)) return null
+        // For proper filtering, check if BOTH connected projects match the filter
+        const sourceProject = projects.find(p => p.id === edge.sourceId)
+        const targetProject = projects.find(p => p.id === edge.targetId)
+
+        if (!sourceProject || !targetProject) return null
+
+        // Both endpoints must match the category filter
+        const sourceMatches = matchesCategoryFilter(sourceProject, activeCategory)
+        const targetMatches = matchesCategoryFilter(targetProject, activeCategory)
+
+        if (!sourceMatches || !targetMatches) return null
 
         // Opacity: dimmer when something is focused, brighter for golden threads
         const baseOpacity = edge.isGoldenThread ? 0.6 : 0.4
@@ -326,9 +153,10 @@ function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocu
             key={index}
             start={edge.source}
             end={edge.target}
-            category={edge.category}
             opacity={edgeOpacity}
             isGoldenThread={edge.isGoldenThread}
+            activeCategory={activeCategory}
+            isDarkTheme={isDarkTheme}
           />
         )
       })}
@@ -398,6 +226,7 @@ export default function NetworkCanvas({ projects, activeCategory = 'all', initia
   const [hasInitialized, setHasInitialized] = useState(false)
   const { setIsPanelOpen } = usePanelState()
   const isMobile = useIsMobile()
+  const { theme } = useTheme()
 
   // Camera distance: scales with viewport size
   const cameraZ = useResponsiveCameraZ()
@@ -463,6 +292,7 @@ export default function NetworkCanvas({ projects, activeCategory = 'all', initia
           focusedNode={focusedNode}
           setFocusedNode={setFocusedNode}
           isMobile={isMobile}
+          isDarkTheme={theme === 'dark'}
         />
       </Canvas>
 

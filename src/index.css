@@ -16,7 +16,7 @@
    ===================================================== */
 :root {
   /* Fonts */
-  --font-display: 'Cinema', 'Fraunces', serif;
+  --font-display: 'Cinema', serif;
   --font-body: 'Source Sans 3', sans-serif;
 
   /* Transitions */
@@ -248,9 +248,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .header-bg-blur,
-.footer-bg-blur {
+.footer-bg-blur,
+.panel-header-blur {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+.panel-header-blur {
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--accent) 90%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 70%, transparent) 40%,
+    color-mix(in srgb, var(--accent) 40%, transparent) 70%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.4) 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.4) 70%, transparent 100%);
 }
 
 /* =====================================================
