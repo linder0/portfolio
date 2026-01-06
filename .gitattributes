@@ -1,4 +1,15 @@
-*.mp4 filter=lfs diff=lfs merge=lfs -text
+# Large video files use LFS (>50MB)
 *.MOV filter=lfs diff=lfs merge=lfs -text
 *.mov filter=lfs diff=lfs merge=lfs -text
+
+# Exclude small essential files from LFS (Vercel doesn't pull LFS by default)
+# intro.mp4 (4MB) - homepage hero video - committed directly
+public/videos/site/intro.mp4 !filter !diff !merge text=auto
+
+# Large mp4s still use LFS
+public/videos/nanostalgia/*.mp4 filter=lfs diff=lfs merge=lfs -text
+public/videos/petri-dishes/*.mp4 filter=lfs diff=lfs merge=lfs -text
+public/videos/chameleon/*.MOV filter=lfs diff=lfs merge=lfs -text
+
+# Audio files - keep small ones direct, large ones in LFS
 *.wav filter=lfs diff=lfs merge=lfs -text
