@@ -23,29 +23,28 @@ export default function Gallery() {
 
   return (
     <main className="h-screen overflow-hidden relative bg-theme">
-      {/* Loading screen */}
-      <AnimatePresence>
-        {!isLoaded && (
-          <motion.div
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease }}
-            className="absolute inset-0 z-50 flex items-center justify-center bg-theme"
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              transition={{ duration: 0.3 }}
-              className="label"
-            >
-              loading...
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Node Network Canvas - full page */}
       <div className="absolute inset-0">
+        {/* Loading screen - only covers canvas area, below header/nav */}
+        <AnimatePresence>
+          {!isLoaded && (
+            <motion.div
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease }}
+              className="absolute inset-0 z-[5] flex items-center justify-center bg-theme"
+            >
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                transition={{ duration: 0.3 }}
+                className="label"
+              >
+                loading...
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <NetworkCanvas
           projects={projects}
           activeCategory={activeCategory}
@@ -54,15 +53,15 @@ export default function Gallery() {
         />
       </div>
 
-      {/* Category filter - loads immediately */}
+      {/* Category filter - left-aligned to match header padding */}
       <motion.nav
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.5, ease }}
         className="absolute z-10
-          lg:left-8 lg:top-1/2 lg:-translate-y-1/2 lg:flex-col lg:items-start lg:gap-4
-          bottom-6 left-0 right-0 flex justify-center gap-6 overflow-x-auto px-4 pb-2
-          lg:bottom-auto lg:right-auto lg:px-0 lg:pb-0"
+          lg:left-[44px] xl:left-[68px] lg:top-1/2 lg:-translate-y-1/2 lg:flex-col lg:items-start lg:gap-4 lg:pl-3
+          bottom-6 left-0 right-0 flex justify-start gap-6 overflow-x-auto px-4 sm:px-6 md:px-10 pb-2
+          lg:bottom-auto lg:right-auto lg:pb-0"
       >
         {categories.map((category) => {
           const isActive = activeCategory === category
@@ -77,7 +76,7 @@ export default function Gallery() {
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
-              className="relative label py-1 lg:pl-3 lg:py-0 transition-opacity duration-300 cursor-pointer shrink-0 hover:opacity-100"
+              className="relative label py-1 lg:py-0 transition-opacity duration-300 cursor-pointer shrink-0 hover:opacity-100"
               style={{ opacity: isActive ? 1 : 0.5 }}
             >
               {category === 'featured' ? '★ featured' : category}
@@ -90,10 +89,10 @@ export default function Gallery() {
                     style={{ backgroundColor: color }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
-                  {/* Desktop: vertical left line */}
+                  {/* Desktop: vertical left line - positioned to the left of text */}
                   <motion.div
                     layoutId="category-sideline"
-                    className="hidden lg:block absolute left-0 top-0 bottom-0 w-px"
+                    className="hidden lg:block absolute -left-3 top-0 bottom-0 w-px"
                     style={{ backgroundColor: color }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
