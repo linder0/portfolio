@@ -54,13 +54,13 @@ export default function Header({ onGalleryHover }) {
       {/* Content layer - stays opaque, shifts when panel is open */}
       <div
         className={`relative z-[80] flex items-center justify-between transition-all duration-400 ease-out
-          px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 ${
+          px-2 sm:px-6 md:px-10 lg:px-14 xl:px-20 ${
           scrolled ? 'py-2' : 'py-4 sm:py-6 md:py-8'
         } ${mobileMenuOpen ? 'bg-theme' : ''}`}
         style={{ paddingRight: isPanelOpen && isDesktop ? 'calc(28rem + 3.5rem)' : undefined }}
       >
         {/* Logo + Status */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-3">
             {location.pathname !== '/' && (
               <span className={`font-display font-medium tracking-tight transition-theme ${
