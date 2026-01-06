@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useRef, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import MediaPipeCanvas from '../components/MediaPipeCanvas'
 import FeaturedCard from '../components/FeaturedCard'
 import { projects } from '../data/projects'
@@ -10,7 +10,6 @@ export default function Home() {
   const [isHovered, setIsHovered] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [hasDragged, setHasDragged] = useState(false)
-  const [isHeroReady, setIsHeroReady] = useState(false)
   const marqueeRef = useRef(null)
   const containerRef = useRef(null)
   const positionRef = useRef(0)
@@ -114,41 +113,17 @@ export default function Home() {
   const onTouchMove = (e) => handleDragMove(e.touches[0].clientX)
   const onTouchEnd = () => handleDragEnd()
 
-  // Called when MediaPipe is ready
-  const handleHeroReady = useCallback(() => setIsHeroReady(true), [])
-
   return (
     <main className="pb-4 bg-theme md:h-screen md:pb-0 md:flex md:flex-col md:overflow-hidden">
       {/* Hero Section - MediaPipe Webcam */}
-      <section className="mb-4 md:mb-0 md:flex-1 md:min-h-0 relative">
-        {/* Loading overlay - only covers hero section */}
-        <AnimatePresence>
-          {!isHeroReady && (
-            <motion.div
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease }}
-              className="absolute inset-0 z-40 flex items-center justify-center bg-theme"
-            >
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                transition={{ duration: 0.3 }}
-                className="label"
-              >
-                loading...
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
+      <section className="mb-4 md:mb-0 md:flex-1 md:min-h-0">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, ease }}
           className="h-full"
         >
-          <MediaPipeCanvas className="md:h-full" onReady={handleHeroReady} />
+          <MediaPipeCanvas className="md:h-full" />
         </motion.div>
       </section>
 
