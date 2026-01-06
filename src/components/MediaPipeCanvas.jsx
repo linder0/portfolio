@@ -225,8 +225,8 @@ export default function MediaPipeCanvas({ className = '' }) {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      const computedStyle = getComputedStyle(document.documentElement)
-      const textColor = computedStyle.getPropertyValue('--text').trim()
+      // Read CSS variable directly for instant color change (avoids contrast crossover during theme transition)
+      const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim()
 
       ctx.clearRect(0, 0, containerWidth, containerHeight)
 
@@ -395,8 +395,8 @@ export default function MediaPipeCanvas({ className = '' }) {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      const computedStyle = getComputedStyle(document.documentElement)
-      const textColor = computedStyle.getPropertyValue('--text').trim()
+      // Read CSS variable directly for instant color change (avoids contrast crossover during theme transition)
+      const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim()
 
       const timestamp = performance.now()
       const allHandPoints = []
@@ -545,18 +545,19 @@ export default function MediaPipeCanvas({ className = '' }) {
         </div>
       )}
 
-      {/* Control buttons - fade in when loaded */}
-      {!isLoading && !error && (
+      {/* Control buttons - show early as loading indicator, disabled until ready */}
+      {!error && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.4, 0, 0.2, 1] }}
           className="absolute inset-x-0 bottom-4 z-30 flex justify-between px-4"
         >
           {/* Play/Pause - left */}
           <button
             onClick={togglePlayPause}
-            className={BUTTON_CLASS}
+            disabled={isLoading}
+            className={`${BUTTON_CLASS} ${isLoading ? 'opacity-30 cursor-wait' : ''}`}
             aria-label={isPlaying ? 'Pause video' : 'Play video'}
           >
             {isPlaying ? <Pause size={16} /> : <Play size={16} />}
@@ -566,14 +567,16 @@ export default function MediaPipeCanvas({ className = '' }) {
           <div className="flex gap-2">
             <button
               onClick={toggleCamera}
-              className={BUTTON_CLASS}
+              disabled={isLoading}
+              className={`${BUTTON_CLASS} ${isLoading ? 'opacity-30 cursor-wait' : ''}`}
               aria-label={useCamera ? 'Switch to video' : 'Enable camera'}
             >
               {useCamera ? <VideoOff size={16} /> : <Video size={16} />}
             </button>
             <button
               onClick={() => setShowOverlay(!showOverlay)}
-              className={BUTTON_CLASS}
+              disabled={isLoading}
+              className={`${BUTTON_CLASS} ${isLoading ? 'opacity-30 cursor-wait' : ''}`}
               aria-label={showOverlay ? 'Hide mesh overlay' : 'Show mesh overlay'}
             >
               {showOverlay ? <Eye size={16} /> : <EyeClosed size={16} />}
