@@ -118,30 +118,30 @@ export default function Home() {
   const handleHeroReady = useCallback(() => setIsHeroReady(true), [])
 
   return (
-    <main className="pb-4 bg-theme md:h-screen md:pb-0 md:flex md:flex-col md:overflow-hidden relative">
-      {/* Loading screen for hero */}
-      <AnimatePresence>
-        {!isHeroReady && (
-          <motion.div
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease }}
-            className="absolute inset-0 z-40 flex items-center justify-center bg-theme"
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              transition={{ duration: 0.3 }}
-              className="label"
-            >
-              loading...
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+    <main className="pb-4 bg-theme md:h-screen md:pb-0 md:flex md:flex-col md:overflow-hidden">
       {/* Hero Section - MediaPipe Webcam */}
-      <section className="mb-4 md:mb-0 md:flex-1 md:min-h-0">
+      <section className="mb-4 md:mb-0 md:flex-1 md:min-h-0 relative">
+        {/* Loading overlay - only covers hero section */}
+        <AnimatePresence>
+          {!isHeroReady && (
+            <motion.div
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease }}
+              className="absolute inset-0 z-40 flex items-center justify-center bg-theme"
+            >
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                transition={{ duration: 0.3 }}
+                className="label"
+              >
+                loading...
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
