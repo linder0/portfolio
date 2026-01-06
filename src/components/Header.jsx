@@ -112,7 +112,7 @@ export default function Header() {
                 exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
               >
-                {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+                {theme === 'light' ? <SunIcon /> : <MoonIcon />}
               </motion.div>
             </AnimatePresence>
           </button>
@@ -168,7 +168,7 @@ export default function Header() {
                 className="mt-4 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
                 aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
               >
-                {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+                {theme === 'light' ? <SunIcon /> : <MoonIcon />}
               </motion.button>
             </nav>
           </motion.div>
