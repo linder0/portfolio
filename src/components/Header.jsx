@@ -14,7 +14,7 @@ const navItems = [
   { path: '/about', label: 'About' },
 ]
 
-export default function Header() {
+export default function Header({ onGalleryHover }) {
   const location = useLocation()
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -82,6 +82,7 @@ export default function Header() {
               <Link
                 key={item.path}
                 to={item.path}
+                onMouseEnter={item.path === '/gallery' ? onGalleryHover : undefined}
                 className={`relative label transition-opacity duration-300 ${
                   scrolled ? 'py-2' : 'py-3'
                 }`}
@@ -150,6 +151,7 @@ export default function Header() {
                   <Link
                     to={item.path}
                     onClick={() => setMobileMenuOpen(false)}
+                    onTouchStart={item.path === '/gallery' ? onGalleryHover : undefined}
                     className={`label text-base transition-opacity duration-300 ${
                       location.pathname === item.path ? 'opacity-100' : 'opacity-50 hover:opacity-100'
                     }`}

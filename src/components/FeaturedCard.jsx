@@ -11,7 +11,7 @@ import { ArrowUpRightLarge } from './Icons'
  * - Tags/year visible by default, fade on hover
  * - Title slides from bottom to top on hover
  * - Tagline fades in on hover
- * - Title links to external site, card links to gallery
+ * - Clicking anywhere on card opens project in gallery
  */
 
 // Animation timing (ms)
@@ -43,7 +43,6 @@ function getImageUrl(project) {
 
 export default function FeaturedCard({ project, index = 0 }) {
   const imageUrl = getImageUrl(project)
-  const externalLink = project.links?.[0]?.url
 
   return (
     <Link to={`/gallery?focus=${project.id}`}>
@@ -96,23 +95,10 @@ export default function FeaturedCard({ project, index = 0 }) {
 
           {/* Title - slides up on hover */}
           <span
-            className={`${STYLES.title} ${externalLink ? 'z-20' : 'z-10'}`}
+            className={`${STYLES.title} z-10`}
             style={{ color: 'white', fontWeight: 300 }}
           >
-            {externalLink ? (
-              <a
-                href={externalLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="hover:underline"
-                style={{ transition: 'none', opacity: 1 }}
-              >
-                {project.title}
-              </a>
-            ) : (
-              project.title
-            )}
+            {project.title}
           </span>
 
           {/* Tagline - fade in on hover */}
