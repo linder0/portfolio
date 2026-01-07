@@ -56,6 +56,10 @@ export const projects = [
       { id: "1995546938557825183", label: "Demo 1" },
       { id: "1994080526085374168", label: "Demo 2" }
     ],
+    videos: [
+      { url: "https://youtu.be/3DlT9cj70Dc", label: "AI Sidebar" },
+      { url: "https://youtu.be/TABd8xRLewE", label: "Semantic Paper Search" }
+    ],
     links: [
       { type: "live", url: "https://monography.io", label: "Visit Monography" }
     ],
@@ -103,8 +107,9 @@ export const projects = [
       { url: "/images/chameleon/chameleon-4.jpeg", label: "Detail 3" },
       { url: "/images/chameleon/chameleon-6.jpeg", label: "Detail 4" }
     ],
-    // TODO: Add YouTube embed for assembly video
-    videos: [],
+    videos: [
+      { url: "https://youtube.com/shorts/qjFmz_p_eiM", label: "Assembly" }
+    ],
     links: [],
     tools: ["CAD", "Electronics", "Color Sensor", "Gyroscope", "Silicone Molding"],
     role: "UROP Researcher",
@@ -142,7 +147,7 @@ export const projects = [
     description: "Designed a magnetic petri dish system to automate cotton subculturing. Features magnetic fittings for alignment, a silicone ring for airtight seal, and ridges for lid stability. Completed for Galy Co. through MIT Consulting Group.",
     category: "hardware",
     tags: ["hardware", "cad", "consulting"],
-    media: { type: "video", url: "/videos/petri-dishes/petri-dishes.mp4", thumbnail: "/images/petri-dishes/petri-dishes-thumb.jpg" },
+    media: { type: "video", url: "https://youtu.be/Y2sF_TRmMb8", thumbnail: "/images/petri-dishes/petri-dishes-thumb.jpg" },
     images: [
       { url: "/images/petri-dishes/petri-dishes.png", label: "Prototype" }
     ],
@@ -161,7 +166,7 @@ export const projects = [
     description: "A nostalgic hardware project reimagining the iconic iPod Nano as a mirror device that plays curated playlists from USB sticks. Combining electronics and CAD design to create a functional art piece that bridges past and present music experiences. Built during the 2025 Formlabs Harvard/MIT IAP Hackathon.",
     category: ["hardware", "design"],
     tags: ["hardware", "electronics", "cad", "hackathon"],
-    media: { type: "video", url: "/videos/nanostalgia/nanostalgia.mp4", thumbnail: "/images/nanostalgia/nanostalgia-thumb.jpg" },
+    media: { type: "video", url: "https://youtu.be/Tnka10wFpD8", thumbnail: "/images/nanostalgia/nanostalgia-thumb.jpg" },
     images: [
       { url: "/images/nanostalgia/nanostalgia-render.png", label: "Render" }
     ],

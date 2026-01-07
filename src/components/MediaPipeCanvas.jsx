@@ -56,9 +56,10 @@ class Letter {
   }
 
   update(handPoints) {
-    // Scale interaction radius with container size
-    const flowRadius = FLOW_RADIUS * this.sizeScale
-    const flowStrength = FLOW_STRENGTH * this.sizeScale
+    // Scale interaction radius with container size (minimum 0.6 for mobile responsiveness)
+    const interactionScale = Math.max(0.6, this.sizeScale)
+    const flowRadius = FLOW_RADIUS * interactionScale
+    const flowStrength = FLOW_STRENGTH * interactionScale * 1.2
 
     let forceX = 0
     let forceY = 0
@@ -127,6 +128,7 @@ export default function MediaPipeCanvas({ className = '' }) {
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [fontLoaded, setFontLoaded] = useState(false)
   const [showThumbnail, setShowThumbnail] = useState(true)
   const [error, setError] = useState(null)
   const [showOverlay, setShowOverlay] = useState(false)
@@ -138,6 +140,16 @@ export default function MediaPipeCanvas({ className = '' }) {
   const showOverlayRef = useRef(false)
   const streamRef = useRef(null)
   const useCameraRef = useRef(false)
+
+  // Wait for Cinema font to load before drawing
+  useEffect(() => {
+    document.fonts.load('120px "Cinema"').then(() => {
+      setFontLoaded(true)
+    }).catch(() => {
+      // Fallback: show after a short delay if font check fails
+      setTimeout(() => setFontLoaded(true), 100)
+    })
+  }, [])
 
   // Keep refs in sync with state for use in animation loop
   useEffect(() => {
@@ -194,8 +206,10 @@ export default function MediaPipeCanvas({ className = '' }) {
     }
   }
 
-  // Initialize letters and draw during loading
+  // Initialize letters and draw during loading (only after font loads)
   useEffect(() => {
+    if (!fontLoaded) return
+
     let animId
 
     function drawLoadingFrame() {
@@ -244,7 +258,7 @@ export default function MediaPipeCanvas({ className = '' }) {
     return () => {
       if (animId) cancelAnimationFrame(animId)
     }
-  }, [isLoading])
+  }, [isLoading, fontLoaded])
 
   function initializeLetters(width, height) {
     // Scale everything based on container width

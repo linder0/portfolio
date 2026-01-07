@@ -40,6 +40,12 @@ const TweetEmbed = ({ tweetId, label }) => {
   )
 }
 
+/** Extract YouTube video ID from URL */
+const extractYouTubeId = (url) => {
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^&?/]+)/)
+  return match ? match[1] : ''
+}
+
 /** Lightbox for viewing images full-screen */
 const ImageLightbox = ({ src, alt, onClose }) => (
   <motion.div
@@ -309,20 +315,37 @@ export default function FocusPanel({ project, onClose }) {
         {/* Video Players */}
         {project.videos?.length > 0 && (
           <div className="space-y-4 pt-2">
-            {project.videos.map((video, i) => (
-              <div key={i} className="space-y-1">
-                <span className="text-xs opacity-60">{video.label}</span>
-                <video
-                  controls
-                  className="w-full rounded-lg cursor-pointer"
-                  playsInline
-                  preload="metadata"
-                >
-                  <source src={video.url} type={video.url.endsWith('.mov') ? 'video/quicktime' : 'video/mp4'} />
-                  Your browser does not support the video element.
-                </video>
-              </div>
-            ))}
+            {project.videos.map((video, i) => {
+              const isYouTube = video.url.includes('youtube') || video.url.includes('youtu.be')
+              const youtubeId = isYouTube ? extractYouTubeId(video.url) : null
+
+              return (
+                <div key={i} className="space-y-1">
+                  <span className="text-xs opacity-60">{video.label}</span>
+                  {isYouTube ? (
+                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-black">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${youtubeId}`}
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  ) : (
+                    <video
+                      controls
+                      className="w-full rounded-lg cursor-pointer"
+                      playsInline
+                      preload="metadata"
+                    >
+                      <source src={video.url} type={video.url.endsWith('.mov') ? 'video/quicktime' : 'video/mp4'} />
+                      Your browser does not support the video element.
+                    </video>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
 
