@@ -338,10 +338,13 @@ export default function MediaPipeCanvas({ className = '' }) {
           })
         }, 50)
 
-        // Load MediaPipe in background AFTER video is playing
+        // Start animation loop immediately (works without MediaPipe)
+        detectFrame()
+
+        // Load MediaPipe in background for hand tracking
         loadMediaPipe().then(async () => {
           if (!isMounted) return
-
+          
           const vision = await FilesetResolver.forVisionTasks(
             'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
           )
@@ -354,9 +357,7 @@ export default function MediaPipeCanvas({ className = '' }) {
             runningMode: 'VIDEO',
             numHands: 2
           })
-
-          // Start detection loop once MediaPipe is ready
-          if (isMounted) detectFrame()
+          // Hand tracking now active (detectFrame already running)
         }).catch(err => {
           console.warn('MediaPipe failed to load (hand tracking disabled):', err.message)
         })
