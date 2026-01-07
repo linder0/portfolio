@@ -20,6 +20,14 @@ function CameraController({ focusedNode, focusedProject }) {
   const [isUserInteracting, setIsUserInteracting] = useState(false)
   const interactionTimeout = useRef(null)
 
+  // Force controls update after mount to start auto-rotate
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      controlsRef.current?.update()
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [])
+
   // When focused node changes, calculate the target camera position
   useEffect(() => {
     if (focusedNode) {
