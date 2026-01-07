@@ -344,7 +344,7 @@ export default function MediaPipeCanvas({ className = '' }) {
         // Load MediaPipe in background for hand tracking
         loadMediaPipe().then(async () => {
           if (!isMounted) return
-          
+
           const vision = await FilesetResolver.forVisionTasks(
             'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
           )
@@ -389,6 +389,11 @@ export default function MediaPipeCanvas({ className = '' }) {
       if (containerWidth === 0 || containerHeight === 0) {
         animationFrameRef.current = requestAnimationFrame(detectFrame)
         return
+      }
+
+      // Initialize letters if not done yet
+      if (lettersRef.current.length === 0) {
+        initializeLetters(containerWidth, containerHeight)
       }
 
       canvas.width = containerWidth
