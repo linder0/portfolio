@@ -519,10 +519,11 @@ export default function MediaPipeCanvas({ className = '' }) {
         preload="metadata"
       />
 
-      {/* Canvas for overlays and text - always on top */}
+      {/* Canvas for overlays and text - always on top, fades in with font */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full z-10"
+        className="absolute inset-0 w-full h-full z-10 transition-opacity duration-800"
+        style={{ opacity: fontLoaded ? 1 : 0 }}
       />
 
       {/* Edge fade overlays - subtle curved fade */}
