@@ -58,7 +58,7 @@ export default function FeaturedCard({ project, index = 0 }) {
             <img
               src={imageUrl}
               alt=""
-              loading="lazy"
+              loading={index < 3 ? "eager" : "lazy"}
               decoding="async"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
