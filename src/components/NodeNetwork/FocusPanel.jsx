@@ -40,11 +40,7 @@ const TweetEmbed = ({ tweetId, label }) => {
   )
 }
 
-/** Extract YouTube video ID from URL */
-const extractYouTubeId = (url) => {
-  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^&?/]+)/)
-  return match ? match[1] : ''
-}
+import { extractYouTubeId, isYouTubeUrl } from '../../utils/media'
 
 /** Lightbox for viewing images full-screen */
 const ImageLightbox = ({ src, alt, onClose }) => (
@@ -316,7 +312,7 @@ export default function FocusPanel({ project, onClose }) {
         {project.videos?.length > 0 && (
           <div className="space-y-4 pt-2">
             {project.videos.map((video, i) => {
-              const isYouTube = video.url.includes('youtube') || video.url.includes('youtu.be')
+              const isYouTube = isYouTubeUrl(video.url)
               const youtubeId = isYouTube ? extractYouTubeId(video.url) : null
 
               return (

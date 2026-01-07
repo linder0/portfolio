@@ -18,7 +18,7 @@ export default function CategoryEdge({
   activeCategory,
   isDarkTheme
 }) {
-  const themeColor = isDarkTheme ? '#4A4A4A' : '#E5E5E5'
+  const themeColor = isDarkTheme ? '#4A4A4A' : '#F0F0F0'
 
   let color
   if (activeCategory === 'all') {

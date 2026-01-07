@@ -17,16 +17,8 @@ function CameraController({ focusedNode, focusedProject }) {
   const { camera } = useThree()
   const targetCameraPos = useRef(new THREE.Vector3(0, 0, 14))
   const shouldAnimateCamera = useRef(false)
-  const [isUserInteracting, setIsUserInteracting] = useState(false)
+  const isUserInteractingRef = useRef(false)
   const interactionTimeout = useRef(null)
-
-  // Force controls update after mount to start auto-rotate
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      controlsRef.current?.update()
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [])
 
   // When focused node changes, calculate the target camera position
   useEffect(() => {
@@ -62,7 +54,7 @@ function CameraController({ focusedNode, focusedProject }) {
 
   // Handle user interaction - pause auto-rotate and camera animation during interaction
   const handleInteractionStart = () => {
-    setIsUserInteracting(true)
+    isUserInteractingRef.current = true
     // Only stop camera animation when NOT focused on a project
     // When focused, let the camera animation complete for proper positioning
     if (!focusedProject) {
@@ -76,18 +68,19 @@ function CameraController({ focusedNode, focusedProject }) {
   const handleInteractionEnd = () => {
     // Resume auto-rotate after a delay
     interactionTimeout.current = setTimeout(() => {
-      setIsUserInteracting(false)
+      isUserInteractingRef.current = false
     }, 3000) // 3 second delay before resuming auto-rotate
   }
 
   useFrame(() => {
-    if (controlsRef.current && shouldAnimateCamera.current) {
+    if (!controlsRef.current) return
+
+    if (shouldAnimateCamera.current) {
       // Smoothly move camera to target position
       camera.position.lerp(targetCameraPos.current, 0.05)
 
       // Always look at center
       controlsRef.current.target.lerp(new THREE.Vector3(0, 0, 0), 0.05)
-      controlsRef.current.update()
 
       // Stop animating once close enough to target
       const distance = camera.position.distanceTo(targetCameraPos.current)
@@ -95,6 +88,17 @@ function CameraController({ focusedNode, focusedProject }) {
         shouldAnimateCamera.current = false
       }
     }
+
+    // Always apply slow rotation when not focused and not interacting
+    if (!focusedProject && !isUserInteractingRef.current && !shouldAnimateCamera.current) {
+      const angle = 0.001 // Very slow rotation
+      const x = camera.position.x
+      const z = camera.position.z
+      camera.position.x = x * Math.cos(angle) - z * Math.sin(angle)
+      camera.position.z = x * Math.sin(angle) + z * Math.cos(angle)
+    }
+
+    controlsRef.current.update()
   })
 
   return (
@@ -106,7 +110,7 @@ function CameraController({ focusedNode, focusedProject }) {
       rotateSpeed={0.5}
       minDistance={6}
       maxDistance={18}
-      autoRotate={!focusedProject && !isUserInteracting}
+      autoRotate={false}
       autoRotateSpeed={0.2}
       onStart={handleInteractionStart}
       onEnd={handleInteractionEnd}
@@ -158,7 +162,7 @@ function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocu
 
         return (
           <CategoryEdge
-            key={index}
+            key={`${index}-${isDarkTheme}`}
             start={edge.source}
             end={edge.target}
             opacity={edgeOpacity}
@@ -314,8 +318,9 @@ export default function NetworkCanvas({ projects, activeCategory = 'all', initia
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Canvas
+        key={theme}
         camera={{ position: [0, 0, cameraZ], fov: 50 }}
-        style={{ background: 'var(--bg)' }}
+        style={{ background: 'var(--bg)', transition: 'background var(--transition-theme)' }}
         raycaster={{ params: { Line: { threshold: 0.1 } } }}
         onPointerMissed={handleClearFocus}
       >

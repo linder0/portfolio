@@ -17,8 +17,11 @@
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://storage.googleapis.com">
 
-    <!-- Load fonts -->
+    <!-- Load fonts with display=swap for faster text rendering -->
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+
+    <!-- Preload hero video for faster LCP -->
+    <link rel="preload" href="/videos/site/intro.mp4" as="video" type="video/mp4">
   </head>
   <body>
     <div id="root"></div>

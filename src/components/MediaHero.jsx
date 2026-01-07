@@ -5,6 +5,8 @@
  * Props: { media: { type: 'image'|'video'|'audio', url, thumbnail? } }
  */
 
+import { extractYouTubeId, extractVimeoId, isYouTubeUrl, isVimeoUrl } from '../utils/media'
+
 export default function MediaHero({ media, className = '', onImageClick }) {
   if (!media?.url) return null
 
@@ -15,7 +17,7 @@ export default function MediaHero({ media, className = '', onImageClick }) {
     case 'video':
       return (
         <div className={`${baseClasses} aspect-video bg-black`}>
-          {media.url.includes('vimeo') ? (
+          {isVimeoUrl(media.url) ? (
             <iframe
               src={`https://player.vimeo.com/video/${extractVimeoId(media.url)}?title=0&byline=0&portrait=0`}
               className="w-full h-full"
@@ -23,7 +25,7 @@ export default function MediaHero({ media, className = '', onImageClick }) {
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
             />
-          ) : media.url.includes('youtube') || media.url.includes('youtu.be') ? (
+          ) : isYouTubeUrl(media.url) ? (
             <iframe
               src={`https://www.youtube.com/embed/${extractYouTubeId(media.url)}`}
               className="w-full h-full"
@@ -78,16 +80,4 @@ export default function MediaHero({ media, className = '', onImageClick }) {
         </div>
       )
   }
-}
-
-// Helper: Extract Vimeo video ID from URL
-function extractVimeoId(url) {
-  const match = url.match(/vimeo\.com\/(\d+)/)
-  return match ? match[1] : ''
-}
-
-// Helper: Extract YouTube video ID from URL
-function extractYouTubeId(url) {
-  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/)
-  return match ? match[1] : ''
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NetworkCanvas } from '../components/NodeNetwork'
@@ -11,6 +11,7 @@ export default function Gallery() {
   const [searchParams] = useSearchParams()
   const [activeCategory, setActiveCategory] = useState('all')
   const [isLoaded, setIsLoaded] = useState(false)
+  const isFirstMount = useRef(true)
 
   // Get initial project from URL query param
   const initialProjectId = searchParams.get('focus')
@@ -19,15 +20,18 @@ export default function Gallery() {
   useScrollLockOnMount()
 
   // Called when 3D canvas is ready
-  const handleReady = useCallback(() => setIsLoaded(true), [])
+  const handleReady = useCallback(() => {
+    setIsLoaded(true)
+    isFirstMount.current = false
+  }, [])
 
   return (
     <main className="h-screen overflow-hidden relative bg-theme">
       {/* Node Network Canvas - full page */}
       <div className="absolute inset-0">
-        {/* Loading screen - only covers canvas area, below header/nav */}
+        {/* Loading screen - only on first mount, below header/nav */}
         <AnimatePresence>
-          {!isLoaded && (
+          {!isLoaded && isFirstMount.current && (
             <motion.div
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}

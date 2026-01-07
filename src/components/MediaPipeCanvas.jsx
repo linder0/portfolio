@@ -304,27 +304,9 @@ export default function MediaPipeCanvas({ className = '' }) {
 
     async function init() {
       try {
-        // Lazy load MediaPipe (deferred to avoid blocking initial render)
-        await loadMediaPipe()
-
-        // Initialize MediaPipe vision
-        const vision = await FilesetResolver.forVisionTasks(
-          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
-        )
-
-        // Create Hand Landmarker
-        handLandmarkerRef.current = await HandLandmarker.createFromOptions(vision, {
-          baseOptions: {
-            modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
-            delegate: 'GPU'
-          },
-          runningMode: 'VIDEO',
-          numHands: 2
-        })
-
         const video = videoRef.current
 
-        // Wait for video to be ready (check if already ready first)
+        // Start video FIRST (don't wait for MediaPipe)
         if (video.readyState < 3) {
           await new Promise((resolve, reject) => {
             video.oncanplaythrough = resolve
@@ -356,11 +338,32 @@ export default function MediaPipeCanvas({ className = '' }) {
           })
         }, 50)
 
-        detectFrame()
+        // Load MediaPipe in background AFTER video is playing
+        loadMediaPipe().then(async () => {
+          if (!isMounted) return
+
+          const vision = await FilesetResolver.forVisionTasks(
+            'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
+          )
+
+          handLandmarkerRef.current = await HandLandmarker.createFromOptions(vision, {
+            baseOptions: {
+              modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+              delegate: 'GPU'
+            },
+            runningMode: 'VIDEO',
+            numHands: 2
+          })
+
+          // Start detection loop once MediaPipe is ready
+          if (isMounted) detectFrame()
+        }).catch(err => {
+          console.warn('MediaPipe failed to load (hand tracking disabled):', err.message)
+        })
       } catch (err) {
-        console.error('MediaPipe init error:', err)
+        console.error('Video init error:', err)
         if (isMounted) {
-          setError(err.message || 'Failed to initialize camera')
+          setError(err.message || 'Failed to load video')
           setIsLoading(false)
         }
       }
@@ -535,7 +538,8 @@ export default function MediaPipeCanvas({ className = '' }) {
             color-mix(in oklab, var(--bg) 45%, transparent) 25%,
             color-mix(in oklab, var(--bg) 25%, transparent) 50%,
             color-mix(in oklab, var(--bg) 10%, transparent) 75%,
-            transparent 100%)`
+            transparent 100%)`,
+          transition: 'background var(--transition-theme)'
         }}
       />
       <div
@@ -546,7 +550,8 @@ export default function MediaPipeCanvas({ className = '' }) {
             color-mix(in oklab, var(--bg) 45%, transparent) 25%,
             color-mix(in oklab, var(--bg) 25%, transparent) 50%,
             color-mix(in oklab, var(--bg) 10%, transparent) 75%,
-            transparent 100%)`
+            transparent 100%)`,
+          transition: 'background var(--transition-theme)'
         }}
       />
 
