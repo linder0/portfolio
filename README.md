@@ -1,7 +1,5 @@
 # Linda Xue — Portfolio
 
-A minimal, editorial portfolio for a multi-disciplinary creative designer.
-
 ## Tech Stack
 
 - **React 19** + **Vite 6**
