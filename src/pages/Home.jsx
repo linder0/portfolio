@@ -114,27 +114,27 @@ export default function Home() {
   const onTouchEnd = () => handleDragEnd()
 
   return (
-    <main className="pb-4 bg-theme md:h-screen md:pb-0 md:flex md:flex-col md:overflow-hidden">
+    <main className="pb-4 bg-theme lg:h-screen lg:pb-0 lg:flex lg:flex-col lg:overflow-hidden">
       {/* Hero Section - MediaPipe Webcam */}
-      <section className="mb-4 md:mb-0 md:flex-1 md:min-h-0">
+      <section className="mb-4 lg:mb-0 lg:flex-1 lg:min-h-0">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, ease }}
           className="h-full"
         >
-          <MediaPipeCanvas className="md:h-full" />
+          <MediaPipeCanvas className="lg:h-full" />
         </motion.div>
       </section>
 
-      {/* Projects - Stacked on mobile, Marquee on desktop */}
-      <section className="px-4 md:px-0 md:flex-shrink-0 md:py-3 md:overflow-hidden">
+      {/* Projects - Stacked on mobile/tablet, Marquee on desktop */}
+      <section className="px-4 lg:px-0 lg:flex-shrink-0 lg:py-3 lg:overflow-hidden">
         <motion.div
           {...fadeUp}
           transition={{ duration: 0.8, delay: 0.2, ease }}
         >
-          {/* Mobile: stacked vertical layout */}
-          <div className="flex flex-col gap-4 md:hidden">
+          {/* Mobile/tablet: stacked vertical layout */}
+          <div className="flex flex-col gap-4 lg:hidden">
             {projects.map((project, index) => (
               <FeaturedCard
                 key={project.id}
@@ -147,7 +147,7 @@ export default function Home() {
           {/* Desktop: horizontal marquee with drag support */}
           <div
             ref={containerRef}
-            className="hidden md:flex cursor-grab active:cursor-grabbing select-none"
+            className="hidden lg:flex cursor-grab active:cursor-grabbing select-none"
             onMouseDown={onMouseDown}
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}

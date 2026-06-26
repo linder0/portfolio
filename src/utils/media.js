@@ -6,18 +6,13 @@ export function extractYouTubeId(url) {
   return match ? match[1] : ''
 }
 
-/** Extract Vimeo video ID from URL */
-export function extractVimeoId(url) {
-  const match = url.match(/vimeo\.com\/(\d+)/)
-  return match ? match[1] : ''
-}
-
 /** Check if URL is a YouTube link */
 export function isYouTubeUrl(url) {
   return url.includes('youtube') || url.includes('youtu.be')
 }
 
-/** Check if URL is a Vimeo link */
-export function isVimeoUrl(url) {
-  return url.includes('vimeo')
+/** Resolve a thumbnail/preview image URL from a project's media object */
+export function getMediaThumbnail(media) {
+  if (!media) return null
+  return media.thumbnail || (media.type === 'image' ? media.url : null)
 }

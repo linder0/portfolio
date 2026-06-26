@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, EyeClosed, Video, VideoOff, Play, Pause } from 'lucide-react'
+import { useTheme } from '../hooks/useTheme'
 
 // Lazy load MediaPipe - this is ~20MB and shouldn't block initial render
 let HandLandmarker = null
@@ -140,6 +141,35 @@ export default function MediaPipeCanvas({ className = '' }) {
   const showOverlayRef = useRef(false)
   const streamRef = useRef(null)
   const useCameraRef = useRef(false)
+  const textColorRef = useRef('#1A1A1A')
+  const rootRef = useRef(null)
+  const inViewRef = useRef(true)
+  const [shouldInit, setShouldInit] = useState(false)
+  const { theme } = useTheme()
+
+  // Only spin up the heavy MediaPipe pipeline once the hero is in view, and
+  // pause the detection loop while it's scrolled offscreen (saves CPU/GPU).
+  useEffect(() => {
+    const el = rootRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inViewRef.current = entry.isIntersecting
+        if (entry.isIntersecting) setShouldInit(true)
+      },
+      { rootMargin: '200px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  // Cache the resolved --text color; only re-read on theme change (avoids
+  // a layout-forcing getComputedStyle on every animation frame)
+  useEffect(() => {
+    textColorRef.current = getComputedStyle(document.documentElement)
+      .getPropertyValue('--text')
+      .trim()
+  }, [theme])
 
   // Wait for Cinema font to load before drawing
   useEffect(() => {
@@ -239,8 +269,7 @@ export default function MediaPipeCanvas({ className = '' }) {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      // Read CSS variable directly for instant color change (avoids contrast crossover during theme transition)
-      const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim()
+      const textColor = textColorRef.current
 
       ctx.clearRect(0, 0, containerWidth, containerHeight)
 
@@ -300,6 +329,7 @@ export default function MediaPipeCanvas({ className = '' }) {
   }, [])
 
   useEffect(() => {
+    if (!shouldInit) return
     let isMounted = true
 
     async function init() {
@@ -369,6 +399,12 @@ export default function MediaPipeCanvas({ className = '' }) {
     function detectFrame() {
       if (!videoRef.current || !canvasRef.current) return
 
+      // Pause the expensive ML inference + drawing while scrolled out of view
+      if (!inViewRef.current) {
+        animationFrameRef.current = requestAnimationFrame(detectFrame)
+        return
+      }
+
       const video = videoRef.current
       const canvas = canvasRef.current
       const ctx = canvas.getContext('2d')
@@ -409,8 +445,7 @@ export default function MediaPipeCanvas({ className = '' }) {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // Read CSS variable directly for instant color change (avoids contrast crossover during theme transition)
-      const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim()
+      const textColor = textColorRef.current
 
       const timestamp = performance.now()
       const allHandPoints = []
@@ -501,14 +536,15 @@ export default function MediaPipeCanvas({ className = '' }) {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
       stopCameraStream()
     }
-  }, [])
+  }, [shouldInit])
 
   return (
-    <div className={`relative w-full h-[65vh] min-h-[300px] md:h-full overflow-hidden bg-theme transition-theme ${className}`}>
+    <div ref={rootRef} className={`relative w-full h-[65vh] min-h-[300px] lg:h-full overflow-hidden bg-theme transition-theme ${className}`}>
       {/* Video element - fades in when loaded */}
       <video
         ref={videoRef}
         src={useCamera ? undefined : '/videos/site/intro.mp4'}
+        poster={useCamera ? undefined : '/videos/site/intro-poster.jpg'}
         className={`absolute inset-0 w-full h-full object-cover blur-[3px] grayscale transition-opacity duration-[5000ms] [transition-timing-function:cubic-bezier(0.7,0,0.3,1)] ${
           showThumbnail ? 'opacity-0' : 'opacity-100'
         } ${useCamera ? 'scale-x-[-1]' : ''}`}
@@ -516,7 +552,7 @@ export default function MediaPipeCanvas({ className = '' }) {
         muted
         loop
         autoPlay
-        preload="metadata"
+        preload="auto"
       />
 
       {/* Canvas for overlays and text - always on top, fades in with font */}

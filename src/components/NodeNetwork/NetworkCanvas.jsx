@@ -10,6 +10,7 @@ import { usePanelState } from '../../context/PanelContext'
 import { useIsMobile } from '../../hooks/useMediaQuery'
 import { useTheme } from '../../hooks/useTheme'
 import { calculateSphericalLayout, matchesCategoryFilter } from '../../utils/graphLayout'
+import { getMediaThumbnail } from '../../utils/media'
 
 // Camera controller to animate focus on nodes
 function CameraController({ focusedNode, focusedProject }) {
@@ -121,6 +122,7 @@ function CameraController({ focusedNode, focusedProject }) {
 // Scene content
 function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocusedProject, focusedNode, setFocusedNode, isMobile, isDarkTheme }) {
   const [hoveredProject, setHoveredProject] = useState(null)
+  const projectById = useMemo(() => new Map(projects.map(p => [p.id, p])), [projects])
 
   const handleNodeClick = (project, position) => {
     if (focusedProject?.id === project.id) {
@@ -145,8 +147,8 @@ function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocu
       {/* Edges */}
       {edges.map((edge, index) => {
         // For proper filtering, check if BOTH connected projects match the filter
-        const sourceProject = projects.find(p => p.id === edge.sourceId)
-        const targetProject = projects.find(p => p.id === edge.targetId)
+        const sourceProject = projectById.get(edge.sourceId)
+        const targetProject = projectById.get(edge.targetId)
 
         if (!sourceProject || !targetProject) return null
 
@@ -175,7 +177,7 @@ function Scene({ projects, nodes, edges, activeCategory, focusedProject, setFocu
 
       {/* Nodes */}
       {nodes.map((node) => {
-        const project = projects.find(p => p.id === node.id)
+        const project = projectById.get(node.id)
         if (!project) return null
 
         // Node visibility: isFiltered (doesn't match filter), isDimmed (other focused), isFocused
@@ -232,17 +234,9 @@ function useResponsiveCameraZ() {
   return cameraZ
 }
 
-// Helper to get thumbnail URL from project
-function getThumbnailUrl(project) {
-  if (!project.media) return null
-  if (project.media.type === 'image') return project.media.url
-  if (project.media.thumbnail) return project.media.thumbnail
-  return null
-}
-
 // Preload all project thumbnails
 function preloadThumbnails(projects) {
-  const urls = projects.map(getThumbnailUrl).filter(Boolean)
+  const urls = projects.map(p => getMediaThumbnail(p.media)).filter(Boolean)
   return Promise.all(
     urls.map(url => new Promise((resolve) => {
       const img = new Image()

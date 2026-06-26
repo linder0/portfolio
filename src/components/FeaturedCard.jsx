@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ease } from '../utils/motion'
+import { getMediaThumbnail } from '../utils/media'
 import { ArrowUpRightLarge } from './Icons'
 
 /**
@@ -35,14 +36,8 @@ const STYLES = {
   `,
 }
 
-// Get thumbnail URL from project media
-function getImageUrl(project) {
-  if (!project.media) return null
-  return project.media.thumbnail || (project.media.type === 'image' ? project.media.url : null)
-}
-
 export default function FeaturedCard({ project, index = 0 }) {
-  const imageUrl = getImageUrl(project)
+  const imageUrl = getMediaThumbnail(project.media)
 
   return (
     <Link to={`/gallery?focus=${project.id}`}>

@@ -7,6 +7,17 @@
     <title>Linda Xue</title>
     <meta name="description" content="My worst fear is to be categorizable — but if you must: I'm Linda. I study CS + Neuro and Design at MIT but I'm currently on leave building after YC F25." />
 
+    <!-- Set theme before first paint to avoid flash of incorrect theme -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('theme')
+          var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          document.documentElement.setAttribute('data-theme', theme)
+        } catch (e) {}
+      })()
+    </script>
+
     <!-- Preconnect to external resources for faster loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

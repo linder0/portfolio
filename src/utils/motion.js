@@ -14,24 +14,8 @@ export const fadeUpSmall = {
   animate: { opacity: 1, y: 0 },
 }
 
-// Stagger children helper
-export const staggerChildren = (staggerDelay = 0.1) => ({
-  animate: {
-    transition: {
-      staggerChildren: staggerDelay,
-    },
-  },
-})
-
 // Standard transition config
 export const transition = {
   duration: 0.8,
   ease,
 }
-
-export const transitionFast = {
-  duration: 0.5,
-  ease,
-}
-
-

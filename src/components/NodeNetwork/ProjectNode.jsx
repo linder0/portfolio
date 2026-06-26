@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { Html, Billboard, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { getCategoryColor, NODE_SIZES } from '../../utils/graphLayout'
+import { getMediaThumbnail } from '../../utils/media'
 
 /**
  * ProjectNode - 3D glass bubble node for the network visualization
@@ -14,14 +15,6 @@ import { getCategoryColor, NODE_SIZES } from '../../utils/graphLayout'
  * - Scale animation on hover/focus
  * - Label tooltip
  */
-
-// Get the image URL from project media
-function getImageUrl(project) {
-  if (!project.media) return null
-  if (project.media.type === 'image') return project.media.url
-  if (project.media.thumbnail) return project.media.thumbnail
-  return null
-}
 
 // Flat image material for billboard
 function FlatImageMaterial({ url, opacity }) {
@@ -137,7 +130,7 @@ export default function ProjectNode({
   hideLabelOnMobile
 }) {
   const groupRef = useRef()
-  const imageUrl = getImageUrl(project)
+  const imageUrl = getMediaThumbnail(project.media)
 
   const size = project.featured ? NODE_SIZES.featured : NODE_SIZES.regular
   const color = getCategoryColor(project.category)

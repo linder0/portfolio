@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ease } from '../../utils/motion'
 import { getCategoryColor } from '../../utils/graphLayout'
+import { getAspectRatio } from '../../data/mediaDimensions'
 import { useIsMobile } from '../../hooks/useMediaQuery'
 import TagPill from '../TagPill'
 import { ExternalLinkIcon, CloseIcon, GitHubIcon } from '../Icons'
@@ -301,6 +302,7 @@ export default function FocusPanel({ project, onClose }) {
                   loading="lazy"
                   decoding="async"
                   className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  style={{ aspectRatio: getAspectRatio(image.url) }}
                   onClick={() => setLightboxImage(image)}
                 />
               </div>
@@ -332,6 +334,7 @@ export default function FocusPanel({ project, onClose }) {
                     <video
                       controls
                       className="w-full rounded-lg cursor-pointer"
+                      style={{ aspectRatio: getAspectRatio(video.url) }}
                       playsInline
                       preload="metadata"
                     >

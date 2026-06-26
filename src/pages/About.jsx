@@ -39,6 +39,8 @@ export default function About() {
           <motion.img
             src="/images/site/linda.png"
             alt="Linda"
+            width={1000}
+            height={1000}
             className="block w-auto max-w-[80vw] mx-auto lg:max-w-none lg:mx-0 lg:h-[75vh] object-contain"
             {...fadeUp}
             transition={transition}

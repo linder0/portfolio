@@ -1,24 +1,16 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback } from 'react'
 
 const ThemeContext = createContext()
 
-function getSystemTheme() {
-  if (typeof window !== 'undefined' && window.matchMedia) {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  }
-  return 'light'
+function getInitialTheme() {
+  if (typeof document === 'undefined') return 'light'
+  // The inline script in index.html already resolved and applied the theme
+  // before first paint; read it back so React state stays in sync.
+  return document.documentElement.getAttribute('data-theme') || 'light'
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => getSystemTheme())
-
-  // Initialize theme from localStorage or system preference on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    const initialTheme = savedTheme || getSystemTheme()
-    setThemeState(initialTheme)
-    document.documentElement.setAttribute('data-theme', initialTheme)
-  }, [])
+  const [theme, setThemeState] = useState(getInitialTheme)
 
   // Update theme with persistence
   const setTheme = useCallback((newTheme) => {

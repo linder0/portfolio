@@ -102,10 +102,6 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
 }
 
-.font-body {
-  font-family: var(--font-body);
-}
-
 /* Label style - used for section headings, nav items, categories */
 .label {
   font-family: var(--font-body);
@@ -133,11 +129,6 @@ h1, h2, h3, h4, h5, h6 {
   transition: background-color var(--transition-theme);
 }
 
-.text-theme {
-  color: var(--text);
-  transition: color var(--transition-theme);
-}
-
 /* Apply theme transition to all elements using CSS variables */
 .transition-theme {
   transition: all var(--transition-theme);
@@ -154,10 +145,6 @@ h1, h2, h3, h4, h5, h6 {
 .accent-bg {
   background-color: var(--accent);
   transition: background-color var(--transition-theme);
-}
-
-.accent-text {
-  color: var(--accent);
 }
 
 /* =====================================================
@@ -215,13 +202,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* =====================================================
-   FADING BLUR LAYERS (shared base, direction variants)
+   HEADER FADING BLUR LAYER
    ===================================================== */
-.fade-blur {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
 .header-bg-blur {
   background: linear-gradient(to bottom,
     color-mix(in srgb, var(--bg) 70%, transparent) 0%,
@@ -231,63 +213,10 @@ h1, h2, h3, h4, h5, h6 {
     transparent 100%
   );
   transition: background var(--transition-theme);
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.25) 75%, transparent 100%);
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.25) 75%, transparent 100%);
-}
-
-.footer-bg-blur {
-  background: linear-gradient(to top,
-    color-mix(in srgb, var(--bg) 70%, transparent) 0%,
-    color-mix(in srgb, var(--bg) 55%, transparent) 25%,
-    color-mix(in srgb, var(--bg) 35%, transparent) 50%,
-    color-mix(in srgb, var(--bg) 15%, transparent) 75%,
-    transparent 100%
-  );
-  transition: background var(--transition-theme);
-  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.25) 75%, transparent 100%);
-  mask-image: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.25) 75%, transparent 100%);
-}
-
-.header-bg-blur,
-.footer-bg-blur,
-.panel-header-blur {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-}
-
-.panel-header-blur {
-  background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--accent) 90%, transparent) 0%,
-    color-mix(in srgb, var(--accent) 70%, transparent) 40%,
-    color-mix(in srgb, var(--accent) 40%, transparent) 70%,
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.4) 70%, transparent 100%);
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.4) 70%, transparent 100%);
-}
-
-/* =====================================================
-   PULL CORD ANIMATION
-   ===================================================== */
-@keyframes cord-pull {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(24px); }
-  100% { transform: translateY(0); }
-}
-
-.cord-pull {
-  animation: cord-pull 0.4s ease-out;
-}
-
-/* =====================================================
-   GLOW EFFECT FOR DARK MODE
-   ===================================================== */
-.lamp-bead {
-  transition: box-shadow var(--transition-theme);
-}
-
-[data-theme="dark"] .lamp-bead {
-  box-shadow: 0 0 12px 4px rgba(250, 250, 250, 0.3);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.25) 75%, transparent 100%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.25) 75%, transparent 100%);
 }
 
 /* =====================================================
