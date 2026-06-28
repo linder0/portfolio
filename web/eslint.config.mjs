@@ -13,17 +13,6 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
-  {
-    // The 3D network (react-three-fiber) relies on intentional imperative
-    // patterns: mutating refs/objects inside animation loops and syncing
-    // derived state in effects. These conflict with the newer react-hooks
-    // compiler rules, so relax them project-wide.
-    rules: {
-      "react-hooks/set-state-in-effect": "off",
-      "react-hooks/refs": "off",
-      "react-hooks/immutability": "off",
-    },
-  },
 ]);
 
 export default eslintConfig;

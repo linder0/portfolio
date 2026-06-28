@@ -4,23 +4,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* =====================================================
-   CUSTOM FONTS
-   ===================================================== */
-@font-face {
-  font-family: "Cinema";
-  src: url("/fonts/Cinema.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-body);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-body);
+  --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -59,31 +48,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* =====================================================
-   PORTFOLIO THEME TOKENS (exposed as Tailwind colors)
-   ===================================================== */
-@theme {
-  --color-theme: var(--bg);
-  --color-theme-text: var(--text);
-  --color-theme-accent: var(--theme-accent);
-  --color-inverse: var(--inverse-bg);
-  --color-inverse-text: var(--inverse-text);
-}
-
 :root {
-  /* Portfolio fonts & transitions */
-  --font-display: "Cinema", serif;
-  --font-body: var(--font-source), "Source Sans 3", sans-serif;
-  --transition-theme: 1s cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Portfolio light theme */
-  --bg: #fafafa;
-  --text: #1a1a1a;
-  --theme-accent: #e5e5e5;
-  --inverse-bg: #1a1a1a;
-  --inverse-text: #fafafa;
-
-  /* shadcn tokens */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -119,14 +84,6 @@
 }
 
 .dark {
-  /* Portfolio dark theme */
-  --bg: #1a1a1a;
-  --text: #fafafa;
-  --theme-accent: #2a2a2a;
-  --inverse-bg: #fafafa;
-  --inverse-text: #1a1a1a;
-
-  /* shadcn tokens */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -160,193 +117,14 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* =====================================================
-   BASE STYLES
-   ===================================================== */
 @layer base {
   * {
-    box-sizing: border-box;
+    @apply border-border outline-ring/50;
   }
-
-  html {
-    scroll-behavior: smooth;
-    overscroll-behavior: none;
-  }
-
   body {
-    font-family: var(--font-body);
-    background-color: var(--bg);
-    color: var(--text);
-    transition:
-      background-color var(--transition-theme),
-      color var(--transition-theme);
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overscroll-behavior: none;
+    @apply bg-background text-foreground;
   }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: var(--font-body);
-    font-weight: 500;
-    line-height: 1.1;
+  html {
+    @apply font-sans;
   }
-
-  a {
-    text-decoration: none;
-    color: inherit;
-    transition: opacity 0.2s ease;
-  }
-
-  a:hover {
-    opacity: 0.7;
-  }
-
-  /* Hide scrollbars everywhere */
-  * {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  *::-webkit-scrollbar {
-    display: none;
-  }
-
-  ::selection {
-    background-color: var(--text);
-    color: var(--bg);
-  }
-}
-
-/* =====================================================
-   TYPOGRAPHY UTILITIES
-   ===================================================== */
-.font-display {
-  font-family: var(--font-display);
-}
-
-/* Label style - used for section headings, nav items, categories */
-.label {
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* =====================================================
-   THEME UTILITY CLASSES
-   ===================================================== */
-.bg-theme {
-  background-color: var(--bg);
-  transition: background-color var(--transition-theme);
-}
-
-.transition-theme {
-  transition: all var(--transition-theme);
-}
-
-.bg-inverse {
-  background-color: var(--inverse-bg);
-  color: var(--inverse-text);
-}
-
-.text-inverse {
-  color: var(--inverse-text);
-}
-
-.accent-bg {
-  background-color: var(--theme-accent);
-  transition: background-color var(--transition-theme);
-}
-
-/* =====================================================
-   LAYOUT
-   ===================================================== */
-.page-padding {
-  padding-left: 80px;
-  padding-right: 80px;
-}
-
-.content-container {
-  max-width: 1600px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-}
-
-@media (min-width: 1920px) {
-  .page-padding {
-    padding-left: 120px;
-    padding-right: 120px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .page-padding {
-    padding-left: 40px;
-    padding-right: 40px;
-  }
-}
-
-@media (max-width: 640px) {
-  .page-padding {
-    padding-left: 24px;
-    padding-right: 24px;
-  }
-}
-
-/* =====================================================
-   MARQUEE ANIMATION
-   ===================================================== */
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.animate-marquee {
-  animation: marquee 40s linear infinite;
-}
-
-/* =====================================================
-   HEADER FADING BLUR LAYER
-   ===================================================== */
-.header-bg-blur {
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--bg) 70%, transparent) 0%,
-    color-mix(in srgb, var(--bg) 55%, transparent) 25%,
-    color-mix(in srgb, var(--bg) 35%, transparent) 50%,
-    color-mix(in srgb, var(--bg) 15%, transparent) 75%,
-    transparent 100%
-  );
-  transition: background var(--transition-theme);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.9) 0%,
-    rgba(0, 0, 0, 0.75) 25%,
-    rgba(0, 0, 0, 0.5) 50%,
-    rgba(0, 0, 0, 0.25) 75%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.9) 0%,
-    rgba(0, 0, 0, 0.75) 25%,
-    rgba(0, 0, 0, 0.5) 50%,
-    rgba(0, 0, 0, 0.25) 75%,
-    transparent 100%
-  );
 }
