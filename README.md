@@ -1,72 +1,76 @@
 # Linda Xue — Portfolio
 
-## Tech Stack
+This repo is mid-migration from a Vite/React app to Next.js. It currently
+contains two folders:
 
-- **React 19** + **Vite 6**
-- **Tailwind CSS 4** (using `@tailwindcss/vite`)
+```
+portfolioremake/
+├── web/      ← the new Next.js + shadcn + Tailwind app (active rebuild)
+└── legacy/   ← the original Vite app, kept as a temporary visual reference
+```
+
+The `web/` app is a faithful port of `legacy/` (Home hero, 3D gallery, and
+About all reach parity). Once you're happy with the rebuild, `legacy/` can be
+deleted and `web/` promoted to the repo root.
+
+## New app (`web/`)
+
+- **Next.js 16** (App Router) + **React 19**
+- **Tailwind CSS v4** + **shadcn/ui**
 - **Framer Motion** (animations)
-- **React Router DOM** (client-side routing)
-- **Google Fonts**: Fraunces (display) + Source Sans 3 (body)
-
-## Getting Started
+- **three / @react-three/fiber / @react-three/drei** (3D project network)
+- **@mediapipe/tasks-vision** (hand-tracking hero on the home page)
+- Fonts: **Cinema** (local display face) + **Source Sans 3** (body, via `next/font`)
 
 ```bash
-# Install dependencies
+cd web
 npm install
-
-# Start development server
-npm run dev
-
-# Build for production
+npm run dev      # http://localhost:3000
 npm run build
-
-# Preview production build
-npm run preview
+npm run lint
 ```
 
-## Features
+### Routes
 
-- **Responsive Design**: Works beautifully on all screen sizes
-- **Dark/Light Theme**: Pull-cord lamp toggle with localStorage persistence
-- **Animated Navigation**: Smooth underline transitions with Framer Motion
-- **Glassmorphism Header**: Shrinks and blurs on scroll
-- **Infinite Marquee Footer**: Scrolling text with CSS animation
-- **Grid Size Toggle**: S/M/L options for gallery view
-- **Project Cards**: Hover effects with category and year reveal
+| Route      | View                              |
+| ---------- | --------------------------------- |
+| `/`        | MediaPipe hero + project marquee  |
+| `/gallery` | 3D spherical node network         |
+| `/about`   | Bio + contacts + portrait         |
 
-## Project Structure
+### Structure
 
 ```
-src/
+web/src/
+├── app/                 # App Router routes + layout + globals.css
 ├── components/
-│   ├── Header.jsx      # Sticky header with glassmorphism
-│   ├── Footer.jsx      # Fixed marquee footer
-│   ├── ProjectCard.jsx # Hover-revealing project cards
-│   ├── GridToggle.jsx  # S/M/L grid size selector
-│   └── LampToggle.jsx  # Pull-cord theme toggle
-├── pages/
-│   ├── Home.jsx        # Hero + featured projects
-│   ├── Gallery.jsx     # Full project grid
-│   └── About.jsx       # Bio + disciplines
-├── data/
-│   └── projects.js     # Project data
-├── App.jsx             # Main app with routing
-├── main.jsx            # Entry point
-└── index.css           # Global styles + Tailwind
+│   ├── views/           # HomeView / AboutView / GalleryView
+│   ├── NodeNetwork/      # 3D gallery (react-three-fiber)
+│   ├── Header.tsx, FeaturedCard.tsx, MediaPipeCanvas.tsx, ...
+│   └── ui/              # shadcn components
+├── lib/                 # theme/panel contexts, motion, media, graphLayout
+├── hooks/               # useMediaQuery, useScrollLock
+└── data/                # projects, about, mediaDimensions
 ```
 
-## Color Palette
+The 3D network and MediaPipe hero are loaded as client-only islands via
+`next/dynamic` with `ssr: false`. The theme system uses a `dark` class on
+`<html>`, set before first paint by an inline script in the root layout.
 
-| Token | Light Mode | Dark Mode |
-|-------|------------|-----------|
+## Legacy app (`legacy/`)
+
+The original Vite app, preserved for reference. To run it:
+
+```bash
+cd legacy
+npm install
+npm run dev
+```
+
+## Color palette
+
+| Token      | Light     | Dark      |
+| ---------- | --------- | --------- |
 | Background | `#FAFAFA` | `#1A1A1A` |
-| Text | `#1A1A1A` | `#FAFAFA` |
-| Accent | `#E5E5E5` | `#2A2A2A` |
-
----
-
-Crafted with ❤️
-
-
-
-
+| Text       | `#1A1A1A` | `#FAFAFA` |
+| Accent     | `#E5E5E5` | `#2A2A2A` |
