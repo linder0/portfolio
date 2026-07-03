@@ -59,7 +59,7 @@ export function NewsletterSignup({
 
   if (status === "success") {
     return (
-      <p className={`copy-16 text-foreground ${className ?? ""}`} aria-live="polite">
+      <p className={`copy-16 text-right text-foreground ${className ?? ""}`} aria-live="polite">
         {message}
       </p>
     );
