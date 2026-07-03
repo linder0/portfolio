@@ -12,7 +12,6 @@ import {
 import { saveStoredNote } from "@/lib/note-store";
 import {
   getAllPosts,
-  savePostImage,
   saveStoredPost,
   type StoredPost,
 } from "@/lib/post-store";
@@ -102,24 +101,6 @@ export async function updateNote(
   await saveStoredNote(id, stored);
   revalidatePath("/", "layout");
   return { saved: stored ?? {} };
-}
-
-// Upload a photo for embedding in a note or post body (as a bare URL on its
-// own line, which renders as the photo). Stored in the private Blob store and
-// served back through /api/images/[name].
-export async function uploadImage(
-  formData: FormData,
-): Promise<{ error: string } | { url: string }> {
-  const denied = await ownerGuard();
-  if (denied) return denied;
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: "No file." };
-  }
-  if (!file.type.startsWith("image/")) {
-    return { error: "Not an image." };
-  }
-  return { url: await savePostImage(file) };
 }
 
 /* ---------------------------------------------------------------------------

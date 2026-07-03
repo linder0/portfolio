@@ -1,4 +1,3 @@
-import { put } from "@vercel/blob";
 import { posts as staticPosts, type Post } from "@/lib/writing";
 import { blobRecordStore } from "@/lib/blob-store";
 
@@ -89,14 +88,3 @@ export async function getAllPosts(): Promise<Post[]> {
 export async function getPostBySlug(slug: string): Promise<Post | undefined> {
   return (await getAllPosts()).find((post) => post.slug === slug);
 }
-
-// Images embedded in posts. The blob store is private, so the browser can't
-// load blob URLs directly — images are stored under a timestamped name and
-// served through `/api/images/[name]`, which streams them from Blob.
-export async function savePostImage(file: File): Promise<string> {
-  const name = `${Date.now()}-${file.name.replace(/[^\w.-]+/g, "-")}`;
-  await put(`${IMAGE_PREFIX}${name}`, file, { access: "private" });
-  return `/api/images/${name}`;
-}
-
-export const IMAGE_PREFIX = "content/images/";

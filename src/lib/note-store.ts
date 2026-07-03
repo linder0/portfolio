@@ -5,7 +5,7 @@ import { blobRecordStore } from "@/lib/blob-store";
    Note store — owner-edited marginalia, keyed by note id (e.g.
    "project:hangful", "bio:2"), merged over static defaults at render time.
    Server-side only. (Photos embedded in notes share the post-image storage —
-   see `savePostImage` in `lib/post-store`.)
+   see `lib/images` and `components/use-image-upload`.)
    ------------------------------------------------------------------------- */
 
 export type StoredNotes = Record<string, StoredNote>;

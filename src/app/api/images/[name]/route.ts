@@ -1,5 +1,5 @@
 import { get } from "@vercel/blob";
-import { IMAGE_PREFIX } from "@/lib/post-store";
+import { IMAGE_PREFIX, isValidImageName } from "@/lib/images";
 
 // Owner-uploaded images (post bodies, marginalia notes) live in the private
 // Blob store, which the browser can't read directly. This route streams them
@@ -12,7 +12,7 @@ export async function GET(
   const { name } = await params;
   // The name is a single path segment (sanitized on upload); reject anything
   // that could traverse elsewhere in the store.
-  if (!/^[\w.-]+$/.test(name)) {
+  if (!isValidImageName(name)) {
     return new Response("Not found", { status: 404 });
   }
 
