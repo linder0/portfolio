@@ -17,7 +17,14 @@ import { splitChunks } from "@/lib/writing";
 export const metadata: Metadata = {
   openGraph: {
     siteName: "Linda Xue",
-    images: ["/images/site/og-home.png"],
+    images: [
+      {
+        url: "/images/site/og-home.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Linda in orange-tinted glasses with a glass of wine",
+      },
+    ],
   },
 };
 
