@@ -31,7 +31,7 @@ export default async function WritingPage() {
       <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-4">
         <h1 className="heading-48">Writing</h1>
         <NewsletterSignup
-          className="w-full max-w-[20rem]"
+          className="w-full sm:max-w-[20rem]"
           note={mergeNote(subscribeNote, stored[subscribeNote.id])}
         />
       </div>

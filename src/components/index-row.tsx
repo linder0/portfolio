@@ -15,7 +15,6 @@ export function IndexRow({
   note,
   title,
   tagline,
-  eyebrow,
   badge,
   thumbnail,
   right,
@@ -26,8 +25,6 @@ export function IndexRow({
   // stored text highlights render inside the list too.
   title: React.ReactNode;
   tagline: React.ReactNode;
-  // Small third line under the tagline (e.g. a project's categories).
-  eyebrow?: string;
   // Inline marker after the title (e.g. "draft").
   badge?: string;
   thumbnail?: string;
@@ -43,7 +40,7 @@ export function IndexRow({
         {...handlers}
         className="link-glow grid grid-cols-[1fr_auto] items-baseline gap-x-8 py-6"
       >
-        <span className="flex min-w-0 items-center gap-x-5">
+        <span className="flex min-w-0 items-start gap-x-5">
           {thumbnail &&
             // Owner uploads stream from the private Blob store, which the
             // image optimizer can't reach; local assets get resized/converted.
@@ -71,9 +68,6 @@ export function IndexRow({
               )}
             </span>
             <span className="copy-14 mt-1 block">{tagline}</span>
-            {eyebrow && (
-              <span className="label-eyebrow mt-3 block">{eyebrow}</span>
-            )}
           </span>
         </span>
 

@@ -38,7 +38,6 @@ export default async function ProjectsPage() {
               tagline={
                 <AnnotatedText text={project.tagline} stored={stored} />
               }
-              eyebrow={project.category.join(" · ")}
               right={project.year}
             />
           );
