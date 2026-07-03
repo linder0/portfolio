@@ -17,10 +17,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://lindaxue.com"),
   title: "Linda Xue",
   description: "my piece of digital real estate",
+  // No explicit title/description here: pages that inherit this block get
+  // their own title/description in the og: tags (iMessage etc. read og:title
+  // over <title>, so hard-coding it would mislabel every section page).
   openGraph: {
-    title: "Linda Xue",
-    description: "my piece of digital real estate",
-    url: "https://lindaxue.com",
     siteName: "Linda Xue",
   },
 };

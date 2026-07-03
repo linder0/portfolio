@@ -16,6 +16,7 @@ import { splitChunks } from "@/lib/writing";
 // set their own OG images (post/project thumbnails) in their metadata.
 export const metadata: Metadata = {
   openGraph: {
+    siteName: "Linda Xue",
     images: ["/images/site/og-home.png"],
   },
 };
