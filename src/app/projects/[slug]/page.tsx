@@ -25,9 +25,19 @@ export async function generateMetadata({
     return { title: "Project not found — Linda Xue" };
   }
 
+  // First visual from the media list: an image directly, or a video's poster.
+  const thumbnail = project.media
+    ?.map((m) =>
+      m.type === "image" ? m.src : m.type === "video" ? m.poster : undefined,
+    )
+    .find(Boolean);
+
   return {
     title: `${project.title} — Linda Xue`,
     description: project.tagline,
+    ...(thumbnail && {
+      openGraph: { images: [thumbnail] },
+    }),
   };
 }
 

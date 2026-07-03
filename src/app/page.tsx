@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { PageMain } from "@/components/page-main";
 import { NoteHost } from "@/components/note-host";
@@ -10,6 +11,14 @@ import { getStoredNotes } from "@/lib/note-store";
 import { getStoredPages } from "@/lib/page-store";
 import { homeBioBody } from "@/lib/home";
 import { splitChunks } from "@/lib/writing";
+
+// Only the home page gets the baby photo as its share embed; other routes
+// set their own OG images (post/project thumbnails) in their metadata.
+export const metadata: Metadata = {
+  openGraph: {
+    images: ["/images/site/og-home.png"],
+  },
+};
 
 export default async function Page() {
   const stored = await getStoredNotes();

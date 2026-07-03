@@ -16,7 +16,13 @@ const serif = Newsreader({
 export const metadata: Metadata = {
   metadataBase: new URL("https://lindaxue.com"),
   title: "Linda Xue",
-  description: "Linda Xue — designer and developer.",
+  description: "my piece of digital real estate",
+  openGraph: {
+    title: "Linda Xue",
+    description: "my piece of digital real estate",
+    url: "https://lindaxue.com",
+    siteName: "Linda Xue",
+  },
 };
 
 // Let the page extend under the home-indicator area so the bottom nav bar's
