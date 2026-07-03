@@ -1,120 +1,192 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* =============================================================================
+   Linda Xue — Design System
+   -----------------------------------------------------------------------------
+   An original, monochrome-first system. Documentation structure is modeled on
+   Vercel's Geist spec (intent-based 10-step color scales, a type scale, spacing
+   rhythm, elevation, motion, shapes), but every value here is its own.
+
+   Identity — three roots:
+     ink    #0B0B0B   primary text / primary action
+     paper  #F6F5F2   page surface (warm off-white)
+     pine   #324B34   the single signature accent
+
+   Warm neutrals carry the page; pine is the one chromatic voice (links, focus,
+   the most important moment). That's the whole palette — no other hues.
+
+   - Raw palette + theme values live in :root / .dark.
+   - @theme inline maps them to utilities (bg-gray-100, text-pine-700,
+     border-border, ...) so everything stays theme-aware.
+   - Type is exposed as classes (.heading-*, .copy-*, ... — see the type
+     layer at the bottom; they all collapse to the two site styles).
+   ========================================================================== */
+
 @theme inline {
+  /* Fonts — two families: Helvetica for body, Newsreader (serif) for titles.
+     Weight is Regular (400) everywhere; hierarchy comes from family + size. */
+  --font-sans: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: var(--font-serif-google), Georgia, "Times New Roman", serif;
+
+  /* Surfaces */
+  --color-background-100: var(--background-100);
+  --color-background-200: var(--background-200);
+
+  /* Neutral scale (warm) */
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
+  --color-gray-700: var(--gray-700);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-900);
+  --color-gray-1000: var(--gray-1000);
+
+  /* Translucent neutral (layers over any surface) */
+  --color-gray-alpha-100: var(--gray-alpha-100);
+  --color-gray-alpha-200: var(--gray-alpha-200);
+  --color-gray-alpha-300: var(--gray-alpha-300);
+  --color-gray-alpha-400: var(--gray-alpha-400);
+  --color-gray-alpha-500: var(--gray-alpha-500);
+  --color-gray-alpha-600: var(--gray-alpha-600);
+  --color-gray-alpha-700: var(--gray-alpha-700);
+  --color-gray-alpha-800: var(--gray-alpha-800);
+  --color-gray-alpha-900: var(--gray-alpha-900);
+  --color-gray-alpha-1000: var(--gray-alpha-1000);
+
+  /* Pine — signature accent (links, focus, the one important action, success) */
+  --color-pine-100: var(--pine-100);
+  --color-pine-200: var(--pine-200);
+  --color-pine-300: var(--pine-300);
+  --color-pine-400: var(--pine-400);
+  --color-pine-500: var(--pine-500);
+  --color-pine-600: var(--pine-600);
+  --color-pine-700: var(--pine-700);
+  --color-pine-800: var(--pine-800);
+  --color-pine-900: var(--pine-900);
+  --color-pine-1000: var(--pine-1000);
+
+  /* Semantic tokens — the roles markup actually uses: page surface, the one
+     text color, hairline borders, and the focus ring. */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Helvetica, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: var(--font-geist-mono);
-  --font-heading: Helvetica, "Helvetica Neue", Arial, sans-serif;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
   --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-ring: var(--ring);
+
+  /* Motion */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Breakpoints */
+  --breakpoint-sm: 420px;
+  --breakpoint-md: 640px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1440px;
 }
 
+/* ----------------------------------------------------------------------------
+   Light theme — paper
+   ------------------------------------------------------------------------- */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Fixed roots — never change between themes */
+  --paper: #f6f5f2;
+  --ink: #0b0b0b;
+
+  /* Surfaces (semantic — these flip in dark) */
+  --background-100: #f6f5f2; /* paper */
+  --background-200: #ffffff; /* raised / cards lift clean off the warm page */
+
+  /* Neutral (warm taupe) */
+  --gray-100: #efede8;
+  --gray-200: #e7e4dd;
+  --gray-300: #dedad1;
+  --gray-400: #d5d1c7;
+  --gray-500: #bfbaad;
+  --gray-600: #a39d8e;
+  --gray-700: #837d6e;
+  --gray-800: #6a6456;
+  --gray-900: #4d4842;
+  --gray-1000: #0b0b0b; /* ink */
+
+  /* Neutral alpha (black, monotonic) */
+  --gray-alpha-100: #00000008;
+  --gray-alpha-200: #0000000f;
+  --gray-alpha-300: #00000017;
+  --gray-alpha-400: #0000001f;
+  --gray-alpha-500: #0000002e;
+  --gray-alpha-600: #0000003d;
+  --gray-alpha-700: #00000066;
+  --gray-alpha-800: #00000099;
+  --gray-alpha-900: #000000cc;
+  --gray-alpha-1000: #000000eb;
+
+  /* Pine */
+  --pine-100: #eef2ee;
+  --pine-200: #e0e8e1;
+  --pine-300: #cdd9ce;
+  --pine-400: #b3c4b5;
+  --pine-500: #8aa38d;
+  --pine-600: #5b7d5f;
+  --pine-700: #324b34; /* signature */
+  --pine-800: #29402b;
+  --pine-900: #203221;
+  --pine-1000: #101a11;
+
+  /* Subtle text glow — a faint bloom around every letter */
+  --text-glow: 0 0 16px rgba(11, 11, 11, 0.17), 0 0 4px rgba(11, 11, 11, 0.17);
+  /* Intensified bloom for interactive hover — same ink, brighter halo */
+  --text-glow-strong: 0 0 22px rgba(11, 11, 11, 0.4), 0 0 8px rgba(11, 11, 11, 0.32),
+    0 0 2px rgba(11, 11, 11, 0.28);
+  /* Drop-shadow bloom for masked shapes (e.g. the signature tag) */
+  --shape-glow: drop-shadow(0 0 12px rgba(11, 11, 11, 0.45))
+    drop-shadow(0 0 4px rgba(11, 11, 11, 0.35));
+
+  /* Film-grain overlay strength */
+  --grain-opacity: 0.1;
+
+  /* Semantic mappings. One text color everywhere — hierarchy comes from
+     family/size/layout, never color (per design.md). */
+  --background: var(--background-100);
+  --foreground: var(--gray-1000);
+  /* Borders are a low-alpha tint of the text color, so hairlines stay subtle
+     but track whatever ink is in use (including custom overrides). */
+  --border: color-mix(in srgb, var(--foreground) 12%, transparent);
+  --ring: var(--foreground);
 }
 
+/* ----------------------------------------------------------------------------
+   Dark theme — ink
+   ------------------------------------------------------------------------- */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* The color SCALES (gray, gray-alpha, pine) are intentionally NOT redefined
+     here — they are fixed reference ramps. Dark mode only remaps the semantic
+     roles below to different steps of those same fixed scales, plus dark
+     surface values and white-alpha borders that read on ink. */
+
+  /* Dark surfaces (warm, ink-side) */
+  --background-100: #0b0b0b; /* ink */
+  --background-200: #141413;
+
+  /* Brighter bloom reads better on ink */
+  --text-glow: 0 0 18px rgba(246, 245, 242, 0.17), 0 0 6px rgba(246, 245, 242, 0.17);
+  --text-glow-strong: 0 0 24px rgba(246, 245, 242, 0.6), 0 0 10px rgba(246, 245, 242, 0.48),
+    0 0 3px rgba(246, 245, 242, 0.4);
+  --shape-glow: drop-shadow(0 0 14px rgba(246, 245, 242, 0.8))
+    drop-shadow(0 0 5px rgba(246, 245, 242, 0.6));
+
+  /* Grain reads a touch stronger on ink */
+  --grain-opacity: 0.15;
+
+  /* Semantic mappings (dark) — roles only, scales stay fixed */
+  --background: var(--background-100);
+  --foreground: var(--paper);
+  /* Text-color tint on ink; slightly stronger so hairlines read on dark. */
+  --border: color-mix(in srgb, var(--foreground) 16%, transparent);
+  --ring: var(--foreground);
 }
 
 @layer base {
@@ -123,20 +195,99 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: 15px; /* body size — the one non-title size */
+    line-height: 22px;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-shadow: var(--text-glow);
   }
   html {
     @apply font-sans;
   }
+  /* Hide scrollbars everywhere (scrolling still works) */
+  * {
+    -ms-overflow-style: none; /* IE/Edge legacy */
+    scrollbar-width: none; /* Firefox */
+  }
+  *::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/WebKit */
+  }
+  ::selection {
+    background-color: var(--foreground);
+    color: var(--background);
+  }
+  /* Film-grain texture over everything — fixed, non-interactive overlays.
+     ::after (overlay) carries grain on mid/light surfaces; ::before (screen)
+     lifts grain into the near-black content pane so it reads everywhere. */
+  body::after,
+  body::before {
+    content: "";
+    position: fixed;
+    /* Overshoot the viewport vertically: during mobile overscroll
+       rubber-banding, fixed layers ride along with the page, so a plain
+       inset of 0 would expose a grainless (differently shaded) strip at
+       the exposed edge. */
+    inset: -50vh 0;
+    z-index: 100;
+    pointer-events: none;
+    background-size: 140px 140px;
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='4'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR%20type='linear'%20slope='2'%20intercept='-0.5'/%3E%3CfeFuncG%20type='linear'%20slope='2'%20intercept='-0.5'/%3E%3CfeFuncB%20type='linear'%20slope='2'%20intercept='-0.5'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  body::after {
+    opacity: var(--grain-opacity);
+    mix-blend-mode: overlay;
+  }
+  body::before {
+    opacity: calc(var(--grain-opacity) * 0.6);
+    mix-blend-mode: screen;
+  }
 }
 
-/* Force Helvetica everywhere (unlayered rules win over Tailwind layers) */
-html,
-body,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+/* =============================================================================
+   Type — TWO sizes only.
+   - Title: serif (Newsreader), 28px — every heading/title, including the name.
+   - Body:  Helvetica, 15px — everything else (copy, labels, metadata, nav).
+   The legacy class names are kept as aliases so markup doesn't need to change:
+   all heading-* collapse to Title, all copy-/label-/mono-* collapse to Body.
+   ========================================================================== */
+@layer components {
+  .heading-72, .heading-64, .heading-56, .heading-48, .heading-40,
+  .heading-32, .heading-24, .heading-20, .heading-16, .heading-14 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 34px;
+    letter-spacing: -0.01em;
+  }
+
+  .copy-24, .copy-20, .copy-18, .copy-16, .copy-14, .copy-13,
+  .label-16, .label-14, .label-13, .label-12, .label-eyebrow,
+  .mono-14, .mono-13, .mono-12 {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 22px;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  /* Interactive text: keep the color, brighten the bloom on hover/focus. */
+  .link-glow {
+    transition: text-shadow 0.2s var(--ease-out-quint);
+  }
+  .link-glow:hover,
+  .link-glow:focus-visible {
+    text-shadow: var(--text-glow-strong);
+  }
+
+  /* Masked shapes can't take a text-shadow; they bloom via a drop-shadow
+     filter around their silhouette instead. */
+  .shape-glow {
+    transition: filter 0.2s var(--ease-out-quint);
+  }
+  .shape-glow-trigger:hover .shape-glow,
+  .shape-glow-trigger:focus-visible .shape-glow {
+    filter: var(--shape-glow);
+  }
 }

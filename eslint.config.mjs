@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The old Vite portfolio — reference-only, not part of the app.
+    "legacy/**",
   ]),
 ]);
 
