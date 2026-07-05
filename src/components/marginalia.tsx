@@ -152,7 +152,9 @@ function NoteLinkText({ href, label }: { href: string; label: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="link-glow underline decoration-dotted underline-offset-4"
+      // The panel is pointer-events-none for visitors so it never blocks the
+      // page under it; links opt back in so they stay clickable.
+      className="link-glow pointer-events-auto underline decoration-dotted underline-offset-4"
     >
       {label}
     </a>
@@ -391,8 +393,8 @@ export function Marginalia() {
 
 // Inline footnote marker. Wrap inline text; on hover/focus it feeds its own
 // note into the same margin. When the note contains a link, the marker is a
-// real anchor to it — the margin panel isn't clickable for visitors, so the
-// hovered text itself is how you follow a note's link.
+// real anchor to it — the panel's links are also clickable, but the hovered
+// text itself is the nearer target.
 export function Footnote({
   note,
   children,
