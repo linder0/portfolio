@@ -21,6 +21,18 @@ export type ProjectMedia =
       type: "audio";
       src: string;
       label?: string;
+    }
+  | {
+      // A hosted demo video, embedded as a 16:9 iframe.
+      type: "youtube";
+      id: string;
+      label?: string;
+    }
+  | {
+      // An X/Twitter demo post, embedded via widgets.js (see TweetEmbed).
+      type: "tweet";
+      id: string;
+      label?: string;
     };
 
 export type Project = {
@@ -40,35 +52,6 @@ export type Project = {
 };
 
 export const projects: Project[] = [
-  {
-    slug: "hangful",
-    title: "Hangful",
-    tagline: "Replace ads with real-world hangouts",
-    year: "2025",
-    category: ["software", "design"],
-    description:
-      "A platform that sponsors real-world social experiences for brands targeting college communities. Brands create campaigns, students participate in verified hangouts, and track results with real-time analytics. Features identity verification, viral multiplier tracking, and campus reach across UCLA and USC.",
-    role: "Co-founder",
-    duration: "2025",
-    tools: ["React"],
-    links: [{ label: "GitHub", url: "https://github.com/linder0/hangful" }],
-    media: [
-      {
-        type: "image",
-        src: "/images/projects/hangful/thumbnail.png",
-        width: 2704,
-        height: 1684,
-        label: "Overview",
-      },
-      {
-        type: "image",
-        src: "/images/projects/hangful/demo.png",
-        width: 2704,
-        height: 1682,
-        label: "App demo",
-      },
-    ],
-  },
   {
     slug: "gemini-clone",
     title: "Gemini Clone",
@@ -121,13 +104,7 @@ export const projects: Project[] = [
     role: "Full-Stack Developer",
     duration: "2025",
     tools: ["SvelteKit", "LangGraph", "pgvector", "Supabase", "OpenAI", "Stripe", "Vercel"],
-    links: [
-      { label: "Visit Monography", url: "https://monography.io" },
-      { label: "AI Sidebar", url: "https://youtu.be/3DlT9cj70Dc" },
-      { label: "Semantic Paper Search", url: "https://youtu.be/TABd8xRLewE" },
-      { label: "Demo 1", url: "https://x.com/i/status/1995546938557825183" },
-      { label: "Demo 2", url: "https://x.com/i/status/1994080526085374168" },
-    ],
+    links: [{ label: "Visit Monography", url: "https://monography.io" }],
     media: [
       {
         type: "image",
@@ -143,6 +120,10 @@ export const projects: Project[] = [
         height: 1080,
         label: "App interface",
       },
+      { type: "youtube", id: "3DlT9cj70Dc", label: "AI Sidebar" },
+      { type: "youtube", id: "TABd8xRLewE", label: "Semantic paper search" },
+      { type: "tweet", id: "1995546938557825183", label: "Demo 1" },
+      { type: "tweet", id: "1994080526085374168", label: "Demo 2" },
     ],
   },
   {
@@ -157,12 +138,7 @@ export const projects: Project[] = [
     client: "Y Combinator F25",
     collaborators: ["Mathias"],
     tools: ["SvelteKit", "Semantic Search"],
-    links: [
-      { label: "Visit Pookie", url: "https://pookie.work" },
-      { label: "Demo 1", url: "https://x.com/i/status/1985801327310778541" },
-      { label: "Demo 2", url: "https://x.com/i/status/1968329094208381154" },
-      { label: "Demo 3", url: "https://x.com/i/status/1947680537746845954" },
-    ],
+    links: [{ label: "Visit Pookie", url: "https://pookie.work" }],
     media: [
       {
         type: "image",
@@ -171,6 +147,9 @@ export const projects: Project[] = [
         height: 597,
         label: "Overview",
       },
+      { type: "tweet", id: "1985801327310778541", label: "Demo 1" },
+      { type: "tweet", id: "1968329094208381154", label: "Demo 2" },
+      { type: "tweet", id: "1947680537746845954", label: "Demo 3" },
     ],
   },
   {
@@ -426,6 +405,35 @@ export const projects: Project[] = [
         width: 538,
         height: 960,
         label: "DJ performance",
+      },
+    ],
+  },
+  {
+    slug: "hangful",
+    title: "Hangful",
+    tagline: "Replace ads with real-world hangouts",
+    year: "2025",
+    category: ["software", "design"],
+    description:
+      "A platform that sponsors real-world social experiences for brands targeting college communities. Brands create campaigns, students participate in verified hangouts, and track results with real-time analytics. Features identity verification, viral multiplier tracking, and campus reach across UCLA and USC.",
+    role: "Co-founder",
+    duration: "2025",
+    tools: ["React"],
+    links: [{ label: "GitHub", url: "https://github.com/linder0/hangful" }],
+    media: [
+      {
+        type: "image",
+        src: "/images/projects/hangful/thumbnail.png",
+        width: 2704,
+        height: 1684,
+        label: "Overview",
+      },
+      {
+        type: "image",
+        src: "/images/projects/hangful/demo.png",
+        width: 2704,
+        height: 1682,
+        label: "App demo",
       },
     ],
   },

@@ -1,5 +1,5 @@
 import type { Project, ProjectLink } from "@/lib/projects";
-import { postExcerpt, type Post } from "@/lib/writing";
+import { IMAGE_URL, postExcerpt, type Post } from "@/lib/writing";
 
 /* ---------------------------------------------------------------------------
    Note — a normalized, source-agnostic descriptor of what the marginalia panel
@@ -64,6 +64,53 @@ export function hasContent(note: Note): boolean {
   return Boolean(
     note.title || note.subtitle || note.body || note.meta?.length,
   );
+}
+
+/* ---------------------------------------------------------------------------
+   Links inside note bodies. Bodies are plain text where a pasted URL becomes
+   a link and [text](url) is accepted when a link needs a label; a line that
+   is just an image URL renders as the photo. These regexes are shared with
+   the marginalia panel renderer so both agree on what counts as a link.
+   ------------------------------------------------------------------------- */
+
+// A labeled [text](url) link, or a bare URL.
+export const INLINE_LINK = /\[([^\]]+)\]\((\S+?)\)|https?:\/\/[^\s]+/g;
+// Punctuation that's likely sentence-ending rather than part of a bare URL.
+export const TRAILING_PUNCTUATION = /[.,;:!?)\]]+$/;
+// Legacy explicit form, still accepted: a line that is just ![alt](url).
+export const IMAGE_LINE = /^!\[([^\]]*)\]\((\S+)\)$/;
+
+// Resolve an INLINE_LINK match: the destination, the author-given label (null
+// for a bare URL), and how many characters of the source text the link
+// consumed (a bare URL gives its trailing sentence punctuation back).
+export function resolveLinkMatch(match: RegExpMatchArray): {
+  href: string;
+  label: string | null;
+  length: number;
+} {
+  if (match[1]) {
+    return { href: match[2], label: match[1], length: match[0].length };
+  }
+  const href = match[0].replace(TRAILING_PUNCTUATION, "");
+  return { href, label: null, length: href.length };
+}
+
+// The first link a note's body contains, if any — the destination a hover
+// source navigates to when clicked. Image lines don't count (they render as
+// photos, not links), and neither do image URLs.
+export function noteLink(note: Note): string | null {
+  if (!note?.body) return null;
+  for (const line of note.body.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || IMAGE_LINE.test(trimmed) || IMAGE_URL.test(trimmed)) {
+      continue;
+    }
+    for (const match of trimmed.matchAll(INLINE_LINK)) {
+      const { href } = resolveLinkMatch(match);
+      if (!IMAGE_URL.test(href)) return href;
+    }
+  }
+  return null;
 }
 
 // A project's note for the row hover on the projects index: just the

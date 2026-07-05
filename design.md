@@ -1,6 +1,6 @@
 # Linda Xue — Colors & Type
 
-The core of the site's look: three colors and one typeface. Warm paper, deep
+The core of the site's look: three colors and two typefaces. Warm paper, deep
 ink, and a single pine accent — everything else is built from those.
 
 > Source of truth is `src/app/globals.css`. This file is the readable summary.
@@ -88,12 +88,19 @@ the semantic roles (background, text, border…) remap per theme.
 
 That's the whole palette — no other hues.
 
-### Dark surfaces
+### Surfaces
 
-In dark mode the page goes to ink and text goes to paper:
+`background-100` is the page, `background-200` the raised surface (used as the
+well behind project media). In dark mode the page goes to ink and text goes to
+paper:
 
 ```css
---background-100: #0b0b0b; /* page */
+/* light */
+--background-100: #f6f5f2; /* page — paper */
+--background-200: #ffffff; /* raised — lifts clean off the warm page */
+
+/* dark */
+--background-100: #0b0b0b; /* page — ink */
 --background-200: #141413; /* raised */
 ```
 
@@ -169,7 +176,8 @@ content pane, and a margin column:
   hovered rows, links, and footnotes push their notes. The home page moves it
   to the content column's bottom-left because the photo owns that corner.
 - **Signature tag**: the masked logo shape in the top-right; it is the theme
-  toggle.
+  toggle. Fixed on `lg+` (`6rem` square); on mobile it's smaller (`4rem`) and
+  absolutely positioned so it scrolls away with the page.
 - **Mobile (`<lg`)**: masthead (name) up top, page scrolls normally, primary
   nav lives in a fixed bar along the bottom edge (`3rem` + safe-area). The
   marginalia panel doesn't exist (no hover). Socials appear only on the home
@@ -179,13 +187,14 @@ content pane, and a margin column:
 
 Within the content pane it reads like a printed index, not a dashboard. One
 column, left-aligned, lots of air. Structure comes from **hairline rules and
-whitespace**, never from cards, fills, or shadows.
+whitespace**, never from cards, fills, or shadows (the credits table is the
+one boxed exception — see below).
 
 Interaction has one voice: the **glow**. Every letter carries a faint ink
 bloom (`--text-glow` on `body`); interactive text brightens it on hover/focus
 (`.link-glow` → `--text-glow-strong`), and masked shapes bloom via
 `.shape-glow`. Color never changes on interaction — pine stays a reserved
-accent token (currently only charts/focus tokens use it).
+accent token (currently defined in the palette but unused by any markup).
 
 ### Frame & measure
 
@@ -221,7 +230,8 @@ comes from generous, consistent gaps.
 
 Hairlines are the primary structural device. Always `border-border` (a
 foreground-tinted alpha, so it tracks the ink in both themes), never a solid
-gray. Index rows get a rule between items; the credits block sits under one.
+gray. Index rows get a rule between items; a project's media gallery opens
+under one; the credits table and underline forms are built entirely from them.
 
 ### Index pattern (`IndexRow` — /projects and /writing)
 
@@ -230,37 +240,80 @@ One shared row component for every list page:
 ```
 Hangful                                        2025
 Replace ads with real-world hangouts
-software · design
 ────────────────────────────────────────────────────
 Gemini Clone                                   2025
 ...
 ```
 
-- Title in the Title style (`heading-24`); tagline in Body (`copy-14`).
-- Optional third line (`label-eyebrow` alias) — e.g. a project's categories.
-- Right column (year / date), right-aligned, tabular numerals.
-- Writing rows may add a small square thumbnail and a boxed `draft` badge.
+- Two lines only: title in the Title style (`heading-24`), tagline in Body
+  (`copy-14`). No category/eyebrow line — project tags were dropped.
+- Right column (year / date), right-aligned, top-aligned with the title,
+  tabular numerals.
+- Writing rows may add a small square thumbnail (`3.5rem`, top-aligned,
+  square-cropped) before the text, and drafts get a boxed `mono-13` badge
+  inline after the title.
+- Rows are `py-6` with a hairline rule between items (first row drops its
+  top padding so the list opens flush with the frame).
 - Hover brightens the glow (`link-glow`); nothing else animates.
 - Hovering a row pushes its note into the marginalia panel.
 
-### Credits block (project pages)
+The writing index puts the newsletter subscribe on the heading's baseline row,
+right-aligned (see underline forms below).
 
-Borrowed from a film or magazine masthead. A definition list of hairline rows:
-`label-eyebrow` keys in a fixed `7rem` column, `copy-16` values.
+### Credits table (project pages)
 
-- Keys, in order: **Role · Year · Client · Duration · With · Built with**.
-- Omit any key with no value.
+Borrowed from a film or magazine masthead — now an actual `<table>`
+(`CreditsTable`), a compact self-contained unit rather than open rows:
+
+- Capped at `max-w-[28rem]`, fully boxed with a hairline grid (`border-border`
+  on the outer frame, row rules, and the label/value column divider).
+- Label column is a fixed `w-24`, `label-eyebrow` alias, with a whisper of
+  fill behind it (`bg-foreground/[0.03]`) so the block reads as one piece.
+- Values are `copy-16`; cells are `px-3 py-1.5`, baseline-aligned.
+- Keys, in order: **Role · Year · For · Duration · With · Stack**. Omit any
+  key with no value (some projects show only Year · Stack).
 - Multi-value fields (collaborators, tools) run inline separated by middots.
+
+This is the one exception to "no boxes" — a table is a print device, not a
+card.
 
 ### Project page structure
 
-1. Eyebrow — `category · year`.
+1. Header row — title (Title style, `heading-48` alias) on the left and the
+   external links right-aligned on the same baseline row: `mono-13` alias,
+   `↗` suffix, opening in a new tab; each link's note appears in the margin
+   on hover.
+2. Lede — tagline in `copy-20`, capped to the reading measure.
+3. Credits table.
+4. Body — description in `copy-18`, capped to the reading measure.
+5. Media — a single-column gallery under a hairline rule (`border-t` +
+   generous `pt-12`, items `gap-12`): images and videos sit in an
+   aspect-ratio box filled with `background-200` (so letterboxing reads as a
+   raised well), audio is a bare player. Captions are the `label-eyebrow`
+   alias. Everything is capped to the reading measure.
+
+There is no eyebrow/category line — the page opens straight on the title.
+
+### Post page structure (writing)
+
+1. Eyebrow — date (plus ` · draft` for the owner), Body style.
 2. Title — Title style (`heading-48` alias).
-3. Lede — tagline in `copy-20`, capped to the reading measure.
-4. Credits block (hairline rows).
-5. Body — description in `copy-18`, capped to the reading measure.
-6. Links — `mono-13` alias row above a hairline, `↗` suffix (external, new
-   tab); each link's note appears in the margin on hover.
+3. Optional banner — the post thumbnail cropped to `3:1`, hairline-bordered,
+   capped to the reading measure.
+4. Body — paragraphs in `copy-18` with inline images, capped to the reading
+   measure.
+
+### Forms — two voices
+
+All form chrome draws from one shared set of classes (`form-classes.ts`):
+
+- **Underline forms** (public: newsletter, login) — a bare `copy-16` input
+  and a text button sitting on one shared hairline (`border-b border-border`,
+  darkening to the foreground on focus). No boxes, no fills; placeholders are
+  the foreground at 40%.
+- **Editor chrome** (owner-only inline editing) — hairline-boxed transparent
+  fields, and lowercase `mono-13` dotted-underline text buttons (the same
+  dotted underline as note links).
 
 ### Marginalia & annotations
 

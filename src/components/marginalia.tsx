@@ -10,7 +10,15 @@ import {
   useTransition,
   type ReactNode,
 } from "react";
-import { hasContent, type EditableNote, type Note } from "@/lib/notes";
+import {
+  hasContent,
+  noteLink,
+  resolveLinkMatch,
+  IMAGE_LINE,
+  INLINE_LINK,
+  type EditableNote,
+  type Note,
+} from "@/lib/notes";
 import { IMAGE_URL } from "@/lib/writing";
 import { editorButton, editorField } from "@/components/form-classes";
 import { RawImage } from "@/components/raw-image";
@@ -133,15 +141,10 @@ export function useNote(note: Note) {
    Note bodies are plain text with URLs handled automatically: a pasted URL
    becomes a link, a line that is just an image URL becomes the photo itself
    (this is what "add photo" inserts). [text](url) is optionally supported for
-   when a link needs a label. Nothing else — no headings, bold, etc.
+   when a link needs a label. Nothing else — no headings, bold, etc. The
+   link/image regexes live in `lib/notes` (shared with `noteLink`, which lets
+   hover sources navigate to their note's link on click).
    ------------------------------------------------------------------------- */
-
-// A labeled [text](url) link, or a bare URL.
-const INLINE_LINK = /\[([^\]]+)\]\((\S+?)\)|https?:\/\/[^\s]+/g;
-// Punctuation that's likely sentence-ending rather than part of a bare URL.
-const TRAILING_PUNCTUATION = /[.,;:!?)\]]+$/;
-// Legacy explicit form, still accepted: a line that is just ![alt](url).
-const IMAGE_LINE = /^!\[([^\]]*)\]\((\S+)\)$/;
 
 function NoteLinkText({ href, label }: { href: string; label: string }) {
   return (
@@ -161,24 +164,18 @@ function InlineText({ text }: { text: string }) {
   let cursor = 0;
   for (const match of text.matchAll(INLINE_LINK)) {
     if (match.index > cursor) nodes.push(text.slice(cursor, match.index));
-    if (match[1]) {
-      nodes.push(
-        <NoteLinkText key={match.index} href={match[2]} label={match[1]} />,
-      );
-      cursor = match.index + match[0].length;
-    } else {
-      // Bare URL: don't swallow sentence punctuation, and show it without
-      // the protocol noise or a dangling trailing slash.
-      const url = match[0].replace(TRAILING_PUNCTUATION, "");
-      nodes.push(
-        <NoteLinkText
-          key={match.index}
-          href={url}
-          label={url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
-        />,
-      );
-      cursor = match.index + url.length;
-    }
+    const { href, label, length } = resolveLinkMatch(match);
+    nodes.push(
+      <NoteLinkText
+        key={match.index}
+        href={href}
+        // A bare URL displays without the protocol noise or a dangling slash.
+        label={
+          label ?? href.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")
+        }
+      />,
+    );
+    cursor = match.index + length;
   }
   if (cursor < text.length) nodes.push(text.slice(cursor));
   return <>{nodes}</>;
@@ -393,7 +390,9 @@ export function Marginalia() {
 }
 
 // Inline footnote marker. Wrap inline text; on hover/focus it feeds its own
-// note into the same margin. A starting point for the fuller footnote feature.
+// note into the same margin. When the note contains a link, the marker is a
+// real anchor to it — the margin panel isn't clickable for visitors, so the
+// hovered text itself is how you follow a note's link.
 export function Footnote({
   note,
   children,
@@ -409,12 +408,24 @@ export function Footnote({
       <span {...handlers}>{children}</span>
     );
   }
+  const href = noteLink(note);
+  const className =
+    "link-glow underline decoration-dotted underline-offset-4 focus:outline-none";
+  if (href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        {...handlers}
+        className={className}
+      >
+        {children}
+      </a>
+    );
+  }
   return (
-    <span
-      {...handlers}
-      tabIndex={0}
-      className="link-glow cursor-help underline decoration-dotted underline-offset-4 focus:outline-none"
-    >
+    <span {...handlers} tabIndex={0} className={`${className} cursor-help`}>
       {children}
     </span>
   );
