@@ -22,9 +22,10 @@ import { deletePost, updatePost } from "@/app/actions";
    - "edit post" swaps the body for a form over every field: title, url
      (slug), date, tagline, thumbnail, and the body as one text box (blank
      lines split paragraphs; a line that is just an image URL renders as the
-     image — resize it on the rendered post after saving; a paragraph
-     starting "# " is a section heading; ⌘B and ⌘I wrap the selection in
-     asterisk markers for inline bold and italic).
+     image — resize it on the rendered post after saving — and lines right
+     under the URL are the image's caption; a paragraph starting "# " is a
+     section heading; ⌘B and ⌘I wrap the selection in asterisk markers for
+     inline bold and italic).
    - Images can be dragged onto the *rendered* body — a hairline shows where
      they'll land between paragraphs — or dropped/pasted into the textarea.
    - A status field switches the post between published and draft (drafts are
@@ -440,7 +441,8 @@ export function PostBody({
               <span className="opacity-60">
                 {" "}
                 — blank line splits paragraphs · &quot;# &quot; starts a
-                section · ⌘B bolds · ⌘I italicizes
+                section · a line under an image URL captions it · ⌘B bolds ·
+                ⌘I italicizes
               </span>
             </>
           }

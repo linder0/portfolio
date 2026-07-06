@@ -99,6 +99,11 @@ export default async function PostPage({
                   index={i}
                   src={block.src}
                   width={block.width}
+                  caption={
+                    block.caption && (
+                      <RichText text={block.caption} stored={stored} />
+                    )
+                  }
                 />
               ) : block.kind === "heading" ? (
                 // Extra air above a section heading: 24px from space-y-6

@@ -308,7 +308,9 @@ There is no eyebrow/category line — the page opens straight on the title.
    measure. A paragraph starting `# ` is a section heading (the Title style,
    `heading-24`, with extra air above — there is only one heading style, no
    levels); `**text**` bolds inline (the one place weight is used) and
-   `*text*` italicizes (⌘B/⌘I in the editor toggle them).
+   `*text*` italicizes (⌘B/⌘I in the editor toggle them). Lines under an
+   image URL in the same paragraph render as the image's caption — Body
+   (`copy-14`) at 60% opacity, tucked under the image.
 
 ### Forms — two voices
 

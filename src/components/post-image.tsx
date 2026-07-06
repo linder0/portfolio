@@ -94,7 +94,10 @@ export function ResizableImage({
 /* ---------------------------------------------------------------------------
    PostImage — an image block on the rendered post page. Visitors get a plain
    image at its stored width; the signed-in owner gets resize handles, and a
-   released drag persists the width into the body text as "<url> <px>".
+   released drag persists the width into the body text as "<url> <px>" —
+   keeping any caption lines under the URL. The caption itself arrives
+   pre-rendered from the server page (it goes through the same rich-text and
+   marginalia pipeline as body paragraphs).
    ------------------------------------------------------------------------- */
 
 export function PostImage({
@@ -102,33 +105,42 @@ export function PostImage({
   index,
   src,
   width,
+  caption,
 }: {
   post: Post;
   // The image's paragraph index in the post body.
   index: number;
   src: string;
   width?: number;
+  caption?: React.ReactNode;
 }) {
   const { canEdit } = useMargin();
   const router = useRouter();
   const [, startTransition] = useTransition();
 
+  const figcaption = caption && (
+    <figcaption className="copy-14 mt-2 opacity-60">{caption}</figcaption>
+  );
+
   if (!canEdit) {
     return (
-      <div data-post-block>
+      <figure data-post-block>
         <RawImage
           src={src}
           className="block h-auto max-w-full"
           style={width ? { width } : undefined}
         />
-      </div>
+        {figcaption}
+      </figure>
     );
   }
 
   const persist = (finalWidth: number) => {
     startTransition(async () => {
       const chunks = splitChunks(post.body);
-      chunks[index] = `${src} ${finalWidth}`;
+      // Rewrite only the URL line; caption lines below it stay as they are.
+      const [, ...captionLines] = chunks[index].split("\n");
+      chunks[index] = [`${src} ${finalWidth}`, ...captionLines].join("\n");
       await updatePost(post.id, {
         ...draftFrom(post),
         body: chunks.join("\n\n"),
@@ -138,8 +150,9 @@ export function PostImage({
   };
 
   return (
-    <div data-post-block>
+    <figure data-post-block>
       <ResizableImage src={src} width={width} onCommit={persist} />
-    </div>
+      {figcaption}
+    </figure>
   );
 }

@@ -18,7 +18,8 @@ export type Post = {
   // Omitted = 50 (center). Set by dragging the preview in the post editor.
   thumbnailY?: number;
   // Body copy. Blank lines separate paragraphs; a line that is just an image
-  // URL renders as the image itself (same convention as marginalia notes).
+  // URL renders as the image itself (same convention as marginalia notes),
+  // and lines under the URL in the same paragraph are the image's caption.
   // A paragraph starting "# " renders as a section heading; **text** bolds,
   // *text* italicizes, ***text*** does both (⌘B/⌘I in the editor).
   // The static value here is the default — the owner can rewrite it inline,
@@ -99,7 +100,8 @@ export const posts: Post[] = [
 
 /* ---------------------------------------------------------------------------
    Body parsing — a post body is plain text: blank lines split paragraphs, a
-   paragraph that is just an image URL renders as the image, and a paragraph
+   paragraph that starts with an image URL renders as the image (any lines
+   under the URL in the same paragraph are its caption), and a paragraph
    starting "# " renders as a section heading. Parsed here so the server page
    and the inline editor agree on the format.
    ------------------------------------------------------------------------- */
@@ -110,7 +112,8 @@ export type PostBlock =
   // heading style, so there are no levels to encode).
   | { kind: "heading"; text: string }
   // Width in px (owner-resized; omitted = natural size, capped to the column).
-  | { kind: "image"; src: string; width?: number };
+  // Caption: any lines under the URL within the same paragraph.
+  | { kind: "image"; src: string; width?: number; caption?: string };
 
 // An image URL: absolute, root-relative (a file under /public), or an
 // owner-uploaded image served from /api/images/[name] (see `lib/post-store`).
@@ -127,16 +130,20 @@ export function splitChunks(body: string): string[] {
     .filter(Boolean);
 }
 
-// An image paragraph is the URL alone, optionally followed by a pixel width
-// ("<url> 420") written by the inline resize handles.
+// An image paragraph: the URL on its own line, optionally followed by a pixel
+// width ("<url> 420") written by the inline resize handles. Lines under the
+// URL within the same paragraph are the image's caption.
 export function parseImageChunk(
   chunk: string,
-): { src: string; width?: number } | null {
-  const match = chunk.trim().match(/^(\S+)(?:\s+(\d+))?$/);
+): { src: string; width?: number; caption?: string } | null {
+  const [first, ...rest] = chunk.trim().split("\n");
+  const match = first.trim().match(/^(\S+)(?:\s+(\d+))?$/);
   if (!match || !IMAGE_URL.test(match[1])) return null;
+  const caption = rest.join(" ").replace(/\s+/g, " ").trim();
   return {
     src: match[1],
     width: match[2] ? Number(match[2]) : undefined,
+    ...(caption && { caption }),
   };
 }
 
