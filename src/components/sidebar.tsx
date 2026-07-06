@@ -19,7 +19,7 @@ export async function Sidebar() {
         <div>
           <a
             href={rootUrl(host)}
-            className="heading-24 link-glow inline-block"
+            className="heading-32 link-glow inline-block"
           >
             Linda Xue
           </a>

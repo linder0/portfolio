@@ -113,38 +113,42 @@ than `pine-700`.
 
 ---
 
-## Type — two families, two sizes
+## Type — two families, three sizes
 
-Two families, and only **two sizes** across the whole site:
+Two families: serif for titles (two tiers), Helvetica for everything else:
 
 | role | family | size / line-height | used for |
 |------|--------|--------------------|----------|
-| **Title** | Newsreader (serif) | 28 / 34, tracking -0.01em | every heading/title — the name, page titles, project titles |
+| **Large** | Newsreader (serif) | 28 / 34, tracking -0.01em | the name and page titles — the masthead, post/project titles, Writing, Playground |
+| **Medium** | Newsreader (serif) | 22 / 28, tracking -0.01em | subtitles — index row titles, post section headings |
 | **Body** | Helvetica (sans) | 15 / 22 | everything else — copy, labels, nav, metadata, links |
 
 ```css
 --font-sans:  Helvetica, "Helvetica Neue", Arial, sans-serif;   /* Body */
---font-serif: var(--font-serif-google), Georgia, serif;         /* Newsreader — Title */
+--font-serif: var(--font-serif-google), Georgia, serif;         /* Newsreader — titles */
 ```
 
 Rules:
 - **Serif is for titles, Helvetica is for body.** Nothing else.
-- **Only two sizes** — 28px (title) and 15px (body). No intermediate steps, no
-  uppercase eyebrow, no monospace. Everything is one of these two.
-- Weight is Regular (400) everywhere; hierarchy comes from family + size + the
-  layout (rules, columns, whitespace), not weight or color.
+- **Three sizes total** — 28 (large), 22 (medium), 15 (body). No other steps,
+  no uppercase eyebrow, no monospace.
+- Weight is Regular (400) everywhere (inline `**bold**` in post bodies is the
+  one exception); hierarchy comes from family + size + the layout (rules,
+  columns, whitespace), not weight or color.
 
 ### Class aliases
 
 The old scale class names are kept purely as **aliases** so existing markup keeps
-working — they now collapse to just the two styles:
+working — they collapse onto the tiers by number:
 
-- `heading-*` → **Title** (serif 28).
+- `heading-32` and up (`heading-48`, `heading-72`, …) → **Large** (serif 28).
+- `heading-24` and below → **Medium** (serif 22).
 - `copy-*`, `label-*`, `label-eyebrow`, `mono-*` → **Body** (Helvetica 15).
 
-So `<h1 className="heading-48">` renders the Title style and `<p className="copy-16">`
-(or `mono-13`, `label-eyebrow`, …) renders the Body style. New markup can use any
-of these aliases; prefer `heading-24` for titles and `copy-16` for body.
+So `<h1 className="heading-48">` renders a page title (the masthead uses the
+same tier), `heading-24` a subtitle, and `<p className="copy-16">` (or
+`mono-13`, `label-eyebrow`, …) the Body style. Prefer `heading-48` for page
+titles, `heading-24` for subtitles, `copy-16` for body.
 
 ---
 
@@ -245,8 +249,8 @@ Gemini Clone                                   2025
 ...
 ```
 
-- Two lines only: title in the Title style (`heading-24`), tagline in Body
-  (`copy-14`). No category/eyebrow line — project tags were dropped.
+- Two lines only: title in the Medium title style (`heading-24`), tagline in
+  Body (`copy-14`). No category/eyebrow line — project tags were dropped.
 - Right column (year / date), right-aligned, top-aligned with the title,
   tabular numerals.
 - Writing rows may add a small square thumbnail (`3.5rem`, top-aligned,
@@ -301,7 +305,10 @@ There is no eyebrow/category line — the page opens straight on the title.
 3. Optional banner — the post thumbnail cropped to `3:1`, hairline-bordered,
    capped to the reading measure.
 4. Body — paragraphs in `copy-18` with inline images, capped to the reading
-   measure.
+   measure. A paragraph starting `# ` is a section heading (the Title style,
+   `heading-24`, with extra air above — there is only one heading style, no
+   levels); `**text**` bolds inline (the one place weight is used) and
+   `*text*` italicizes (⌘B/⌘I in the editor toggle them).
 
 ### Forms — two voices
 

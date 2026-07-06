@@ -5,7 +5,7 @@ import { getPostBySlug } from "@/lib/post-store";
 import { getStoredNotes } from "@/lib/note-store";
 import { isAuthenticated } from "@/lib/auth";
 import Image from "next/image";
-import { AnnotatedText } from "@/components/annotated-text";
+import { AnnotatedText, RichText } from "@/components/annotated-text";
 import { PageMain } from "@/components/page-main";
 import { PostBody } from "@/components/post-body";
 import { PostImage } from "@/components/post-image";
@@ -100,9 +100,19 @@ export default async function PostPage({
                   src={block.src}
                   width={block.width}
                 />
+              ) : block.kind === "heading" ? (
+                // Extra air above a section heading: 24px from space-y-6
+                // plus 24px here = the 48px "intro → content" step.
+                <h2
+                  key={i}
+                  data-post-block
+                  className="heading-24 [&:not(:first-child)]:pt-6"
+                >
+                  <AnnotatedText text={block.text} stored={stored} />
+                </h2>
               ) : (
                 <p key={i} data-post-block className="copy-18">
-                  <AnnotatedText text={block.text} stored={stored} />
+                  <RichText text={block.text} stored={stored} />
                 </p>
               ),
             )}

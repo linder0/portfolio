@@ -19,6 +19,8 @@ export type Post = {
   thumbnailY?: number;
   // Body copy. Blank lines separate paragraphs; a line that is just an image
   // URL renders as the image itself (same convention as marginalia notes).
+  // A paragraph starting "# " renders as a section heading; **text** bolds,
+  // *text* italicizes, ***text*** does both (⌘B/⌘I in the editor).
   // The static value here is the default — the owner can rewrite it inline,
   // which stores an override in Blob (see `lib/post-store`).
   body: string;
@@ -28,6 +30,54 @@ export type Post = {
 };
 
 export const posts: Post[] = [
+  {
+    id: "vroom",
+    slug: "vroom",
+    title: "VROOM Postmortem: What We Got Wrong About Events",
+    date: "2026-07-05",
+    tagline: "On trust, coordination, and four months in the events industry",
+    body: [
+      "# Intro and Whitepaper Recap",
+      "At the start of this year, I was obsessed with one question: why do tech companies pour so much money into catering, venues, and staffing when the ROI looks trivial?",
+      "After talking to various event planners and organizers in New York City, we concluded that repeat organizers had built a network of venues and vendors, along with a custom workflow for hosting repeat events in various formats. That led to the thesis that the private “operating system” experienced planners carry in their heads could be externalized as a data layer (the VRM, or Venue/Vendor Relationship Manager) and sold as infrastructure. The goal was to start with event coordination and then expand into venue sourcing and ticketing, eventually eating the entire ecosystem, which we had calculated to be a $90B+ TAM.",
+      "The whole thing rested on two assumed problems:",
+      "1. Venues and vendors maintain information asymmetry around availability, pricing, and terms to preserve pricing power and control demand.",
+      "2. Coordination between providers is bottlenecked by single-channel communication.",
+      "And so, the next 4 months began with that thesis in hand.",
+      "# How Shit Actually Works",
+      "We decided to begin with startup events (dinners, mixers, launch parties), as that market was most immediately accessible. It was here that both of our founding problems fell apart almost immediately, which forced the first pivot.",
+      "**Information Asymmetry**",
+      "Pricing isn’t hidden or meticulously planned to extract as much as possible; it’s just constrained, as every provider in the ecosystem must maintain comparable pricing to offer services of similar quality. It was also apparent that vendors are seldom the bottleneck in bringing an event together, as most services are commoditized. If logistics don’t work for one vendor, another is almost always available with enough lead time. The information asymmetry problem is also about repeatability and optics: venues and vendors want to work with you if you will be a returning customer and leverage their branding. TLDR of the events industry: every player just wants to look good and make money.",
+      "“Information asymmetry” is really just our attempt to compartmentalize the nuances of a trust relationship between the provider (venue or vendor) and the host.",
+      "**Coordination Bottleneck**",
+      "Coordination between providers isn’t bottlenecked by single-channel comms. It’s just not hard. With commoditized vendors and a bit of lead time, stitching providers together is logistics, not a moat.",
+      "As it turned out, startups that wanted to work with us often didn’t have the budget for well-done events, and the startups and companies that did have a budget for events didn’t see value in us doing it more cheaply. That left us with the same issue: the market wasn’t responding to coordination, but to trust. We concluded that the easiest way to build that trust was to run our own events.",
+      "Both problems pointed to the same thing: we were selling a fix for asymmetry and coordination, but the market asked: “Why should I trust you to pull this off?”",
+      "# Trying to Manufacture Trust",
+      "In an attempt to build trust, we decided that we would just have to throw our own events (see them at vroomevents.com). We threw a lot of small startup events and kept trying to climb into bigger corporate budgets. It was brutally hard to close, and we learned why: corporate events are bimodal. Either you have them, or you don’t. If you do, you have serious money to spend, which means you spend it on people you already trust. Nowadays and Boompop are deeply embedded in that scene, with years of reps under their belts. Without the proper corporate connections or age on our side, we were trying to speedrun the kind of credibility that accrues over years.",
+      "# A Quick Detour to Ticketing",
+      "So we pivoted to ticketing as another potential revenue stream. This is where we actually started to understand the real shape of the industry. Ticketing is usually the reward for supplying some other value to the host, and we assumed we might be able to provide that value via coordination. By looking at the complexity at each tier and the major players in each one, we saw where we could slot in — and why coordination wasn’t valuable on any tier.",
+      "**Four Scales of Events** (and why an operational layer is not applicable to any of them):",
+      "**1. Small, intimate gatherings** (e.g. dinners, card nights): One or two hosts, high participation, no profit goal. There’s nothing to coordinate that the host doesn’t already enjoy doing, and nothing to sell. The “work” is picking a date and time, so adding software would just complicate things, and people will be able to vibe code anything they need very easily in the future.",
+      "**2. Indie producer events** (e.g. club nights, parties): These confirm the whitepaper’s core observation: producers build a tight, repeated circle of venues and vendors. The private OS is real. But the graph is the producer’s edge, so the people who own the valuable network guard it with their lives.",
+      "**3. Corporate events** (Boom Pop, Nowadays): Corporate demand is bimodal. Companies either treat events as core to the business and hire in-house to run them, or don’t run them at all. There’s no middle population of firms that want to outsource event coordination to software. Thus, Boom Pop and Nowadays serve the repeatable, objective-oriented slice.",
+      "**4. Large live events & festivals** (Live Nation): Too variable for repeatable software, and viability requires a full suite of offerings such as wristbands, distribution, ticketing, etc., not just coordination. Outside a handful of independently organized events, the category is consolidated under Live Nation. There’s no wedge here that isn’t a decade-long infrastructure build.",
+      "This was unfortunately realized after we built out Vroom ticketing. To compete there, we’d have had to build a pile of software and services to take on incumbents who already bundle distribution and advertising.",
+      "# The Deeper Errors",
+      "The pivots were symptoms. Underneath them were three assumptions baked into the whitepaper that were just flat-out wrong, and each one pushed us toward the next move.",
+      "**There was no wedge.** “Mid-sized events” with a budget of 3k to 200k are not a wedge; it’s more like a ball, maybe. We never defined the first sharp thing we were going to be undeniably best at. Honestly, this was probably fixable by just sitting with real events longer before writing a thesis about them. (lol.)",
+      "**There was no network effect.** The expansion plan assumed the VRM data layer would compound: more events, more data, a stronger moat, fancy gestures to enrich the data graph, blah blah blah. But events data is short-lived; last quarter’s availability, pricing, and contacts decay almost immediately, so the “asset” you’re accumulating is mostly stale by the time you’d use it. And trust, the very thing that doesn’t decay, isn’t codifiable. You can’t store it in a database or harness it by noting that a dynamic exists; it just lives in a person’s reputation and relationships. So the data we could capture had no moat, and the moat we wanted couldn’t be captured as data.",
+      "**The expansion plan assumed a lot.** Eat coordination, then sourcing, then ticketing… we had built the rungs of that ladder, assuming the previous one had built durable, transferable trust. None of it did.",
+      "# What I Believe Now",
+      "The real problem was never being deeply enough embedded in events. Everything else was downstream of that.",
+      "**Trust cannot be outsourced.** It was the scarce resource the entire time, the one thing the planner’s OS actually runs on, and it’s the thing we kept trying to route around.",
+      "**And, coordination is trivial.** If the host is particularly tech-savvy, they would probably know to connect Notion MCP to Claude, have it break down all the operational details, and then send texts or emails to everyone involved. I believe the gaps are mostly due to a lack of education.",
+      "# What Now?",
+      "As software becomes more and more accessible, it’s no longer worthwhile to build wrapper software. Once the tool is everywhere, what matters is knowing what to do with it. So the useful work isn’t building wrappers.",
+      "The cultural problem underlying all of this remains real and worth solving: people genuinely want better ways to gather. As more of the economy gets automated and abundant post-AGI, the scarce things are human connection, physical presence, and trust between actual people.",
+      "**Trust is everything.** We just spent four months trying to turn it into a database first.",
+    ].join("\n\n"),
+  },
   {
     id: "beacon",
     slug: "beacon",
@@ -50,13 +100,17 @@ export const posts: Post[] = [
 ];
 
 /* ---------------------------------------------------------------------------
-   Body parsing — a post body is plain text: blank lines split paragraphs, and
-   a paragraph that is just an image URL renders as the image. Parsed here so
-   the server page and the inline editor agree on the format.
+   Body parsing — a post body is plain text: blank lines split paragraphs, a
+   paragraph that is just an image URL renders as the image, and a paragraph
+   starting "# " renders as a section heading. Parsed here so the server page
+   and the inline editor agree on the format.
    ------------------------------------------------------------------------- */
 
 export type PostBlock =
   | { kind: "text"; text: string }
+  // A section heading: "# Heading" (extra #s collapse — the site has one
+  // heading style, so there are no levels to encode).
+  | { kind: "heading"; text: string }
   // Width in px (owner-resized; omitted = natural size, capped to the column).
   | { kind: "image"; src: string; width?: number };
 
@@ -88,21 +142,64 @@ export function parseImageChunk(
   };
 }
 
+// A heading paragraph: one or more #s, a space, then the heading text.
+const HEADING_CHUNK = /^#+\s+(.*)$/;
+
 export function postBlocks(body: string): PostBlock[] {
   return splitChunks(body).map((chunk) => {
     const image = parseImageChunk(chunk);
     if (image) return { kind: "image", ...image } as const;
-    return {
-      kind: "text",
-      text: chunk.replace(/\s*\n\s*/g, " "),
-    } as const;
+    const text = chunk.replace(/\s*\n\s*/g, " ");
+    const heading = text.match(HEADING_CHUNK);
+    if (heading) return { kind: "heading", text: heading[1] } as const;
+    return { kind: "text", text } as const;
   });
 }
 
-// The first text paragraph, for previews.
+/* ---------------------------------------------------------------------------
+   Inline formatting — asterisk runs inside a paragraph: **bold**, *italic*,
+   ***both***. The markers are stripped for visitors; a run whose closing
+   marker doesn't match is left as literal text.
+   ------------------------------------------------------------------------- */
+
+export type TextSegment = { text: string; bold: boolean; italic: boolean };
+
+// A marker run and its matching closer: * / ** / *** with no stars inside.
+const MARKED = /(\*{1,3})([^*]+)\1/g;
+
+export function textSegments(text: string): TextSegment[] {
+  const segments: TextSegment[] = [];
+  const plain = (t: string) => ({ text: t, bold: false, italic: false });
+  let cursor = 0;
+  for (const match of text.matchAll(MARKED)) {
+    if (match.index > cursor) {
+      segments.push(plain(text.slice(cursor, match.index)));
+    }
+    const stars = match[1].length;
+    segments.push({
+      text: match[2],
+      bold: stars >= 2,
+      italic: stars % 2 === 1,
+    });
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < text.length) {
+    segments.push(plain(text.slice(cursor)));
+  }
+  return segments;
+}
+
+// The text as visitors see it — formatting markers removed.
+export function stripMarkers(text: string): string {
+  return textSegments(text)
+    .map((s) => s.text)
+    .join("");
+}
+
+// The first text paragraph, for previews (formatting markers stripped).
 export function postExcerpt(body: string): string | undefined {
   const block = postBlocks(body).find((b) => b.kind === "text");
-  return block?.kind === "text" ? block.text : undefined;
+  return block?.kind === "text" ? stripMarkers(block.text) : undefined;
 }
 
 // "2026-07-01" -> "July 1, 2026".

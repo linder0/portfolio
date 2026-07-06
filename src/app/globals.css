@@ -245,19 +245,31 @@
 }
 
 /* =============================================================================
-   Type — TWO sizes only.
-   - Title: serif (Newsreader), 28px — every heading/title, including the name.
-   - Body:  Helvetica, 15px — everything else (copy, labels, metadata, nav).
-   The legacy class names are kept as aliases so markup doesn't need to change:
-   all heading-* collapse to Title, all copy-/label-/mono-* collapse to Body.
+   Type — two title sizes + one body size.
+   - Large:  serif (Newsreader), 28px — the name and page titles
+     (.heading-32 and up).
+   - Medium: serif, 22px — subtitles: index row titles, post section
+     headings (.heading-24 and below).
+   - Body:   Helvetica, 15px — everything else (copy, labels, metadata, nav).
+   The legacy class names are kept as aliases so markup doesn't need to
+   change: heading-* split into Large/Medium by number, all copy-/label-/
+   mono-* collapse to Body.
    ========================================================================== */
 @layer components {
   .heading-72, .heading-64, .heading-56, .heading-48, .heading-40,
-  .heading-32, .heading-24, .heading-20, .heading-16, .heading-14 {
+  .heading-32 {
     font-family: var(--font-serif);
     font-weight: 400;
     font-size: 28px;
     line-height: 34px;
+    letter-spacing: -0.01em;
+  }
+
+  .heading-24, .heading-20, .heading-16, .heading-14 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 28px;
     letter-spacing: -0.01em;
   }
 

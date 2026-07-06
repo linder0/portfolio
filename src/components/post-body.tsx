@@ -22,7 +22,9 @@ import { deletePost, updatePost } from "@/app/actions";
    - "edit post" swaps the body for a form over every field: title, url
      (slug), date, tagline, thumbnail, and the body as one text box (blank
      lines split paragraphs; a line that is just an image URL renders as the
-     image — resize it on the rendered post after saving).
+     image — resize it on the rendered post after saving; a paragraph
+     starting "# " is a section heading; ⌘B and ⌘I wrap the selection in
+     asterisk markers for inline bold and italic).
    - Images can be dragged onto the *rendered* body — a hairline shows where
      they'll land between paragraphs — or dropped/pasted into the textarea.
    - A status field switches the post between published and draft (drafts are
@@ -102,7 +104,7 @@ function Field({
   className,
   children,
 }: {
-  label: string;
+  label: React.ReactNode;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -253,6 +255,45 @@ export function PostBody({
     })();
   };
 
+  // ⌘B / ⌘I in the body textarea: wrap the selection in the marker ("**" for
+  // bold, "*" for italic) or unwrap it if that style is already applied.
+  // Restores the selection after React re-renders.
+  const toggleMarker = (marker: string) => {
+    const el = textRef.current;
+    if (!el) return;
+    let { selectionStart: start, selectionEnd: end } = el;
+    const { value } = el;
+    const n = marker.length;
+
+    // Fold star runs at the selection's edges out of it, so selecting
+    // "**bold**" behaves the same as selecting just "bold".
+    while (end - start >= 2 && value[start] === "*" && value[end - 1] === "*") {
+      start++;
+      end--;
+    }
+
+    // The star runs hugging the selection encode its current formatting:
+    // 1 = italic, 2 = bold, 3 = both.
+    let before = 0;
+    while (before < 3 && value[start - 1 - before] === "*") before++;
+    let after = 0;
+    while (after < 3 && value[end + after] === "*") after++;
+    const run = Math.min(before, after);
+    const active = n === 2 ? run >= 2 : run === 1 || run === 3;
+
+    const selected = value.slice(start, end);
+    const body = active
+      ? value.slice(0, start - n) + selected + value.slice(end + n)
+      : value.slice(0, start) + marker + selected + marker + value.slice(end);
+    const shift = active ? -n : n;
+
+    set({ body });
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + shift, end + shift);
+    });
+  };
+
   const uploadThumbnail = (file: File) => {
     void (async () => {
       const url = await upload(file);
@@ -392,12 +433,31 @@ export function PostBody({
           />
         </div>
 
-        <Field label="body">
+        <Field
+          label={
+            <>
+              body
+              <span className="opacity-60">
+                {" "}
+                — blank line splits paragraphs · &quot;# &quot; starts a
+                section · ⌘B bolds · ⌘I italicizes
+              </span>
+            </>
+          }
+        >
           <textarea
             ref={textRef}
             value={draft.body}
             onChange={(e) => set({ body: e.target.value })}
             disabled={busy}
+            onKeyDown={(e) => {
+              if (!e.metaKey && !e.ctrlKey) return;
+              const key = e.key.toLowerCase();
+              if (key === "b" || key === "i") {
+                e.preventDefault();
+                toggleMarker(key === "b" ? "**" : "*");
+              }
+            }}
             onDragOver={(e) => {
               if (e.dataTransfer.types.includes("Files")) e.preventDefault();
             }}
