@@ -1,4 +1,4 @@
-import { get, put } from "@vercel/blob";
+import { get, head, put } from "@vercel/blob";
 import { revalidateTag, unstable_cache } from "next/cache";
 
 /* ---------------------------------------------------------------------------
@@ -9,29 +9,27 @@ import { revalidateTag, unstable_cache } from "next/cache";
    Server-side only.
    ------------------------------------------------------------------------- */
 
-// Blob reads go through a CDN cache, so an overwrite can serve stale content
-// for up to ~a minute. Keep edits read-your-writes on the instance that made
-// them by preferring the latest written document until the CDN converges.
-const CDN_CONVERGE_MS = 2 * 60 * 1000;
-
 // Reads are cached across requests (visitors don't pay a Blob round trip per
-// page view); a write invalidates the tag. The revalidate window is a
-// self-heal: if a revalidation lands while the Blob CDN is still serving the
-// pre-write copy, the stale entry expires on its own shortly after.
+// page view); a write expires the tag immediately so the next render reads
+// the fresh document. The revalidate window is just a periodic self-heal.
 const READ_REVALIDATE_S = 300;
 
 export function blobRecordStore<T>(path: string): {
   read: () => Promise<Record<string, T>>;
   write: (id: string, entry: T | null) => Promise<void>;
 } {
-  let lastWrite: { value: Record<string, T>; at: number } | null = null;
   const tag = `blob:${path}`;
 
-  // Uncached fetch straight from Blob — the cache's loader, and what writes
-  // use for their read-modify-write so they never act on a stale cache entry.
+  // Uncached fetch straight from Blob. Plain reads go through Blob's CDN,
+  // which can serve a just-overwritten document for up to ~a minute; a
+  // unique query param on the blob URL skips that cache, so this always
+  // returns the latest write.
   const fetchDocument = async (): Promise<Record<string, T>> => {
     try {
-      const result = await get(path, { access: "private" });
+      const { url } = await head(path);
+      const result = await get(`${url}?fresh=${Date.now()}`, {
+        access: "private",
+      });
       if (!result?.stream) return {};
       const text = await new Response(result.stream).text();
       return JSON.parse(text) as Record<string, T>;
@@ -47,20 +45,11 @@ export function blobRecordStore<T>(path: string): {
     revalidate: READ_REVALIDATE_S,
   });
 
-  const read = async (): Promise<Record<string, T>> => {
-    if (lastWrite && Date.now() - lastWrite.at < CDN_CONVERGE_MS) {
-      return lastWrite.value;
-    }
-    return readCached();
-  };
+  const read = (): Promise<Record<string, T>> => readCached();
 
   // `null` deletes the entry — reverting that id to its static default.
   const write = async (id: string, entry: T | null): Promise<void> => {
-    const base =
-      lastWrite && Date.now() - lastWrite.at < CDN_CONVERGE_MS
-        ? lastWrite.value
-        : await fetchDocument();
-    const value = { ...base };
+    const value = { ...(await fetchDocument()) };
     if (entry) value[id] = entry;
     else delete value[id];
     await put(path, JSON.stringify(value, null, 2), {
@@ -70,8 +59,11 @@ export function blobRecordStore<T>(path: string): {
       addRandomSuffix: false,
       cacheControlMaxAge: 60, // the minimum Blob allows
     });
-    lastWrite = { value, at: Date.now() };
-    revalidateTag(tag, "max");
+    // Expire immediately — `"max"` would serve the stale pre-write document
+    // on the next read, which is exactly the "my edits reverted" bug.
+    // (`updateTag` does the same but only works in server actions, and the
+    // subscribe route handler also writes through here.)
+    revalidateTag(tag, { expire: 0 });
   };
 
   return { read, write };
