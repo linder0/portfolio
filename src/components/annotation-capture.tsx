@@ -11,7 +11,14 @@ const CONTEXT_CHARS = 32;
 
 // The normalized text immediately before/after the selection within its
 // enclosing block, so "company" here can be told apart from "company" there.
-function selectionContext(range: Range): { prefix: string; suffix: string } {
+// `raw` is the untrimmed selection string: the anchor is trimmed before
+// storage, so whitespace at the selection's edges belongs to the context —
+// without it the stored prefix/suffix don't line up with the anchor and the
+// highlight never matches.
+function selectionContext(
+  range: Range,
+  raw: string,
+): { prefix: string; suffix: string } {
   try {
     const start =
       range.startContainer instanceof Element
@@ -33,9 +40,16 @@ function selectionContext(range: Range): { prefix: string; suffix: string } {
     after.setStart(range.endContainer, range.endOffset);
     after.setEnd(block, block.childNodes.length);
 
+    const leading = /^\s/.test(raw) ? " " : "";
+    const trailing = /\s$/.test(raw) ? " " : "";
     return {
-      prefix: normalizeContext(before.toString()).slice(-CONTEXT_CHARS),
-      suffix: normalizeContext(after.toString()).slice(0, CONTEXT_CHARS),
+      prefix: normalizeContext(before.toString() + leading).slice(
+        -CONTEXT_CHARS,
+      ),
+      suffix: normalizeContext(trailing + after.toString()).slice(
+        0,
+        CONTEXT_CHARS,
+      ),
     };
   } catch {
     return { prefix: "", suffix: "" };
@@ -69,10 +83,14 @@ export function AnnotationCapture() {
 
       const selection = window.getSelection();
       if (selection && !selection.isCollapsed) {
-        const anchor = normalizeAnchor(selection.toString());
+        const raw = selection.toString();
+        const anchor = normalizeAnchor(raw);
         if (!anchor) return;
         event.preventDefault();
-        const { prefix, suffix } = selectionContext(selection.getRangeAt(0));
+        const { prefix, suffix } = selectionContext(
+          selection.getRangeAt(0),
+          raw,
+        );
         selection.removeAllRanges();
         openEditor({
           id: highlightId(anchor, prefix, suffix),
