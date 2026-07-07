@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/sidebar";
 import { SignatureTag } from "@/components/signature-tag";
 import { MarginProvider, Marginalia } from "@/components/marginalia";
 import { AnnotationCapture } from "@/components/annotation-capture";
+import { GridOverlay } from "@/components/grid-overlay";
 import { isAuthenticated } from "@/lib/auth";
 
 const serif = Newsreader({
@@ -65,16 +66,19 @@ export default async function RootLayout({
           <SignatureTag />
           <div className="flex flex-1 flex-col lg:block lg:h-dvh">
             <Sidebar />
-            {/* Content column: cleared past the fixed rail on the left, and
-                inset on the right by exactly the marginalia pane width (1.5rem
-                inset + 19rem panel = 20.5rem) so the content butts right up to
-                it with only the shared inset as the gutter. */}
-            <div className="flex flex-1 flex-col lg:block lg:h-dvh lg:overflow-y-auto lg:pl-[13rem] lg:pr-[20.5rem]">
+            {/* Content column: cleared past the fixed rail on the left (page
+                inset + grid cols 1–2), and inset on the right by the
+                marginalia region (span-3 panel + the page inset), so with
+                PageMain's own padding a single gutter separates content from
+                each flank. Both insets are grid tokens — see globals.css. */}
+            <div className="flex flex-1 flex-col lg:block lg:h-dvh lg:overflow-y-auto lg:pl-rail lg:pr-margin-pane">
               {children}
             </div>
           </div>
           <Marginalia />
           <AnnotationCapture />
+          {/* Dev-only: press "g" for the column-grid overlay. */}
+          {process.env.NODE_ENV === "development" && <GridOverlay />}
         </MarginProvider>
       </body>
     </html>

@@ -66,7 +66,7 @@ export function NewsletterSignup({
   }
 
   return (
-    <form onSubmit={handleSubmit} className={className ?? "max-w-[24rem]"} noValidate>
+    <form onSubmit={handleSubmit} className={className ?? "max-w-cap-md"} noValidate>
       <div className={underlineRow}>
         <label htmlFor="newsletter-email" className="sr-only">
           Email address

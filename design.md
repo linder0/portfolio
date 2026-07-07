@@ -169,16 +169,19 @@ content pane, and a margin column:
 └────────────┴─────────────────────────────┴──────────┘
 ```
 
-- **Rail** (`Sidebar`, `13rem`): name (Title style), primary nav, socials
-  pinned to the bottom. On `lg+` it is fixed full-height and doesn't scroll.
-  No fill, no divider — it sits on the same paper as everything else.
+- **Rail** (`Sidebar`, `w-rail` = margin + grid columns 1–2 = 13rem): name
+  (Title style), primary nav, socials pinned to the bottom. On `lg+` it is
+  fixed full-height and doesn't scroll. No fill, no divider — it sits on the
+  same paper as everything else.
 - **Content pane**: `lg:h-dvh lg:overflow-y-auto` — the page itself doesn't
   scroll; only this pane does. It's cleared past the rail on the left
-  (`lg:pl-[13rem]`) and inset on the right by the marginalia column
-  (`lg:pr-[20.5rem]` = 19rem panel + the shared gutter).
-- **Marginalia** (`19rem`, desktop-only): the fixed lower-right panel where
-  hovered rows, links, and footnotes push their notes. The home page moves it
-  to the content column's bottom-left because the photo owns that corner.
+  (`lg:pl-rail`) and inset on the right by the marginalia region
+  (`lg:pr-margin-pane` = panel + the page margin = 19.5rem). Its text opens
+  on grid column 3.
+- **Marginalia** (`w-panel` = 3 grid columns = 18rem, desktop-only): the
+  fixed lower-right panel where hovered rows, links, and footnotes push
+  their notes. The home page moves it to the content column's bottom-left
+  because the photo owns that corner.
 - **Signature tag**: the masked logo shape in the top-right; it is the theme
   toggle. Fixed on `lg+` (`6rem` square); on mobile it's smaller (`4rem`) and
   absolutely positioned so it scrolls away with the page.
@@ -200,18 +203,48 @@ bloom (`--text-glow` on `body`); interactive text brightens it on hover/focus
 `.shape-glow`. Color never changes on interaction — pine stays a reserved
 accent token (currently defined in the palette but unused by any markup).
 
+### Grid — one fixed column unit
+
+Every fixed width on the page derives from a single column unit, defined in
+`globals.css`:
+
+```css
+--grid-col:    5rem;   /* column, 80px */
+--grid-gutter: 1.5rem; /* gutter, 24px — doubles as the lg page inset */
+```
+
+The grid starts one gutter in from the left edge (the page inset **is** a
+gutter). Columns 1–2 are the rail, column 3 opens the content pane's text.
+The pane itself is fluid — it absorbs the viewport — so the right flank
+(marginalia) keeps the unit (3 columns hung from the right edge) but not the
+left-origin column lines. That's inherent to a fixed-flank/fluid-center
+shell and is by design: the measure stays a fixed, print-like width on any
+monitor.
+
+Markup references **role tokens**, never raw rems and never column counts:
+`w-rail` / `pl-rail` (margin + 2 cols = 13rem), `pr-margin-pane` (panel +
+margin = 19.5rem), `max-w-measure` (prose, 6 cols = 37.5rem), `max-w-cap-md`
+(4 cols = 24.5rem), `max-w-cap-sm` (3 cols = 18rem), `w-panel` (marginalia,
+3 cols = 18rem), `gap-x-6` / `px-gutter` etc. for gutter-sized gaps.
+
+**Dev grid tools**: in development, press `g` to toggle the column overlay,
+drawn from the live tokens — everything should land on it (rose = the
+left-origin columns, green = the right-flank panel region).
+
 ### Frame & measure
 
 A single inset is shared by **everything, on every edge** — the rail, every
 page `main` (via `PageMain`), the theme toggle, and the marginalia panel:
-`p-4` (16px) mobile → `lg:p-6` (24px). Keep this in lockstep; if it changes,
-change it everywhere (`Sidebar`, `PageMain`, `SignatureTag`, `Marginalia`,
-and the layout's `lg:pr` inset).
+`p-4` (16px) mobile → `lg:p-6` (24px). On `lg` this inset equals the grid
+gutter. Keep this in lockstep; if it changes, change it everywhere
+(`Sidebar`, `PageMain`, `SignatureTag`, `Marginalia`, and the grid tokens in
+`globals.css`).
 
 | Role | Width |
 |------|-------|
-| Reading measure (post/project body) | `max-w-[38rem]` |
-| Home bio | `max-w-[40rem]` |
+| Reading measure (post/project body, home bio) | `max-w-measure` (37.5rem) |
+| Credits table, admin column, newsletter form | `max-w-cap-md` (24.5rem) |
+| Inline subscribe (writing heading row) | `max-w-cap-sm` (18rem) |
 | Index rows, headers, rules | full pane width |
 
 Content is **left-aligned** within the pane (no `mx-auto`). Prose is capped to
@@ -252,7 +285,9 @@ Gemini Clone                                   2025
 - Two lines only: title in the Medium title style (`heading-24`), tagline in
   Body (`copy-14`). No category/eyebrow line — project tags were dropped.
 - Right column (year / date), right-aligned, top-aligned with the title,
-  tabular numerals.
+  tabular numerals. On `lg` it's a real grid slot — two columns wide
+  (11.5rem), not shrink-wrapped — so every row's meta starts on the same
+  line; gaps within the row are gutter-sized (`gap-x-6`).
 - Writing rows may add a small square thumbnail (`3.5rem`, top-aligned,
   square-cropped) before the text, and drafts get a boxed `mono-13` badge
   inline after the title.
@@ -269,7 +304,7 @@ right-aligned (see underline forms below).
 Borrowed from a film or magazine masthead — now an actual `<table>`
 (`CreditsTable`), a compact self-contained unit rather than open rows:
 
-- Capped at `max-w-[28rem]`, fully boxed with a hairline grid (`border-border`
+- Capped at `max-w-cap-md`, fully boxed with a hairline grid (`border-border`
   on the outer frame, row rules, and the label/value column divider).
 - Label column is a fixed `w-24`, `label-eyebrow` alias, with a whisper of
   fill behind it (`bg-foreground/[0.03]`) so the block reads as one piece.

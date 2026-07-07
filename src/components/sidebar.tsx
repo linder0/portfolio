@@ -14,8 +14,11 @@ export async function Sidebar() {
   return (
     <>
       {/* Mobile: just the masthead (name) up top. Desktop: the full fixed
-          rail with nav + socials. */}
-      <aside className="flex flex-col px-4 py-4 lg:fixed lg:inset-y-0 lg:left-0 lg:w-[13rem] lg:px-6 lg:py-6">
+          rail with nav + socials. The rail is a grid region — page inset +
+          columns 1–2 (w-rail = 13rem); no right padding, so its usable box
+          ends exactly on column 2's edge and PageMain's own padding supplies
+          the gutter to the content pane. */}
+      <aside className="flex flex-col px-4 py-4 lg:fixed lg:inset-y-0 lg:left-0 lg:w-rail lg:py-6 lg:pl-6 lg:pr-0">
         <div>
           <a
             href={rootUrl(host)}

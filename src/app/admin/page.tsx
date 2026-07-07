@@ -22,7 +22,7 @@ export default async function AdminPage() {
       <h1 className="heading-48">Admin</h1>
 
       {authed ? (
-        <div className="mt-8 max-w-[24rem] space-y-6">
+        <div className="mt-8 max-w-cap-md space-y-6">
           <p className="copy-16">
             Signed in. Select any text on a page and press{" "}
             <span className="mono-13">m</span> to pin a note to that phrase
@@ -60,7 +60,7 @@ export default async function AdminPage() {
           </form>
         </div>
       ) : (
-        <div className="mt-8 max-w-[24rem]">
+        <div className="mt-8 max-w-cap-md">
           <LoginForm />
         </div>
       )}

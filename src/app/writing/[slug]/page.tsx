@@ -56,7 +56,7 @@ export default async function PostPage({
 
   return (
     <PageMain>
-      <header>
+      <header className="max-w-measure">
         <p className="label-eyebrow">
           {formatPostDate(post)}
           {post.draft && " · draft"}
@@ -73,7 +73,7 @@ export default async function PostPage({
           <RawImage
             src={post.thumbnail}
             loading="eager"
-            className="mt-8 aspect-[3/1] w-full max-w-[38rem] border border-border object-cover"
+            className="mt-8 aspect-[3/1] w-full max-w-measure border border-border object-cover"
             style={{ objectPosition: `50% ${post.thumbnailY ?? 50}%` }}
           />
         ) : (
@@ -82,13 +82,13 @@ export default async function PostPage({
             alt=""
             width={1216}
             height={405}
-            sizes="(min-width: 640px) 608px, 100vw"
-            className="mt-8 aspect-[3/1] w-full max-w-[38rem] border border-border object-cover"
+            sizes="(min-width: 640px) 600px, 100vw"
+            className="mt-8 aspect-[3/1] w-full max-w-measure border border-border object-cover"
             style={{ objectPosition: `50% ${post.thumbnailY ?? 50}%` }}
           />
         ))}
 
-      <div className="mt-12 max-w-[38rem]">
+      <div className="mt-12 max-w-measure">
         <PostBody post={post}>
           <div className="space-y-6">
             {blocks.map((block, i) =>

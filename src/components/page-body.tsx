@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useMargin } from "@/components/marginalia";
+import { useCanEdit } from "@/components/marginalia";
 import { editorButton, editorTextarea } from "@/components/form-classes";
 import { updatePage } from "@/app/actions";
 
@@ -27,7 +27,7 @@ export function PageBody({
   label?: string;
   children: React.ReactNode;
 }) {
-  const { canEdit } = useMargin();
+  const canEdit = useCanEdit();
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(body);

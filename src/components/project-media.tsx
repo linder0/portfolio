@@ -2,9 +2,9 @@ import Image from "next/image";
 import type { ProjectMedia as Media } from "@/lib/projects";
 import { TweetEmbed } from "@/components/tweet-embed";
 
-// The media column is capped at max-w-[38rem] (608px); tell next/image so it
-// never serves a wider variant than the layout can show.
-const MEDIA_SIZES = "(min-width: 640px) 608px, 100vw";
+// The media column is capped at the reading measure (37.5rem = 600px); tell
+// next/image so it never serves a wider variant than the layout can show.
+const MEDIA_SIZES = "(min-width: 640px) 600px, 100vw";
 
 // The media gallery on a project detail page: images, videos, audio, and
 // embedded demos (YouTube, X posts) stacked in a single column, each with an

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useMargin } from "@/components/marginalia";
+import { useMarginActions } from "@/components/marginalia";
 import { highlightId, normalizeAnchor, normalizeContext } from "@/lib/notes";
 
 // How much text on each side of a selection is stored to pin the highlight
@@ -62,7 +62,7 @@ function selectionContext(
 // - with nothing selected, hover an addressable element (a bio paragraph,
 //   the photo, ...) and press "m" to edit that element's note.
 export function AnnotationCapture() {
-  const { canEdit, openEditor, armedNote } = useMargin();
+  const { canEdit, openEditor, armedNote } = useMarginActions();
 
   useEffect(() => {
     if (!canEdit) return;

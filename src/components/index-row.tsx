@@ -38,9 +38,12 @@ export function IndexRow({
       <Link
         href={href}
         {...handlers}
-        className="link-glow grid grid-cols-[1fr_auto] items-baseline gap-x-8 py-6"
+        // The meta column is a real grid slot on lg — span-2 wide (fits the
+        // longest date, "December 25, 2025") rather than shrink-wrapped — so
+        // every row's meta starts on the same line. Gaps are the grid gutter.
+        className="link-glow grid grid-cols-[1fr_auto] items-baseline gap-x-6 py-6 lg:grid-cols-[1fr_var(--span-2)]"
       >
-        <span className="flex min-w-0 items-start gap-x-5">
+        <span className="flex min-w-0 items-start gap-x-6">
           {thumbnail &&
             // Owner uploads stream from the private Blob store, which the
             // image optimizer can't reach; local assets get resized/converted.

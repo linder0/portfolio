@@ -5,11 +5,13 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useTransition,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 import {
   hasContent,
   noteLink,
@@ -42,11 +44,27 @@ import { updateNote } from "@/app/actions";
 // claim another spot when that corner is occupied (the home page's photo).
 type MarginPosition = "corner" | "content-left";
 
-type MarginContextValue = {
+// The margin is split into two contexts on purpose. `note`/`editingId`/
+// `position` change on every hover and editor toggle, but the actions never
+// change as you move the pointer. Keeping them apart means the many hover
+// sources — every index row, footnote, and note-host — subscribe only to the
+// actions and don't re-render on each hover; only the panel itself
+// (`Marginalia`) reads the changing state.
+type MarginState = {
   note: Note;
-  setNote: (note: Note) => void;
-  canEdit: boolean;
   editingId: string | null;
+  position: MarginPosition;
+};
+
+type MarginActions = {
+  canEdit: boolean;
+  // Show a note in the panel, unless an editor is open (hover updates are
+  // frozen while editing so mousing toward the panel can't hijack it). The
+  // freeze is checked against a ref so this stays referentially stable.
+  showNote: (note: Note) => void;
+  // Set the panel note directly, bypassing the editing freeze (the editor
+  // uses this to reflect a just-saved note).
+  setNote: (note: Note) => void;
   setEditingId: (id: string | null) => void;
   // Push a note into the margin and open its editor (used by the highlight
   // keybind, which creates notes that no element hosts yet).
@@ -57,11 +75,11 @@ type MarginContextValue = {
   // a ref — arming shouldn't re-render anything.
   armNote: (note: EditableNote | null) => void;
   armedNote: () => EditableNote | null;
-  position: MarginPosition;
   setPosition: (position: MarginPosition) => void;
 };
 
-const MarginContext = createContext<MarginContextValue | null>(null);
+const MarginStateContext = createContext<MarginState | null>(null);
+const MarginActionsContext = createContext<MarginActions | null>(null);
 
 export function MarginProvider({
   canEdit = false,
@@ -74,6 +92,19 @@ export function MarginProvider({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [position, setPosition] = useState<MarginPosition>("corner");
   const armedRef = useRef<EditableNote | null>(null);
+
+  // `showNote` must stay referentially stable (hover sources depend on it not
+  // changing), yet needs the current editing state to know whether to freeze.
+  // Mirror `editingId` into a ref — updated in an effect, read only inside the
+  // hover handler — so the check works without rebuilding the action.
+  const editingIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    editingIdRef.current = editingId;
+  }, [editingId]);
+
+  const showNote = useCallback((next: Note) => {
+    if (editingIdRef.current === null) setNote(next);
+  }, []);
   const openEditor = useCallback((next: EditableNote) => {
     setNote(next);
     setEditingId(next.id);
@@ -82,49 +113,91 @@ export function MarginProvider({
     armedRef.current = next;
   }, []);
   const armedNote = useCallback(() => armedRef.current, []);
+
+  // The provider lives in the root layout, so its state survives client-side
+  // navigation. Without a reset, an editor left open on one page would freeze
+  // hover updates on the next and a stale note would linger. Clearing the note
+  // and editor is React's "adjust state while rendering" pattern (lands before
+  // paint, no extra commit); the armed ref is cleared in an effect since refs
+  // can't be touched during render.
+  const pathname = usePathname();
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    setNote(null);
+    setEditingId(null);
+  }
+  useEffect(() => {
+    armedRef.current = null;
+  }, [pathname]);
+
+  const actions = useMemo<MarginActions>(
+    () => ({
+      canEdit,
+      showNote,
+      setNote,
+      setEditingId,
+      openEditor,
+      armNote,
+      armedNote,
+      setPosition,
+    }),
+    [canEdit, showNote, setEditingId, openEditor, armNote, armedNote],
+  );
+  const state = useMemo<MarginState>(
+    () => ({ note, editingId, position }),
+    [note, editingId, position],
+  );
+
   return (
-    <MarginContext.Provider
-      value={{
-        note,
-        setNote,
-        canEdit,
-        editingId,
-        setEditingId,
-        openEditor,
-        armNote,
-        armedNote,
-        position,
-        setPosition,
-      }}
-    >
-      {children}
-    </MarginContext.Provider>
+    <MarginActionsContext.Provider value={actions}>
+      <MarginStateContext.Provider value={state}>
+        {children}
+      </MarginStateContext.Provider>
+    </MarginActionsContext.Provider>
   );
 }
 
-export function useMargin(): MarginContextValue {
-  const ctx = useContext(MarginContext);
-  if (!ctx) throw new Error("useMargin must be used within a MarginProvider");
+export function useMarginActions(): MarginActions {
+  const ctx = useContext(MarginActionsContext);
+  if (!ctx) {
+    throw new Error("useMarginActions must be used within a MarginProvider");
+  }
   return ctx;
+}
+
+function useMarginState(): MarginState {
+  const ctx = useContext(MarginStateContext);
+  if (!ctx) {
+    throw new Error("useMarginState must be used within a MarginProvider");
+  }
+  return ctx;
+}
+
+// `canEdit` is the one field non-margin components need (edit affordances,
+// keybinds); it lives on the always-stable actions context.
+export function useCanEdit(): boolean {
+  return useMarginActions().canEdit;
 }
 
 // Spread the returned handlers onto any hoverable element to push `note` into
 // the margin on hover/focus. Behavior is "keep last": we never clear on leave,
-// so the panel holds the most recent thing you pointed at. Contentless notes
-// never push into the panel — for visitors they're fully inert; for the owner,
-// hovering any addressable element arms it for the "m" keybind (which is how
-// notes get added to whole elements, e.g. a photo). While the editor is open,
-// hover updates are frozen so mousing over other sources on the way to the
-// panel can't hijack it.
+// so the panel holds the most recent thing you pointed at (until you leave the
+// page). Contentless notes never push into the panel — for visitors they're
+// fully inert; for the owner, hovering any addressable element arms it for the
+// "m" keybind (which is how notes get added to whole elements, e.g. a photo).
+// While the editor is open, hover updates are frozen (see `showNote`) so
+// mousing over other sources on the way to the panel can't hijack it. Reads
+// only the stable actions context, so hovering never re-renders the source.
 export function useNote(note: Note) {
-  const { setNote, canEdit, editingId, armNote } = useMargin();
+  const { showNote, canEdit, armNote } = useMarginActions();
   const editable = canEdit && Boolean(note?.id);
   if (!hasContent(note) && !editable) {
     return {};
   }
   const enter = () => {
     if (editable) armNote(note as EditableNote);
-    if (editingId === null && hasContent(note)) setNote(note);
+    if (hasContent(note)) showNote(note);
   };
   const leave = () => {
     if (editable) armNote(null);
@@ -220,7 +293,7 @@ function NoteEditor({
   note: EditableNote;
   onClose: () => void;
 }) {
-  const { setNote } = useMargin();
+  const { setNote } = useMarginActions();
   const [body, setBody] = useState(note.body ?? "");
   const [pending, startTransition] = useTransition();
   const { uploading, upload } = useImageUpload();
@@ -314,7 +387,7 @@ export function MarginaliaAnchor({
 }: {
   position: MarginPosition;
 }) {
-  const { setPosition } = useMargin();
+  const { setPosition } = useMarginActions();
   useEffect(() => {
     setPosition(position);
     return () => setPosition("corner");
@@ -323,27 +396,54 @@ export function MarginaliaAnchor({
 }
 
 // Panel placement per position variant. "content-left" hugs the bottom of the
-// content column (13rem rail + 1.5rem gutter), clear of the photo corner.
+// content column (rail + gutter = grid column 3), clear of the photo corner.
 const positionClass: Record<MarginPosition, string> = {
   corner: "bottom-4 right-4 lg:bottom-6 lg:right-6",
-  "content-left": "bottom-4 left-4 lg:bottom-6 lg:left-[14.5rem]",
+  "content-left":
+    "bottom-4 left-4 lg:bottom-6 lg:left-[calc(var(--spacing-rail)+var(--spacing-gutter))]",
 };
 
 // The panel itself. Desktop-only (hover doesn't exist on touch), pinned on the
 // shared frame inset. Fades/rises in once it has a note.
 export function Marginalia() {
-  const { note, canEdit, editingId, setEditingId, position } = useMargin();
+  const { note, editingId, position } = useMarginState();
+  const { canEdit, setEditingId } = useMarginActions();
+  const asideRef = useRef<HTMLElement>(null);
 
   // Content-less notes only appear while their editor is open (a fresh
   // highlight being written); closing it without content fades the panel out.
   const editing = canEdit && note?.id != null && editingId === note.id;
   const visible = note && (hasContent(note) || editing);
 
+  // While an editor is open it freezes all hover updates, so it must be easy
+  // to dismiss. Escape and a click anywhere outside the panel close it — the
+  // editor otherwise persists (its state lives in the root layout) and would
+  // silently stop the margin from responding to hover.
+  useEffect(() => {
+    if (!editing) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setEditingId(null);
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      if (!asideRef.current?.contains(event.target as Node)) {
+        setEditingId(null);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    // Capture phase so we see the click even if something stops propagation.
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+    };
+  }, [editing, setEditingId]);
+
   return (
     <aside
+      ref={asideRef}
       aria-live="polite"
       aria-label="Detail"
-      className={`fixed z-40 hidden max-h-[80vh] w-[19rem] overflow-y-auto transition-opacity duration-200 lg:block ${
+      className={`fixed z-40 hidden max-h-[80vh] w-panel overflow-y-auto transition-opacity duration-200 lg:block ${
         positionClass[position]
       } ${visible ? "opacity-100" : "opacity-0"} ${
         canEdit ? "" : "pointer-events-none"

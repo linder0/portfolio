@@ -94,7 +94,7 @@ export default async function ProjectPage({
   return (
     <PageMain>
       <header>
-        <div className="flex max-w-[38rem] flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
+        <div className="flex max-w-measure flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
           <h1 className="heading-48">{project.title}</h1>
           {project.links.length ? (
             <nav className="flex flex-wrap justify-end gap-x-8 gap-y-3">
@@ -114,21 +114,21 @@ export default async function ProjectPage({
             </nav>
           ) : null}
         </div>
-        <p className="copy-20 mt-5 max-w-[38rem]">
+        <p className="copy-20 mt-5 max-w-measure">
           <AnnotatedText text={project.tagline} stored={stored} />
         </p>
       </header>
 
       <CreditsTable rows={projectCredits(project, stored)} className="mt-12" />
 
-      <div className="mt-12 max-w-[38rem]">
+      <div className="mt-12 max-w-measure">
         <p className="copy-18">
           <AnnotatedText text={project.description} stored={stored} />
         </p>
       </div>
 
       {project.media?.length ? (
-        <div className="max-w-[38rem]">
+        <div className="max-w-measure">
           <ProjectMedia media={project.media} />
         </div>
       ) : null}

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useMargin } from "@/components/marginalia";
+import { useCanEdit } from "@/components/marginalia";
 import { RawImage } from "@/components/raw-image";
 import { draftFrom } from "@/lib/post-draft";
 import { updatePost } from "@/app/actions";
@@ -114,7 +114,7 @@ export function PostImage({
   width?: number;
   caption?: React.ReactNode;
 }) {
-  const { canEdit } = useMargin();
+  const canEdit = useCanEdit();
   const router = useRouter();
   const [, startTransition] = useTransition();
 

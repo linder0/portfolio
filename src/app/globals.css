@@ -77,6 +77,19 @@
   --color-border: var(--border);
   --color-ring: var(--ring);
 
+  /* Grid — named spacing/width tokens derived from the column unit (the raw
+     unit lives in :root). Every width on the page is one of these. */
+  --spacing-gutter: var(--grid-gutter);
+  /* Shell regions: rail = page margin + cols 1–2; margin-pane = the
+     marginalia panel + the right page margin. */
+  --spacing-rail: calc(var(--grid-gutter) + var(--span-2));
+  --spacing-margin-pane: calc(var(--panel) + var(--grid-gutter));
+  /* Width caps (max-w-measure, max-w-cap-md, w-panel, ...) */
+  --container-measure: var(--measure);
+  --container-cap-md: var(--cap-md);
+  --container-cap-sm: var(--cap-sm);
+  --container-panel: var(--panel);
+
   /* Motion */
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -95,6 +108,29 @@
   /* Fixed roots — never change between themes */
   --paper: #f6f5f2;
   --ink: #0b0b0b;
+
+  /* --------------------------------------------------------------------------
+     Column grid — one fixed unit every width derives from.
+     Columns are 5rem (80px) with a 1.5rem (24px) gutter; the gutter doubles
+     as the universal lg page inset, so the grid starts one gutter in from
+     the left edge. span(n) = n columns + the gutters between them.
+     Rail = margin + cols 1–2; the content pane's text opens on col 3; the
+     marginalia panel is span(3) hung from the right edge. The pane itself is
+     fluid — it absorbs the viewport — so the right flank keeps the unit but
+     not the left-origin column lines (inherent to fixed flanks + fluid
+     center, and by design).
+     Widths in markup use the ROLE tokens below (measure, credits, form,
+     panel), not column counts.
+     ----------------------------------------------------------------------- */
+  --grid-gutter: 1.5rem;
+  --grid-col: 5rem;
+  --span-2: calc(2 * var(--grid-col) + 1 * var(--grid-gutter)); /* 11.5rem */
+  --span-3: calc(3 * var(--grid-col) + 2 * var(--grid-gutter)); /* 18rem */
+  /* Role tokens — what markup actually references */
+  --measure: calc(6 * var(--grid-col) + 5 * var(--grid-gutter)); /* prose, 37.5rem */
+  --cap-md: calc(4 * var(--grid-col) + 3 * var(--grid-gutter)); /* credits, admin, forms — 24.5rem */
+  --cap-sm: var(--span-3); /* inline subscribe — 18rem */
+  --panel: var(--span-3); /* marginalia — 18rem */
 
   /* Surfaces (semantic — these flip in dark) */
   --background-100: #f6f5f2; /* paper */

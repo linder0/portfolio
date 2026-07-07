@@ -45,7 +45,7 @@ export default async function Page() {
       {/* The photo owns the lower-right corner here, so the margin panel
           moves to the bottom of the content column. */}
       <MarginaliaAnchor position="content-left" />
-      <div className="max-w-[40rem]">
+      <div className="max-w-measure">
         <PageBody id="home" body={bioBody} label="edit bio">
           <div className="space-y-6">
             {bio.map((paragraph, index) => (

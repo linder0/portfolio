@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useMargin } from "@/components/marginalia";
+import { useCanEdit } from "@/components/marginalia";
 import { splitChunks, type Post } from "@/lib/writing";
 import { draftFrom, type PostDraft } from "@/lib/post-draft";
 import {
@@ -124,7 +124,7 @@ export function PostBody({
   post: Post;
   children: React.ReactNode;
 }) {
-  const { canEdit } = useMargin();
+  const canEdit = useCanEdit();
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<PostDraft>(() => draftFrom(post));

@@ -17,7 +17,7 @@ export function CreditsTable({
 }) {
   return (
     <table
-      className={`w-full max-w-[28rem] border-collapse border border-border ${className ?? ""}`}
+      className={`w-full max-w-cap-md border-collapse border border-border ${className ?? ""}`}
     >
       <tbody>
         {rows.map((row) => (
