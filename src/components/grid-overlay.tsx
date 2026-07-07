@@ -21,8 +21,15 @@ export function GridOverlay() {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key !== "g") return;
-      const target = event.target as HTMLElement | null;
-      if (target?.closest("input, textarea, [contenteditable]")) return;
+      // `event.target` isn't always an Element (e.g. document for synthesized
+      // events), and non-elements have no `closest`.
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest("input, textarea, [contenteditable]")
+      ) {
+        return;
+      }
       setOverlay((v) => !v);
     };
     window.addEventListener("keydown", onKeyDown);
