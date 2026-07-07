@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-/* Dev-only column overlay (mounted from the root layout in development builds
-   only). Press "g" to toggle it. Drawn from the live grid tokens so it always
+/* Column overlay (mounted from the root layout — for everyone in dev, for the
+   signed-in owner on prod). Press "g" to toggle it. Drawn from the live grid
+   tokens so it always
    tracks the real layout: the left-origin columns (rose) plus the marginalia
    panel region hung from the right edge (green). The pane between them is
    fluid — it absorbs the viewport — so the right flank keeps the unit but not

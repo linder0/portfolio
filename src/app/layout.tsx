@@ -77,8 +77,11 @@ export default async function RootLayout({
           </div>
           <Marginalia />
           <AnnotationCapture />
-          {/* Dev-only: press "g" for the column-grid overlay. */}
-          {process.env.NODE_ENV === "development" && <GridOverlay />}
+          {/* Press "g" for the column-grid overlay: anyone in dev, owner
+              only on prod. */}
+          {(process.env.NODE_ENV === "development" || canEdit) && (
+            <GridOverlay />
+          )}
         </MarginProvider>
       </body>
     </html>
