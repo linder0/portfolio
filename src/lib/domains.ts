@@ -59,20 +59,11 @@ function origin({ protocol, root, port }: HostParts, sub?: string): string {
   return `${protocol}://${hostPart}${port ? `:${port}` : ""}`;
 }
 
-// TEMP: the lindaxue.com registrar transfer to Vercel is still pending, so the
-// section subdomains don't resolve yet. Until it completes, production links
-// fall back to lindaxue.com/<section>. Flip to true once DNS is on Vercel.
-const SUBDOMAINS_LIVE = false;
-
-// Absolute URL to a section, e.g. https://projects.lindaxue.com — or, while
-// the subdomains aren't live, https://lindaxue.com/projects. Local hosts keep
-// subdomains so the proxy rewrite stays testable in dev.
+// Absolute URL to a section, e.g. https://projects.lindaxue.com. Local hosts
+// keep subdomains too (projects.localhost:<port>) so the proxy rewrite stays
+// testable in dev.
 export function subdomainUrl(host: string, section: Section): string {
-  const parts = parseHost(host);
-  if (!SUBDOMAINS_LIVE && !parts.isLocal) {
-    return `${origin(parts)}/${section}`;
-  }
-  return origin(parts, section);
+  return origin(parseHost(host), section);
 }
 
 // Absolute URL to the bare root domain, e.g. https://lindaxue.com
