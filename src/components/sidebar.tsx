@@ -46,17 +46,21 @@ export async function Sidebar() {
       </aside>
 
       {/* Mobile: nav lives in a fixed bar along the bottom edge. */}
-      {/* Height is exactly what the body reserves (3rem + safe-area inset),
-          so the bar's top rule always meets the page content (the home photo
-          locks its bottom edge here). Links center in the 3rem row above the
-          safe area. The ::after is a background bleed below the bar: iOS 26
-          Safari can leave a sliver of document visible between a fixed
-          bottom:0 element and its toolbar (the page extends behind the
-          toolbar under viewport-fit=cover while fixed elements are clamped
-          above it), so paint that gap as the bar instead of page content. */}
+      {/* The bar's top rule sits exactly 3rem + safe-area above the viewport
+          bottom — the same space the body reserves — so it always meets the
+          page content (the home photo locks its bottom edge here). Links
+          center in the 3rem row at the top of the bar.
+
+          The bar's own box then overshoots 4rem BELOW the viewport bottom:
+          iOS 26 Safari (Liquid Glass) can expose a sliver of the document
+          between a bottom-anchored fixed element and its toolbar, and its
+          toolbar compositing ignores ::before/::after — it only honors the
+          fixed element's own background-color. The oversized box paints that
+          gap as bar background and gives Safari the right color to sample
+          for toolbar tinting. */}
       <nav
         aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-40 flex h-[calc(3rem+env(safe-area-inset-bottom))] border-t border-border bg-background pb-[env(safe-area-inset-bottom)] after:absolute after:inset-x-0 after:top-full after:h-24 after:bg-background lg:hidden"
+        className="fixed inset-x-0 -bottom-16 z-40 flex h-[calc(7rem+env(safe-area-inset-bottom))] border-t border-border bg-background pb-[calc(4rem+env(safe-area-inset-bottom))] lg:hidden"
       >
         <a
           href={rootUrl(host)}

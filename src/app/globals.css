@@ -240,6 +240,10 @@
   }
   html {
     @apply font-sans;
+    /* Explicit root color: iOS 26 Safari samples this for its toolbar /
+       edge regions when no fixed element qualifies; a transparent root
+       falls back to plain white (light) or black (dark). */
+    background-color: var(--background);
   }
   /* Hide scrollbars everywhere (scrolling still works) */
   * {
