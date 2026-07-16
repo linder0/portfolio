@@ -20,8 +20,10 @@ export type Post = {
   // Body copy. Blank lines separate paragraphs; a line that is just an image
   // URL renders as the image itself (same convention as marginalia notes),
   // and lines under the URL in the same paragraph are the image's caption.
-  // A paragraph starting "# " renders as a section heading; **text** bolds,
-  // *text* italicizes, ***text*** does both (⌘B/⌘I in the editor).
+  // Block syntax: "# " section heading, "## " subheading, "- "/"* "/"1. "
+  // list lines, "> " blockquote, ``` fenced code, "---" horizontal rule.
+  // Inline: **bold**, *italic*, ***both*** (nesting works), ~~strike~~,
+  // `code`, [text](url) links and bare URLs (⌘B/⌘I/⌘K in the editor).
   // The static value here is the default — the owner can rewrite it inline,
   // which stores an override in Blob (see `lib/post-store`).
   body: string;
@@ -101,19 +103,30 @@ export const posts: Post[] = [
 /* ---------------------------------------------------------------------------
    Body parsing — a post body is plain text: blank lines split paragraphs, a
    paragraph that starts with an image URL renders as the image (any lines
-   under the URL in the same paragraph are its caption), and a paragraph
-   starting "# " renders as a section heading. Parsed here so the server page
-   and the inline editor agree on the format.
+   under the URL in the same paragraph are its caption), and chunks with a
+   leading marker become structured blocks: "# "/"## " headings, "- "/"* "/
+   "1. " lists, "> " blockquotes, ``` fenced code, "---" rules. Parsed here
+   so the server page and the inline editor agree on the format.
    ------------------------------------------------------------------------- */
 
 export type PostBlock =
   | { kind: "text"; text: string }
-  // A section heading: "# Heading" (extra #s collapse — the site has one
-  // heading style, so there are no levels to encode).
-  | { kind: "heading"; text: string }
+  // "# " is the section heading (level 2 — the page title is the only h1);
+  // "## " and deeper collapse to a level-3 subheading (the site has two
+  // in-body heading styles).
+  | { kind: "heading"; level: 2 | 3; text: string }
   // Width in px (owner-resized; omitted = natural size, capped to the column).
   // Caption: any lines under the URL within the same paragraph.
-  | { kind: "image"; src: string; width?: number; caption?: string };
+  | { kind: "image"; src: string; width?: number; caption?: string }
+  // Consecutive "- "/"* " (unordered) or "1. " (ordered) lines. A numbered
+  // item in its own paragraph keeps its number via `start`, so the "1." /
+  // "2." style with blank lines between items renders correctly.
+  | { kind: "list"; ordered: boolean; start: number; items: string[] }
+  | { kind: "quote"; text: string }
+  // A ``` fenced chunk, verbatim (blank lines inside don't split it).
+  | { kind: "code"; code: string }
+  // "---" on its own paragraph.
+  | { kind: "rule" };
 
 // An image URL: absolute, root-relative (a file under /public), or an
 // owner-uploaded image served from /api/images/[name] (see `lib/post-store`).
@@ -121,13 +134,42 @@ export type PostBlock =
 export const IMAGE_URL =
   /^((https?:\/\/|\/)\S+\.(png|jpe?g|gif|webp|avif|svg)(\?\S*)?|\/api\/images\/[\w.-]+)$/i;
 
-// A body's paragraphs (text chunks and image lines), split on blank lines.
-// The inline editors round-trip bodies through this same split.
+// A body's paragraphs (text chunks and image lines), split on blank lines —
+// except inside ``` fences, where blank lines belong to the code. The inline
+// editors round-trip bodies through this same split.
 export function splitChunks(body: string): string[] {
-  return body
-    .split(/\n\s*\n/)
-    .map((chunk) => chunk.trim())
-    .filter(Boolean);
+  const chunks: string[] = [];
+  let current: string[] = [];
+  let inFence = false;
+  const flush = () => {
+    const chunk = current.join("\n").trim();
+    if (chunk) chunks.push(chunk);
+    current = [];
+  };
+  for (const line of body.split("\n")) {
+    const fence = line.trim().startsWith("```");
+    if (inFence) {
+      current.push(line);
+      if (fence) {
+        inFence = false;
+        flush();
+      }
+      continue;
+    }
+    if (fence) {
+      flush();
+      current.push(line);
+      inFence = true;
+      continue;
+    }
+    if (!line.trim()) {
+      flush();
+      continue;
+    }
+    current.push(line);
+  }
+  flush();
+  return chunks;
 }
 
 // An image paragraph: the URL on its own line, optionally followed by a pixel
@@ -148,50 +190,255 @@ export function parseImageChunk(
 }
 
 // A heading paragraph: one or more #s, a space, then the heading text.
-const HEADING_CHUNK = /^#+\s+(.*)$/;
+const HEADING_CHUNK = /^(#+)\s+(.*)$/;
+
+// A list line: "- ", "* ", or "1. " (the number is kept for ordered starts).
+const LIST_LINE = /^([-*]|\d+\.)\s+(.*)$/;
+
+// A fenced code chunk: the opening ``` (with an optional, ignored language
+// tag) on the first line, verbatim lines after, an optional closing fence
+// (an unclosed fence runs to the end of the chunk).
+function parseCodeChunk(chunk: string): { code: string } | null {
+  if (!chunk.startsWith("```")) return null;
+  const lines = chunk.split("\n");
+  let rest = lines.slice(1);
+  if (rest.length && rest[rest.length - 1].trim() === "```") {
+    rest = rest.slice(0, -1);
+  }
+  return { code: rest.join("\n") };
+}
+
+// A list chunk: the first line is a list item; further item lines start new
+// items, and any non-item line continues the previous item (soft wrap).
+function parseListChunk(
+  chunk: string,
+): { ordered: boolean; start: number; items: string[] } | null {
+  const lines = chunk.split("\n").map((line) => line.trim());
+  const first = lines[0].match(LIST_LINE);
+  if (!first) return null;
+  const ordered = first[1] !== "-" && first[1] !== "*";
+  const items: string[] = [];
+  for (const line of lines) {
+    const item = line.match(LIST_LINE);
+    if (item) items.push(item[2]);
+    else if (items.length) items[items.length - 1] += ` ${line}`;
+  }
+  return { ordered, start: ordered ? parseInt(first[1], 10) : 1, items };
+}
 
 export function postBlocks(body: string): PostBlock[] {
-  return splitChunks(body).map((chunk) => {
+  return splitChunks(body).map((chunk): PostBlock => {
+    const code = parseCodeChunk(chunk);
+    if (code) return { kind: "code", ...code };
     const image = parseImageChunk(chunk);
-    if (image) return { kind: "image", ...image } as const;
+    if (image) return { kind: "image", ...image };
+    if (/^-{3,}$/.test(chunk)) return { kind: "rule" };
+    const list = parseListChunk(chunk);
+    if (list) return { kind: "list", ...list };
+    if (chunk.startsWith(">")) {
+      // Each "> " line is its own line in the quote — join with newlines (and
+      // collapse only within-line whitespace) so multi-line quotes keep their
+      // breaks. The blockquote renders with whitespace-pre-line.
+      const text = chunk
+        .split("\n")
+        .map((line) => line.trim().replace(/^>\s?/, "").replace(/\s+/g, " "))
+        .join("\n")
+        .trim();
+      return { kind: "quote", text };
+    }
     const text = chunk.replace(/\s*\n\s*/g, " ");
     const heading = text.match(HEADING_CHUNK);
-    if (heading) return { kind: "heading", text: heading[1] } as const;
-    return { kind: "text", text } as const;
+    if (heading) {
+      return {
+        kind: "heading",
+        level: heading[1].length === 1 ? 2 : 3,
+        text: heading[2],
+      };
+    }
+    return { kind: "text", text };
   });
 }
 
 /* ---------------------------------------------------------------------------
-   Inline formatting — asterisk runs inside a paragraph: **bold**, *italic*,
-   ***both***. The markers are stripped for visitors; a run whose closing
-   marker doesn't match is left as literal text.
+   Inline formatting — a small tokenizer over a paragraph's text: **bold**,
+   *italic*, ***both*** (nesting works), ~~strike~~, `code`, [text](url)
+   links, and bare URLs. Markers are stripped for visitors; an unmatched
+   marker is left as literal text. Output is a flat list of styled segments
+   whose `text` is exactly what renders, so highlight annotations (which
+   match against rendered text) keep working per segment.
    ------------------------------------------------------------------------- */
 
-export type TextSegment = { text: string; bold: boolean; italic: boolean };
+export type TextSegment = {
+  // The visible text (for a link, the label).
+  text: string;
+  bold: boolean;
+  italic: boolean;
+  strike: boolean;
+  code: boolean;
+  // Link destination, when the segment is (part of) a link's label.
+  href?: string;
+};
 
-// A marker run and its matching closer: * / ** / *** with no stars inside.
-const MARKED = /(\*{1,3})([^*]+)\1/g;
+type InlineStyle = {
+  bold: boolean;
+  italic: boolean;
+  strike: boolean;
+  href?: string;
+};
+
+// Sticky (position-anchored) matchers for links and bare URLs.
+const LINK_AT = /\[([^\]]+)\]\((\S+?)\)/y;
+const BARE_URL_AT = /https?:\/\/[^\s]+/y;
+// Punctuation that's likely sentence-ending rather than part of a bare URL
+// (mirrors the marginalia note convention in `lib/notes`).
+const URL_TRAILING_PUNCTUATION = /[.,;:!?)\]]+$/;
+
+// The closing star run for an opener of length `n`: the first run of exactly
+// n stars; failing that, the LAST n stars of the final (longer) run, so a
+// merged closer like the "***" in "**bold *it***" closes both markers — the
+// leftover leading stars stay in the content as the inner closer. Returns
+// where the emphasized content ends and where scanning resumes, or null when
+// the opener has no closer (the opener then stays literal).
+function findCloser(
+  text: string,
+  n: number,
+  from: number,
+): { end: number; resume: number } | null {
+  const runs: [start: number, length: number][] = [];
+  let i = from;
+  while (i < text.length) {
+    if (text[i] === "*") {
+      let j = i;
+      while (text[j] === "*") j++;
+      runs.push([i, j - i]);
+      i = j;
+    } else {
+      i++;
+    }
+  }
+  const exact = runs.find(([, length]) => length === n);
+  if (exact) return { end: exact[0], resume: exact[0] + n };
+  const last = runs[runs.length - 1];
+  if (last && last[1] > n) {
+    const [start, length] = last;
+    return { end: start + length - n, resume: start + length };
+  }
+  return null;
+}
+
+function parseInline(
+  text: string,
+  style: InlineStyle,
+  out: TextSegment[],
+): void {
+  const push = (t: string, code = false) => {
+    if (!t) return;
+    out.push({
+      text: t,
+      bold: style.bold,
+      italic: style.italic,
+      strike: style.strike,
+      code,
+      ...(style.href && { href: style.href }),
+    });
+  };
+
+  let cursor = 0;
+  let plain = 0; // start of the pending unstyled run
+  while (cursor < text.length) {
+    const ch = text[cursor];
+
+    // `code` — verbatim content, no nesting inside.
+    if (ch === "`") {
+      const close = text.indexOf("`", cursor + 1);
+      if (close > cursor + 1) {
+        push(text.slice(plain, cursor));
+        push(text.slice(cursor + 1, close), true);
+        cursor = plain = close + 1;
+        continue;
+      }
+    }
+
+    // * / ** / *** emphasis — matching closer required, nesting allowed.
+    if (ch === "*") {
+      let run = 1;
+      while (text[cursor + run] === "*") run++;
+      const n = Math.min(run, 3);
+      const closer = findCloser(text, n, cursor + run);
+      if (closer && closer.end > cursor + run) {
+        push(text.slice(plain, cursor));
+        parseInline(
+          text.slice(cursor + n, closer.end),
+          {
+            ...style,
+            bold: style.bold || n >= 2,
+            italic: style.italic || n % 2 === 1,
+          },
+          out,
+        );
+        cursor = plain = closer.resume;
+        continue;
+      }
+      cursor += run; // unmatched run stays literal
+      continue;
+    }
+
+    // ~~strike~~
+    if (ch === "~" && text[cursor + 1] === "~") {
+      const close = text.indexOf("~~", cursor + 2);
+      if (close > cursor + 2) {
+        push(text.slice(plain, cursor));
+        parseInline(text.slice(cursor + 2, close), { ...style, strike: true }, out);
+        cursor = plain = close + 2;
+        continue;
+      }
+      cursor += 2;
+      continue;
+    }
+
+    // [label](url) — the label is parsed for nested styling.
+    if (ch === "[") {
+      LINK_AT.lastIndex = cursor;
+      const match = LINK_AT.exec(text);
+      if (match) {
+        push(text.slice(plain, cursor));
+        parseInline(match[1], { ...style, href: match[2] }, out);
+        cursor = plain = cursor + match[0].length;
+        continue;
+      }
+    }
+
+    // Bare URL at a word boundary — displayed without the protocol noise.
+    if (
+      ch === "h" &&
+      (cursor === 0 || /[\s(]/.test(text[cursor - 1])) &&
+      (text.startsWith("http://", cursor) || text.startsWith("https://", cursor))
+    ) {
+      BARE_URL_AT.lastIndex = cursor;
+      const match = BARE_URL_AT.exec(text)!;
+      const href = match[0].replace(URL_TRAILING_PUNCTUATION, "");
+      push(text.slice(plain, cursor));
+      out.push({
+        text: href.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""),
+        bold: style.bold,
+        italic: style.italic,
+        strike: style.strike,
+        code: false,
+        href,
+      });
+      cursor = plain = cursor + href.length;
+      continue;
+    }
+
+    cursor++;
+  }
+  push(text.slice(plain));
+}
 
 export function textSegments(text: string): TextSegment[] {
-  const segments: TextSegment[] = [];
-  const plain = (t: string) => ({ text: t, bold: false, italic: false });
-  let cursor = 0;
-  for (const match of text.matchAll(MARKED)) {
-    if (match.index > cursor) {
-      segments.push(plain(text.slice(cursor, match.index)));
-    }
-    const stars = match[1].length;
-    segments.push({
-      text: match[2],
-      bold: stars >= 2,
-      italic: stars % 2 === 1,
-    });
-    cursor = match.index + match[0].length;
-  }
-  if (cursor < text.length) {
-    segments.push(plain(text.slice(cursor)));
-  }
-  return segments;
+  const out: TextSegment[] = [];
+  parseInline(text, { bold: false, italic: false, strike: false }, out);
+  return out;
 }
 
 // The text as visitors see it — formatting markers removed.

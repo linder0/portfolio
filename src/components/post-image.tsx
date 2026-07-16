@@ -10,6 +10,11 @@ import { splitChunks, type Post } from "@/lib/writing";
 
 const MIN_WIDTH = 120;
 
+// dataTransfer key for dragging an existing image block to a new position in
+// the body (owner-only, WYSIWYG reorder). The value is the source paragraph
+// index. Custom drag types are lowercased by the browser — keep it lowercase.
+export const IMAGE_MOVE_TYPE = "application/x-post-image-index";
+
 /* ---------------------------------------------------------------------------
    ResizableImage — Notion-style image sizing. Hover shows pill handles on the
    left/right edges; dragging one scales the image (aspect ratio locked,
@@ -150,7 +155,36 @@ export function PostImage({
   };
 
   return (
-    <figure data-post-block>
+    <figure data-post-block className="group/move relative">
+      {/* Google-Docs-style move affordance: a grip that appears on hover and
+          initiates a native drag; PostBody's body wrapper shows the drop line
+          and reorders the paragraph on release. */}
+      <div
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData(IMAGE_MOVE_TYPE, String(index));
+        }}
+        title="Drag to move"
+        aria-hidden
+        className="absolute left-2 top-2 z-10 flex h-7 w-7 cursor-grab items-center justify-center opacity-0 transition-opacity group-hover/move:opacity-100 active:cursor-grabbing"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 12 12"
+          className="text-white [filter:drop-shadow(0_1px_1px_rgba(0,0,0,0.6))]"
+        >
+          <g fill="currentColor">
+            <circle cx="4" cy="2.5" r="1" />
+            <circle cx="8" cy="2.5" r="1" />
+            <circle cx="4" cy="6" r="1" />
+            <circle cx="8" cy="6" r="1" />
+            <circle cx="4" cy="9.5" r="1" />
+            <circle cx="8" cy="9.5" r="1" />
+          </g>
+        </svg>
+      </div>
       <ResizableImage src={src} width={width} onCommit={persist} />
       {figcaption}
     </figure>

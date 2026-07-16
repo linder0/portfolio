@@ -1,5 +1,5 @@
 import { posts as staticPosts, type Post } from "@/lib/writing";
-import { blobRecordStore } from "@/lib/blob-store";
+import { recordStore } from "@/lib/record-store";
 
 /* ---------------------------------------------------------------------------
    Post store — owner-edited posts, keyed by post id.
@@ -30,7 +30,7 @@ export type StoredPost = {
 };
 export type StoredPosts = Record<string, StoredPost>;
 
-const store = blobRecordStore<StoredPost>("content/posts.json");
+const store = recordStore<StoredPost>("posts");
 
 export const getStoredPosts = store.read;
 export const saveStoredPost = store.write;

@@ -1,4 +1,4 @@
-import { blobRecordStore } from "@/lib/blob-store";
+import { recordStore } from "@/lib/record-store";
 
 /* ---------------------------------------------------------------------------
    Subscriber store — newsletter signups, keyed by normalized email address.
@@ -9,7 +9,7 @@ export type Subscriber = {
   subscribedAt: string; // ISO timestamp
 };
 
-const store = blobRecordStore<Subscriber>("content/subscribers.json");
+const store = recordStore<Subscriber>("subscribers");
 
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();

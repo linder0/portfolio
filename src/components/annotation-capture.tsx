@@ -14,8 +14,9 @@ const CONTEXT_CHARS = 32;
 // `raw` is the untrimmed selection string: the anchor is trimmed before
 // storage, so whitespace at the selection's edges belongs to the context —
 // without it the stored prefix/suffix don't line up with the anchor and the
-// highlight never matches.
-function selectionContext(
+// highlight never matches. Exported for visitor comments (CommentCapture),
+// which pin to text the same way.
+export function selectionContext(
   range: Range,
   raw: string,
 ): { prefix: string; suffix: string } {

@@ -11,7 +11,7 @@ import {
   useTransition,
   type ReactNode,
 } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   hasContent,
   noteLink,
@@ -21,11 +21,12 @@ import {
   type EditableNote,
   type Note,
 } from "@/lib/notes";
+import { formatCommentDate, type CommentDisplay } from "@/lib/comments";
 import { IMAGE_URL } from "@/lib/writing";
 import { editorButton, editorField } from "@/components/form-classes";
 import { RawImage } from "@/components/raw-image";
 import { useImageUpload } from "@/components/use-image-upload";
-import { updateNote } from "@/app/actions";
+import { deleteComment, updateNote } from "@/app/actions";
 
 /* ---------------------------------------------------------------------------
    Marginalia — the fixed rectangle in the lower-right that shows supplementary
@@ -286,6 +287,51 @@ function NoteBody({ body }: { body: string }) {
   );
 }
 
+// A visitor comment thread pinned to one phrase (fed into the margin by a
+// comment-variant Footnote). Bodies render as plain text on purpose — no
+// links or images from strangers. The signed-in owner moderates with a
+// delete per comment; the panel note is patched locally so the thread
+// updates before the refreshed page re-renders.
+function CommentThread({ comments }: { comments: CommentDisplay[] }) {
+  const { canEdit, setNote } = useMarginActions();
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  const remove = (id: string) => {
+    startTransition(async () => {
+      const result = await deleteComment(id);
+      if ("deleted" in result) {
+        const left = comments.filter((comment) => comment.id !== id);
+        setNote(left.length ? { comments: left } : null);
+        router.refresh();
+      }
+    });
+  };
+
+  return (
+    <>
+      {comments.map((comment) => (
+        <div key={comment.id} className="space-y-1">
+          <p className="opacity-60">
+            {comment.name} · {formatCommentDate(comment.createdAt)}
+          </p>
+          <p className="whitespace-pre-wrap">{comment.body}</p>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => remove(comment.id)}
+              disabled={pending}
+              className={editorButton}
+            >
+              delete
+            </button>
+          )}
+        </div>
+      ))}
+    </>
+  );
+}
+
 function NoteEditor({
   note,
   onClose,
@@ -294,6 +340,7 @@ function NoteEditor({
   onClose: () => void;
 }) {
   const { setNote } = useMarginActions();
+  const router = useRouter();
   const [body, setBody] = useState(note.body ?? "");
   const [pending, startTransition] = useTransition();
   const { uploading, upload } = useImageUpload();
@@ -314,6 +361,10 @@ function NoteEditor({
         // default", which the next server render supplies on re-hover.
         setNote({ id: note.id, ...result.saved });
         onClose();
+        // Re-render the post body so a newly pinned highlight's phrase picks
+        // up its underline (and a cleared one drops it) without a manual
+        // reload — the same refresh the post and comment editors do.
+        router.refresh();
       }
     });
   };
@@ -474,6 +525,10 @@ export function Marginalia() {
 
               {note.body && <NoteBody body={note.body} />}
 
+              {note.comments?.length ? (
+                <CommentThread comments={note.comments} />
+              ) : null}
+
               {canEdit && note.id && (
                 <button
                   type="button"
@@ -494,12 +549,16 @@ export function Marginalia() {
 // Inline footnote marker. Wrap inline text; on hover/focus it feeds its own
 // note into the same margin. When the note contains a link, the marker is a
 // real anchor to it — the panel's links are also clickable, but the hovered
-// text itself is the nearer target.
+// text itself is the nearer target. Visitor comment anchors use the
+// "comment" variant: a solid underline, distinct from the owner's dotted
+// marginalia.
 export function Footnote({
   note,
+  variant = "note",
   children,
 }: {
   note: Note;
+  variant?: "note" | "comment";
   children: ReactNode;
 }) {
   const handlers = useNote(note);
@@ -511,8 +570,9 @@ export function Footnote({
     );
   }
   const href = noteLink(note);
-  const className =
-    "link-glow underline decoration-dotted underline-offset-4 focus:outline-none";
+  const className = `link-glow underline underline-offset-4 focus:outline-none ${
+    variant === "comment" ? "decoration-solid" : "decoration-dotted"
+  }`;
   if (href) {
     return (
       <a

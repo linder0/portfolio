@@ -1,4 +1,4 @@
-import { blobRecordStore } from "@/lib/blob-store";
+import { recordStore } from "@/lib/record-store";
 
 /* ---------------------------------------------------------------------------
    Page store — owner-edited page copy (e.g. the home bio), keyed by page id,
@@ -8,7 +8,7 @@ import { blobRecordStore } from "@/lib/blob-store";
 export type StoredPage = { body?: string };
 export type StoredPages = Record<string, StoredPage>;
 
-const store = blobRecordStore<StoredPage>("content/pages.json");
+const store = recordStore<StoredPage>("pages");
 
 export const getStoredPages = store.read;
 

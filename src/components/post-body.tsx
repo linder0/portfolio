@@ -12,6 +12,7 @@ import {
 } from "@/components/form-classes";
 import { RawImage } from "@/components/raw-image";
 import { useImageUpload } from "@/components/use-image-upload";
+import { IMAGE_MOVE_TYPE } from "@/components/post-image";
 import { deletePost, updatePost } from "@/app/actions";
 
 /* ---------------------------------------------------------------------------
@@ -23,9 +24,10 @@ import { deletePost, updatePost } from "@/app/actions";
      (slug), date, tagline, thumbnail, and the body as one text box (blank
      lines split paragraphs; a line that is just an image URL renders as the
      image — resize it on the rendered post after saving — and lines right
-     under the URL are the image's caption; a paragraph starting "# " is a
-     section heading; ⌘B and ⌘I wrap the selection in asterisk markers for
-     inline bold and italic).
+     under the URL are the image's caption; "# "/"## " start headings, "- "
+     and "1. " lines are lists, "> " quotes, ``` fences code, "---" rules;
+     ⌘B and ⌘I wrap the selection in asterisk markers for inline bold and
+     italic, ⌘K wraps it as a [text](url) link).
    - Images can be dragged onto the *rendered* body — a hairline shows where
      they'll land between paragraphs — or dropped/pasted into the textarea.
    - A status field switches the post between published and draft (drafts are
@@ -210,17 +212,38 @@ export function PostBody({
   };
 
   const onDragOver = (e: React.DragEvent) => {
-    if (!e.dataTransfer.types.includes("Files")) return;
+    const isFile = e.dataTransfer.types.includes("Files");
+    const isMove = e.dataTransfer.types.includes(IMAGE_MOVE_TYPE);
+    if (!isFile && !isMove) return;
     e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
+    e.dataTransfer.dropEffect = isMove ? "move" : "copy";
     setDrop(dropTarget(e.clientY));
   };
 
   const onDrop = (e: React.DragEvent) => {
-    if (!e.dataTransfer.types.includes("Files")) return;
+    const isFile = e.dataTransfer.types.includes("Files");
+    const isMove = e.dataTransfer.types.includes(IMAGE_MOVE_TYPE);
+    if (!isFile && !isMove) return;
     e.preventDefault();
     const target = dropTarget(e.clientY);
     setDrop(null);
+
+    // Reordering an existing image block: move its paragraph to the drop slot.
+    // Removing the source first shifts every later index down by one, so a
+    // forward move lands one slot earlier than the raw target.
+    if (isMove) {
+      const from = Number(e.dataTransfer.getData(IMAGE_MOVE_TYPE));
+      const chunks = splitChunks(post.body);
+      if (!Number.isInteger(from) || from < 0 || from >= chunks.length) return;
+      let to = target.index;
+      if (to > from) to -= 1;
+      if (to === from) return;
+      const [moved] = chunks.splice(from, 1);
+      chunks.splice(to, 0, moved);
+      save({ ...draftFrom(post), body: chunks.join("\n\n") });
+      return;
+    }
+
     const file = imageFile(e.dataTransfer);
     if (!file) return;
     void (async () => {
@@ -292,6 +315,22 @@ export function PostBody({
     requestAnimationFrame(() => {
       el.focus();
       el.setSelectionRange(start + shift, end + shift);
+    });
+  };
+
+  // ⌘K: wrap the selection as a [text](url) link and select the url
+  // placeholder so the destination can be typed (or pasted) right away.
+  const insertLink = () => {
+    const el = textRef.current;
+    if (!el) return;
+    const { selectionStart: start, selectionEnd: end, value } = el;
+    const label = value.slice(start, end) || "text";
+    const body = `${value.slice(0, start)}[${label}](url)${value.slice(end)}`;
+    const urlStart = start + label.length + 3; // past "[label]("
+    set({ body });
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(urlStart, urlStart + 3);
     });
   };
 
@@ -441,8 +480,10 @@ export function PostBody({
               <span className="opacity-60">
                 {" "}
                 — blank line splits paragraphs · &quot;# &quot; starts a
-                section · a line under an image URL captions it · ⌘B bolds ·
-                ⌘I italicizes
+                section · &quot;- &quot; / &quot;1. &quot; list · &quot;&gt;
+                &quot; quote · ``` code · &quot;---&quot; rule · a line under
+                an image URL captions it · ⌘B bolds · ⌘I italicizes · ⌘K
+                links
               </span>
             </>
           }
@@ -458,6 +499,9 @@ export function PostBody({
               if (key === "b" || key === "i") {
                 e.preventDefault();
                 toggleMarker(key === "b" ? "**" : "*");
+              } else if (key === "k") {
+                e.preventDefault();
+                insertLink();
               }
             }}
             onDragOver={(e) => {

@@ -1,5 +1,6 @@
 import type { Project, ProjectLink } from "@/lib/projects";
 import { IMAGE_URL, postExcerpt, type Post } from "@/lib/writing";
+import type { CommentDisplay } from "@/lib/comments";
 
 /* ---------------------------------------------------------------------------
    Note — a normalized, source-agnostic descriptor of what the marginalia panel
@@ -24,6 +25,9 @@ export type Note = {
   subtitle?: string;
   meta?: NoteMeta[];
   body?: string;
+  // Visitor comments pinned to this anchor (see `lib/comments`). A comment
+  // note has no editable fields of its own — the thread is the content.
+  comments?: CommentDisplay[];
 } | null;
 
 // A note that is guaranteed addressable (and therefore owner-editable).
@@ -62,7 +66,11 @@ export function mergeNote<T extends NonNullable<Note>>(
 export function hasContent(note: Note): boolean {
   if (!note) return false;
   return Boolean(
-    note.title || note.subtitle || note.body || note.meta?.length,
+    note.title ||
+      note.subtitle ||
+      note.body ||
+      note.meta?.length ||
+      note.comments?.length,
   );
 }
 
@@ -188,12 +196,16 @@ export function highlightId(anchor: string, prefix = "", suffix = ""): string {
   return `hl:${hash.toString(36)}`;
 }
 
-// The occurrence of a highlight's anchor inside `text` whose surroundings
-// match the stored prefix/suffix (-1 if none). The captured context can
-// extend past the source string (the DOM block may hold more text, e.g. a
-// row's title before its tagline), so at the string's edges it's enough for
-// the stored context to *contain* what's actually there.
-function anchorIndex(text: string, note: StoredNote): number {
+// The occurrence of a pinned anchor inside `text` whose surroundings match
+// the stored prefix/suffix (-1 if none). The captured context can extend
+// past the source string (the DOM block may hold more text, e.g. a row's
+// title before its tagline), so at the string's edges it's enough for the
+// stored context to *contain* what's actually there. Shared with visitor
+// comments (`lib/comments`), which pin to text the same way.
+export function anchorIndex(
+  text: string,
+  note: { anchor?: string; prefix?: string; suffix?: string },
+): number {
   const anchor = note.anchor!;
   const prefix = note.prefix ?? "";
   const suffix = note.suffix ?? "";

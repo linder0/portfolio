@@ -1,5 +1,5 @@
 import type { StoredNote } from "@/lib/notes";
-import { blobRecordStore } from "@/lib/blob-store";
+import { recordStore } from "@/lib/record-store";
 
 /* ---------------------------------------------------------------------------
    Note store — owner-edited marginalia, keyed by note id (e.g.
@@ -10,7 +10,7 @@ import { blobRecordStore } from "@/lib/blob-store";
 
 export type StoredNotes = Record<string, StoredNote>;
 
-const store = blobRecordStore<StoredNote>("content/notes.json");
+const store = recordStore<StoredNote>("notes");
 
 export const getStoredNotes = store.read;
 

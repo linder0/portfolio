@@ -10,6 +10,13 @@ import {
   isAuthenticated,
 } from "@/lib/auth";
 import { saveStoredNote } from "@/lib/note-store";
+import { getStoredComments, saveStoredComment } from "@/lib/comment-store";
+import {
+  COMMENT_ANCHOR_MAX,
+  COMMENT_BODY_MAX,
+  COMMENT_NAME_MAX,
+  type StoredComment,
+} from "@/lib/comments";
 import {
   getAllPosts,
   saveStoredPost,
@@ -228,6 +235,110 @@ export async function deletePost(
   // A static post can't be removed from the code here — mark it deleted so
   // it stays hidden; a created post is simply dropped from the store.
   await saveStoredPost(id, isStatic ? { deleted: true } : null);
+  revalidatePath("/", "layout");
+  return { deleted: true };
+}
+
+/* ---------------------------------------------------------------------------
+   Visitor comments — the one PUBLIC mutation on the site: anyone can pin a
+   comment to selected post text with just a name (see `lib/comments`).
+   Spam dampers, not walls: a honeypot field bots tend to fill, a per-IP
+   throttle (in-memory — best-effort across serverless instances), and a
+   global cap so the Blob document can't grow without bound. The owner
+   moderates by deleting from the margin panel.
+   ------------------------------------------------------------------------- */
+
+const COMMENT_WINDOW_MS = 60_000;
+const COMMENTS_PER_WINDOW = 5;
+const COMMENTS_CAP = 2000;
+const recentCommentTimes = new Map<string, number[]>();
+
+function commentThrottled(ip: string): boolean {
+  const now = Date.now();
+  // Sweep IPs whose window has fully elapsed first, so the map is bounded by
+  // the number of IPs active within the window rather than growing forever.
+  for (const [key, stamps] of recentCommentTimes) {
+    const live = stamps.filter((t) => now - t < COMMENT_WINDOW_MS);
+    if (live.length) recentCommentTimes.set(key, live);
+    else recentCommentTimes.delete(key);
+  }
+  const times = recentCommentTimes.get(ip) ?? [];
+  if (times.length >= COMMENTS_PER_WINDOW) return true;
+  times.push(now);
+  recentCommentTimes.set(ip, times);
+  return false;
+}
+
+export type CommentDraft = {
+  postId: string;
+  anchor: string;
+  prefix?: string;
+  suffix?: string;
+  name: string;
+  body: string;
+  // Honeypot — a visually hidden field humans never fill.
+  website?: string;
+};
+
+export async function addComment(
+  draft: CommentDraft,
+): Promise<{ error: string } | { saved: true }> {
+  // A filled honeypot gets a quiet "success" so bots don't adapt.
+  if (draft.website) return { saved: true };
+
+  const name = draft.name.trim();
+  const body = draft.body.trim();
+  const anchor = draft.anchor.trim();
+  if (!name) return { error: "A name is required." };
+  if (name.length > COMMENT_NAME_MAX) {
+    return { error: `Names cap at ${COMMENT_NAME_MAX} characters.` };
+  }
+  if (!body) return { error: "A comment is required." };
+  if (body.length > COMMENT_BODY_MAX) {
+    return { error: `Comments cap at ${COMMENT_BODY_MAX} characters.` };
+  }
+  if (!anchor || anchor.length > COMMENT_ANCHOR_MAX) {
+    return { error: "Select a shorter passage to comment on." };
+  }
+
+  const ip =
+    (await headers()).get("x-forwarded-for")?.split(",")[0].trim() ??
+    "unknown";
+  if (commentThrottled(ip)) {
+    return { error: "Too many comments at once — try again in a minute." };
+  }
+
+  const all = await getAllPosts();
+  if (!all.some((post) => post.id === draft.postId)) {
+    return { error: "Unknown post." };
+  }
+  if (Object.keys(await getStoredComments()).length >= COMMENTS_CAP) {
+    return { error: "The comment box is full." };
+  }
+
+  const id = `comment:${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;
+  const stored: StoredComment = {
+    postId: draft.postId,
+    anchor,
+    ...(draft.prefix && { prefix: draft.prefix }),
+    ...(draft.suffix && { suffix: draft.suffix }),
+    name,
+    body,
+    createdAt: new Date().toISOString(),
+  };
+  await saveStoredComment(id, stored);
+  revalidatePath("/", "layout");
+  return { saved: true };
+}
+
+export async function deleteComment(
+  id: string,
+): Promise<{ error: string } | { deleted: true }> {
+  const denied = await ownerGuard();
+  if (denied) return denied;
+  await saveStoredComment(id, null);
   revalidatePath("/", "layout");
   return { deleted: true };
 }
