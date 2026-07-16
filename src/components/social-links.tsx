@@ -1,6 +1,6 @@
 const socials: { label: string; href: string }[] = [
   { label: "Email", href: "mailto:xuelinda7@gmail.com" },
-  { label: "X", href: "https://x.com/xuelinda7" },
+  { label: "X", href: "https://x.com/lindaxue" },
   { label: "Instagram", href: "https://instagram.com/_lindaxue" },
   { label: "LinkedIn", href: "https://linkedin.com/in/lindalxue" },
   { label: "TikTok", href: "https://tiktok.com/@greenteaslurper" },

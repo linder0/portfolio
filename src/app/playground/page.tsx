@@ -31,7 +31,7 @@ const clips: Clip[] = [
     src: "/videos/playground/rl-ant-demo.mp4",
     aspect: "1254 / 720",
     label: "RL Ant (MuJoCo + PPO)",
-    href: "https://x.com/xuelinda7/status/2077415138831843678",
+    href: "https://x.com/lindaxue/status/2077415138831843678",
   },
 ];
 
