@@ -97,6 +97,15 @@ export default async function PostPage({
           {post.draft && " · draft"}
         </p>
         <h1 className="heading-48 mt-4">{post.title}</h1>
+        {post.tagline && (
+          <p className="copy-20 mt-5">
+            <AnnotatedText
+              text={post.tagline}
+              stored={stored}
+              comments={comments}
+            />
+          </p>
+        )}
       </header>
 
       {post.thumbnail &&

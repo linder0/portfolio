@@ -130,11 +130,15 @@ Two families: serif for titles (two tiers), Helvetica for everything else:
 
 Rules:
 - **Serif is for titles, Helvetica is for body.** Nothing else.
-- **Three sizes total** — 28 (large), 22 (medium), 15 (body). No other steps,
-  no uppercase eyebrow, no monospace.
-- Weight is Regular (400) everywhere (inline `**bold**` in post bodies is the
-  one exception); hierarchy comes from family + size + the layout (rules,
-  columns, whitespace), not weight or color.
+- **Three display sizes** — 28 (large), 22 (medium), 15 (body). No other
+  steps and no uppercase eyebrow. The lone exception is **fenced code in post
+  bodies**, which renders monospace at 13px (`font-mono`, `text-[13px]`) — a
+  verbatim device, like the credits table is for boxes.
+- Weight is Regular (400) almost everywhere; hierarchy comes from family +
+  size + the layout (rules, columns, whitespace), not weight or color. Bold is
+  used only inside post bodies: inline `**bold**`, and the in-body **h3
+  subheading**, which is a bold Body paragraph (`copy-18 font-bold`) rather
+  than a third serif tier.
 
 ### Class aliases
 
@@ -227,9 +231,10 @@ margin = 19.5rem), `max-w-measure` (prose, 6 cols = 37.5rem), `max-w-cap-md`
 (4 cols = 24.5rem), `max-w-cap-sm` (3 cols = 18rem), `w-panel` (marginalia,
 3 cols = 18rem), `gap-x-6` / `px-gutter` etc. for gutter-sized gaps.
 
-**Dev grid tools**: in development, press `g` to toggle the column overlay,
-drawn from the live tokens — everything should land on it (rose = the
-left-origin columns, green = the right-flank panel region).
+**Grid overlay**: press `g` to toggle the column overlay (available to
+everyone in development, and to the signed-in owner in production), drawn from
+the live tokens — everything should land on it (rose = the left-origin
+columns, green = the right-flank panel region).
 
 ### Frame & measure
 
@@ -337,15 +342,35 @@ There is no eyebrow/category line — the page opens straight on the title.
 
 1. Eyebrow — date (plus ` · draft` for the owner), Body style.
 2. Title — Title style (`heading-48` alias).
-3. Optional banner — the post thumbnail cropped to `3:1`, hairline-bordered,
+3. Lede — the tagline in `copy-20` (same voice as the project lede), when the
+   post has one.
+4. Optional banner — the post thumbnail cropped to `3:1`, hairline-bordered,
    capped to the reading measure.
-4. Body — paragraphs in `copy-18` with inline images, capped to the reading
-   measure. A paragraph starting `# ` is a section heading (the Title style,
-   `heading-24`, with extra air above — there is only one heading style, no
-   levels); `**text**` bolds inline (the one place weight is used) and
-   `*text*` italicizes (⌘B/⌘I in the editor toggle them). Lines under an
-   image URL in the same paragraph render as the image's caption — Body
-   (`copy-14`) at 60% opacity, tucked under the image.
+5. Body — a stack of blocks (`space-y-6`), capped to the reading measure. The
+   text is written in a small markdown-ish syntax parsed in `lib/writing.ts`
+   (`postBlocks`); the editor's ⌘B/⌘I/⌘K toggle the inline markers.
+
+**Block types** (a chunk's leading marker decides which):
+
+| syntax | block | renders as |
+|--------|-------|------------|
+| (plain paragraph) | text | `copy-18` |
+| `# ` | section heading (level 2) | Medium serif (`heading-24`) with extra air above |
+| `## `+ | subheading (level 3) | bold Body (`copy-18 font-bold`) — not a serif tier |
+| `- ` / `* ` / `1. ` | list (unordered / ordered) | `copy-18`, `list-disc`/`list-decimal`; ordered lists keep their start number |
+| `> ` | blockquote | italic, left hairline rule (`border-l`), `whitespace-pre-line` |
+| ```` ``` ```` fence | code | monospace 13px in a hairline box (`bg-gray-alpha-100`) — the one monospace + fourth size |
+| `---` | rule | `<hr>` hairline |
+| image URL line | image | aspect-boxed; a line under the URL in the same paragraph is its caption — Body (`copy-14`) at 60% opacity |
+
+There are **two** in-body heading styles (the serif section heading and the
+bold-body subheading); the two serif *display* tiers stay reserved for the
+page title and the section heading.
+
+**Inline markers** (in text, headings, list items, captions): `**bold**`,
+`*italic*`, `***both***` (nesting works), `~~strike~~`, `` `code` ``, and
+`[text](url)` plus bare URLs. Bold is the one place weight is used in body
+copy.
 
 ### Forms — two voices
 
