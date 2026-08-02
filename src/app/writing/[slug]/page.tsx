@@ -1,22 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import {
-  formatPostDate,
-  postBlocks,
-  posts,
-  type Post,
-  type PostBlock,
-} from "@/lib/writing";
-import type { StoredNote } from "@/lib/notes";
+import { formatPostDate, postBlocks, posts } from "@/lib/writing";
 import { getPostBySlug } from "@/lib/post-store";
 import { getStoredNotes } from "@/lib/note-store";
 import { getPostComments } from "@/lib/comment-store";
 import type { StoredComment } from "@/lib/comments";
 import { isAuthenticated } from "@/lib/auth";
 import Image from "next/image";
-import { AnnotatedText, RichText } from "@/components/annotated-text";
+import { AnnotatedText } from "@/components/annotated-text";
 import { PageMain } from "@/components/page-main";
 import { PostBody } from "@/components/post-body";
+import { BodyBlocks } from "@/components/body-blocks";
 import { CommentCapture } from "@/components/comment-capture";
 import { PostImage } from "@/components/post-image";
 import { RawImage } from "@/components/raw-image";
@@ -75,18 +69,23 @@ export default async function PostPage({
   const blocks = postBlocks(post.body);
 
   const renderedBody = (
-    <div className="space-y-6">
-      {blocks.map((block, i) => (
-        <Block
-          key={i}
-          block={block}
-          index={i}
+    <BodyBlocks
+      blocks={blocks}
+      stored={stored}
+      comments={comments}
+      // Posts swap in PostImage so the signed-in owner gets the resize
+      // handles and drag-to-reorder grip; the caption arrives pre-rendered.
+      renderImage={(block, index, caption) => (
+        <PostImage
+          key={index}
           post={post}
-          stored={stored}
-          comments={comments}
+          index={index}
+          src={block.src}
+          width={block.width}
+          caption={caption}
         />
-      ))}
-    </div>
+      )}
+    />
   );
 
   return (
@@ -145,99 +144,3 @@ export default async function PostPage({
   );
 }
 
-// One parsed body block. Every top-level element carries data-post-block so
-// the owner's drag-to-insert-image indicator can measure the gaps between
-// blocks (see PostBody).
-function Block({
-  block,
-  index,
-  post,
-  stored,
-  comments,
-}: {
-  block: PostBlock;
-  index: number;
-  post: Post;
-  stored: Record<string, StoredNote>;
-  comments: Record<string, StoredComment>;
-}) {
-  switch (block.kind) {
-    case "image":
-      return (
-        <PostImage
-          post={post}
-          index={index}
-          src={block.src}
-          width={block.width}
-          caption={
-            block.caption && (
-              <RichText
-                text={block.caption}
-                stored={stored}
-                comments={comments}
-              />
-            )
-          }
-        />
-      );
-    case "heading":
-      // Extra air above a section heading: 24px from space-y-6 plus 24px
-      // here = the 48px "intro → content" step.
-      return block.level === 2 ? (
-        <h2 data-post-block className="heading-24 [&:not(:first-child)]:pt-6">
-          <AnnotatedText text={block.text} stored={stored} comments={comments} />
-        </h2>
-      ) : (
-        // Subheadings match the site's existing convention of bold body-size
-        // paragraphs (the design's two title styles stay reserved for the
-        // page title and section headings).
-        <h3 data-post-block className="copy-18 font-bold">
-          <AnnotatedText text={block.text} stored={stored} comments={comments} />
-        </h3>
-      );
-    case "list": {
-      const Tag = block.ordered ? "ol" : "ul";
-      return (
-        <Tag
-          data-post-block
-          {...(block.ordered && block.start !== 1 && { start: block.start })}
-          className={`copy-18 space-y-2 pl-6 ${
-            block.ordered ? "list-decimal" : "list-disc"
-          }`}
-        >
-          {block.items.map((item, i) => (
-            <li key={i}>
-              <RichText text={item} stored={stored} comments={comments} />
-            </li>
-          ))}
-        </Tag>
-      );
-    }
-    case "quote":
-      return (
-        <blockquote
-          data-post-block
-          className="whitespace-pre-line border-l border-border py-1 pl-5 italic"
-        >
-          <RichText text={block.text} stored={stored} comments={comments} />
-        </blockquote>
-      );
-    case "code":
-      return (
-        <pre
-          data-post-block
-          className="overflow-x-auto border border-border bg-gray-alpha-100 p-4"
-        >
-          <code className="font-mono text-[13px] leading-5">{block.code}</code>
-        </pre>
-      );
-    case "rule":
-      return <hr data-post-block className="border-border" />;
-    default:
-      return (
-        <p data-post-block className="copy-18">
-          <RichText text={block.text} stored={stored} comments={comments} />
-        </p>
-      );
-  }
-}

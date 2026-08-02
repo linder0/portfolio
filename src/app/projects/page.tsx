@@ -38,6 +38,7 @@ export default async function ProjectsPage() {
               tagline={
                 <AnnotatedText text={project.tagline} stored={stored} />
               }
+              thumbnail={project.thumbnail}
               right={project.year}
             />
           );

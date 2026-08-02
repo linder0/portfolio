@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProject, projects, type Project } from "@/lib/projects";
+import { postBlocks } from "@/lib/writing";
+import { BodyBlocks } from "@/components/body-blocks";
 import { mergeNote, projectLinkToNote } from "@/lib/notes";
 import { getStoredNotes, type StoredNotes } from "@/lib/note-store";
 import { NoteLink } from "@/components/note-link";
@@ -25,12 +27,15 @@ export async function generateMetadata({
     return { title: "Project not found — Linda Xue" };
   }
 
-  // First visual from the media list: an image directly, or a video's poster.
-  const thumbnail = project.media
-    ?.map((m) =>
-      m.type === "image" ? m.src : m.type === "video" ? m.poster : undefined,
-    )
-    .find(Boolean);
+  // First visual from the media list — an image directly, or a video's
+  // poster — falling back to the index-row thumbnail (a body-only project
+  // may have no media gallery at all).
+  const thumbnail =
+    project.media
+      ?.map((m) =>
+        m.type === "image" ? m.src : m.type === "video" ? m.poster : undefined,
+      )
+      .find(Boolean) ?? project.thumbnail;
 
   return {
     title: `${project.title} — Linda Xue`,
@@ -126,6 +131,13 @@ export default async function ProjectPage({
           <AnnotatedText text={project.description} stored={stored} />
         </p>
       </div>
+
+      {project.body && (
+        // The long-form case study — same block format as writing posts.
+        <div className="mt-12 max-w-measure">
+          <BodyBlocks blocks={postBlocks(project.body)} stored={stored} />
+        </div>
+      )}
 
       {project.media?.length ? (
         <div className="max-w-measure">

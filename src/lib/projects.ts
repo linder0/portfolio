@@ -48,10 +48,70 @@ export type Project = {
   collaborators?: string[];
   tools: string[];
   links: ProjectLink[];
+  // Small square image for the index row (same convention as post thumbnails).
+  thumbnail?: string;
   media?: ProjectMedia[];
+  // Optional long-form case study, same plain-text conventions as post bodies
+  // (see `lib/writing`): blank lines split paragraphs, "# " headings, image
+  // and video lines with captions, lists, quotes, ``` code fences. Rendered
+  // on the project page below the description.
+  body?: string;
 };
 
 export const projects: Project[] = [
+  {
+    slug: "dolly",
+    title: "Dolly",
+    tagline: "An opinionated cinematography engine for UI",
+    year: "2026",
+    category: ["software", "design"],
+    description:
+      "A Screen Studio-style macOS recorder that grew into a multi-clip video IDE. Record your screen and Dolly procedurally generates the cinematography afterwards — automatic zooms toward where you click, a smoothed synthetic cursor with click ripples, and a styled card framing. Everything stays editable until export; nothing is baked into pixels until the MP4 renders.",
+    role: "Designer & Developer",
+    tools: [
+      "Electron",
+      "TypeScript",
+      "Swift",
+      "ScreenCaptureKit",
+      "WebCodecs",
+      "Whisper",
+      "Remotion",
+    ],
+    links: [{ label: "GitHub", url: "https://github.com/linder0/screenlabs" }],
+    thumbnail: "/images/projects/dolly/thumbnail.png",
+    body: [
+      "Screen recordings are flat: the camera never moves, the cursor jitters, and the viewer has to find the action themselves. Tools like Screen Studio fix this with beautiful auto-zooms — so I built my own engine to understand how, and then kept going until it became a small video editor. Dolly's premise is that cinematography is a *function of telemetry*: record first, and let the camera work be computed afterwards, from what actually happened on screen.",
+      "/videos/projects/dolly/dolly-demo.mp4\nThe demo — itself written as code and rendered with Remotion.",
+      "# Record, then direct",
+      "Recording starts from a floating always-on-top widget: pick a display, window, or area, and optionally enable the webcam, mic, and system audio. A Swift sidecar built on ScreenCaptureKit captures the screen with the cursor hidden, while a CGEventTap logs every mouse move, click, and keystroke into an events.jsonl beside the video. That telemetry file is the whole trick — the recording keeps the raw pixels, and everything cinematic is derived from the event log later.",
+      "/images/projects/dolly/widget.png\nThe recorder widget — display, window, or area capture, plus camera, mic, and system audio tracks.",
+      "# Cinematography as a function of telemetry",
+      "After a recording lands, a chain of pure engines turns events into camera work. An analyzer clusters clicks and typing into attention segments; a camera planner converts those segments into a deterministic, eased camera path; and a cursor engine redraws the pointer from recorded motion as a zero-lag smoothed vector cursor — scaled with the zoom, crisp at any size, with ripples on every click.",
+      "/images/projects/dolly/editor-cursor.png\nThe recorded cursor is never shown — it's redrawn from motion data, so smoothing, sizing, and click effects stay adjustable forever.",
+      "# The compositor never decides anything",
+      [
+        "```",
+        "event analyzer  -> attention segments (click clustering, typing extension)",
+        "camera planner  -> deterministic eased camera path per clip",
+        "cursor engine   -> zero-lag smoothed path, vector cursor, click ripples",
+        "sequence        -> global timeline: evaluate(t) resolves clip -> camera/cursor",
+        "edits           -> pure clip ops: split, cut range, trim, reorder",
+        "compositor      -> background -> shadow -> card -> video -> cursor -> webcam",
+        "exporter        -> WebCodecs H.264 + AAC, same evaluation as preview",
+        "```",
+      ].join("\n"),
+      "Every frame the compositor draws `evaluate(t)` — a fully described scene computed from the project document, the event logs, and the current settings. There is no hidden state and no baked-in decision: change the background, the padding, the zoom curve, or the cursor size, and the same recording re-renders differently. Preview and export share the exact same evaluation, so what you scrub is what you ship.",
+      "/images/projects/dolly/editor.png\nThe editor — styled card framing over the project background, a media shelf on the left, and a multi-clip timeline below.",
+      "# A video IDE",
+      "Recordings live inside projects. Record again and the new clip appends to the open timeline; split with S, trim clip edges, drag to reorder, set per-clip volume and zooms. Paste (⌘V) or drop any video or image and it lands in the project instantly — ⌘⇧V grabs clipboard media from anywhere, even when the app isn't focused. The webcam composites as a floating bubble, and the mic mixes into both preview and export.",
+      "# The AI layer",
+      "Whisper transcribes the timeline audio, and the transcript is synced both ways — click a sentence to seek, cut a sentence to cut the video. A local silence-remover finds dead air and trims it, and a chat agent edits the project in plain language: \"zoom in on the top right from 5s to 9s\", \"cut the first 3 seconds\", \"switch to a dark background and add padding\".",
+      "/images/projects/dolly/editor-ai.png\nThe AI tab — one-click silence removal and an editing agent that operates on the project document.",
+      "# Nothing baked until export",
+      "Export runs entirely in the renderer: WebCodecs encodes H.264 while the audio graph mixes to AAC, muxed into an MP4 (or a GIF, for short loops). Because the exporter walks the same evaluate(t) as the preview, the render is just the timeline played carefully — every zoom, ripple, and crossfade lands exactly where the scrubber showed it.",
+      "/images/projects/dolly/export-dialog.png\nExport — format, resolution, and compression presets, straight to a file, the clipboard, or a shareable link.",
+    ].join("\n\n"),
+  },
   {
     slug: "gemini-clone",
     title: "Gemini Clone",
@@ -67,6 +127,7 @@ export const projects: Project[] = [
       { label: "Try it", url: "https://geminiclone-blue-sigma.vercel.app" },
       { label: "GitHub", url: "https://github.com/linder0/geminiclone" },
     ],
+    thumbnail: "/images/projects/gemini-clone/demo-poster.jpg",
     media: [
       {
         type: "video",
@@ -105,6 +166,7 @@ export const projects: Project[] = [
     duration: "2025",
     tools: ["SvelteKit", "LangGraph", "pgvector", "Supabase", "OpenAI", "Stripe", "Vercel"],
     links: [{ label: "Visit Monography", url: "https://monography.io" }],
+    thumbnail: "/images/projects/monography/logo.png",
     media: [
       {
         type: "image",
@@ -139,6 +201,7 @@ export const projects: Project[] = [
     collaborators: ["Mathias"],
     tools: ["SvelteKit", "Semantic Search"],
     links: [{ label: "Visit Pookie", url: "https://pookie.work" }],
+    thumbnail: "/images/projects/pookie/thumbnail.png",
     media: [
       {
         type: "image",
@@ -167,6 +230,7 @@ export const projects: Project[] = [
     links: [
       { label: "Assembly video", url: "https://youtube.com/shorts/qjFmz_p_eiM" },
     ],
+    thumbnail: "/images/projects/chameleon-gradient/chameleon-thumb.jpeg",
     media: [
       {
         type: "image",
@@ -218,6 +282,7 @@ export const projects: Project[] = [
     duration: "1 semester",
     tools: ["CAD", "3D Printing", "Bluetooth", "Gyroscope", "Sound Design"],
     links: [],
+    thumbnail: "/images/projects/inflatable-chimes/chimes-thumbnail.jpeg",
     media: [
       {
         type: "video",
@@ -272,6 +337,7 @@ export const projects: Project[] = [
     duration: "1 semester",
     tools: ["CAD", "3D Printing", "UR Arms"],
     links: [{ label: "Watch demo", url: "https://youtu.be/Y2sF_TRmMb8" }],
+    thumbnail: "/images/projects/magnetic-petri-dishes/petri-dishes-thumb.jpg",
     media: [
       {
         type: "image",
@@ -309,6 +375,7 @@ export const projects: Project[] = [
         url: "https://docs.google.com/presentation/d/1nSg1uNUub7X9DMToT73ELBfUN78l4MJth-KzaMByAMc/edit?usp=drive_link",
       },
     ],
+    thumbnail: "/images/projects/nanostalgia/nanostalgia-thumb.jpg",
     media: [
       {
         type: "image",
@@ -344,6 +411,8 @@ export const projects: Project[] = [
         url: "https://docs.google.com/document/d/1MbZcIGNLB-VMer3fTyWKVkRW79Zilmhvg813xIlSiYE/edit?tab=t.0",
       },
     ],
+    thumbnail:
+      "/images/projects/madagascar-hissing-cockroaches/roach.jpeg",
     media: [
       {
         type: "image",
@@ -367,6 +436,7 @@ export const projects: Project[] = [
     duration: "1 semester",
     tools: ["Sound Design", "Python", "UR Arms", "Projection Mapping"],
     links: [{ label: "View Project", url: "https://gazetothestars.com" }],
+    thumbnail: "/images/projects/gaze-to-the-stars/gaze-stars.jpg",
     media: [
       {
         type: "image",
@@ -420,6 +490,7 @@ export const projects: Project[] = [
     duration: "2025",
     tools: ["React"],
     links: [{ label: "GitHub", url: "https://github.com/linder0/hangful" }],
+    thumbnail: "/images/projects/hangful/thumbnail.png",
     media: [
       {
         type: "image",
