@@ -25,16 +25,20 @@ export const IMAGE_MOVE_TYPE = "application/x-post-image-index";
 
 export function ResizableImage({
   src,
+  darkSrc,
   width,
   onCommit,
 }: {
   src: string;
+  // Dark-theme variant; both render and CSS shows the current one, so the
+  // container (not the possibly-hidden light image) is what gets measured.
+  darkSrc?: string;
   width?: number;
   onCommit: (width: number) => void;
 }) {
   const [w, setW] = useState<number | null>(width ?? null);
   const [dragging, setDragging] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Keep local width in sync with the value from above (e.g. after a server
   // re-render), but never mid-drag. Render-phase reset, not an effect.
@@ -47,10 +51,10 @@ export function ResizableImage({
   const startDrag = (side: "left" | "right", e: React.PointerEvent) => {
     e.preventDefault();
     const startX = e.clientX;
-    const startWidth = imgRef.current?.getBoundingClientRect().width ?? 0;
+    const startWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
     const max =
-      imgRef.current?.parentElement?.parentElement?.getBoundingClientRect()
-        .width ?? Infinity;
+      containerRef.current?.parentElement?.getBoundingClientRect().width ??
+      Infinity;
     setDragging(true);
 
     let latest = startWidth;
@@ -74,14 +78,23 @@ export function ResizableImage({
     "absolute top-1/2 h-12 max-h-[50%] w-1.5 -translate-y-1/2 cursor-ew-resize rounded-full bg-foreground/50 opacity-0 transition-opacity group-hover:opacity-100";
 
   return (
-    <div className="group relative inline-block max-w-full">
+    <div ref={containerRef} className="group relative inline-block max-w-full">
       <RawImage
-        ref={imgRef}
         src={src}
         draggable={false}
-        className="block h-auto max-w-full select-none"
+        className={`h-auto max-w-full select-none ${
+          darkSrc ? "block dark:hidden" : "block"
+        }`}
         style={w ? { width: w } : undefined}
       />
+      {darkSrc && (
+        <RawImage
+          src={darkSrc}
+          draggable={false}
+          className="hidden h-auto max-w-full select-none dark:block"
+          style={w ? { width: w } : undefined}
+        />
+      )}
       <span
         role="presentation"
         onPointerDown={(e) => startDrag("left", e)}
@@ -109,6 +122,7 @@ export function PostImage({
   post,
   index,
   src,
+  darkSrc,
   width,
   caption,
 }: {
@@ -116,6 +130,7 @@ export function PostImage({
   // The image's paragraph index in the post body.
   index: number;
   src: string;
+  darkSrc?: string;
   width?: number;
   caption?: React.ReactNode;
 }) {
@@ -132,9 +147,18 @@ export function PostImage({
       <figure data-post-block>
         <RawImage
           src={src}
-          className="block h-auto max-w-full"
+          className={`h-auto max-w-full ${
+            darkSrc ? "block dark:hidden" : "block"
+          }`}
           style={width ? { width } : undefined}
         />
+        {darkSrc && (
+          <RawImage
+            src={darkSrc}
+            className="hidden h-auto max-w-full dark:block"
+            style={width ? { width } : undefined}
+          />
+        )}
         {figcaption}
       </figure>
     );
@@ -185,7 +209,12 @@ export function PostImage({
           </g>
         </svg>
       </div>
-      <ResizableImage src={src} width={width} onCommit={persist} />
+      <ResizableImage
+        src={src}
+        darkSrc={darkSrc}
+        width={width}
+        onCommit={persist}
+      />
       {figcaption}
     </figure>
   );

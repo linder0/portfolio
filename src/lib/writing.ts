@@ -20,6 +20,8 @@ export type Post = {
   // Body copy. Blank lines separate paragraphs; a line that is just an image
   // URL renders as the image itself (same convention as marginalia notes),
   // and lines under the URL in the same paragraph are the image's caption.
+  // A second image URL directly under the first is the dark-theme variant —
+  // the pair renders as one figure that follows the site theme.
   // Block syntax: "# " section heading, "## " subheading, "- "/"* "/"1. "
   // list lines, "> " blockquote, ``` fenced code, "---" horizontal rule.
   // Inline: **bold**, *italic*, ***both*** (nesting works), ~~strike~~,
@@ -58,6 +60,7 @@ export const posts: Post[] = [
       "# Personal Websites",
       "This is why I’m so bullish on being more personal, website-native. In my ideal world, we can overcome our dopamine addiction, and there will be some sort of feed for us to keep up with all of our friends’ online while simultaneously being able to come across new ideas and content serendipitously.",
       "This said, I am attempting to practice what I preach in the latest iteration of my website. I can edit everything directly on the web, and if I want to add new functionality to support a new project, I can just commit some code.",
+      "/images/posts/landlords/editing-light.png\n/images/posts/landlords/editing-dark.png\nEditing the homepage inline — this screenshot follows the site theme.",
       "Very fun :)",
     ].join("\n\n"),
   },
@@ -223,8 +226,15 @@ export type PostBlock =
   // in-body heading styles).
   | { kind: "heading"; level: 2 | 3; text: string }
   // Width in px (owner-resized; omitted = natural size, capped to the column).
-  // Caption: any lines under the URL within the same paragraph.
-  | { kind: "image"; src: string; width?: number; caption?: string }
+  // `darkSrc`: the dark-theme variant (a second image URL line under the
+  // first). Caption: any lines under the URL(s) within the same paragraph.
+  | {
+      kind: "image";
+      src: string;
+      darkSrc?: string;
+      width?: number;
+      caption?: string;
+    }
   // A line that is just a video URL — renders as a silent looping clip (a GIF
   // stand-in). Caption works the same as images.
   | { kind: "video"; src: string; caption?: string }
@@ -286,17 +296,23 @@ export function splitChunks(body: string): string[] {
 }
 
 // An image paragraph: the URL on its own line, optionally followed by a pixel
-// width ("<url> 420") written by the inline resize handles. Lines under the
-// URL within the same paragraph are the image's caption.
+// width ("<url> 420") written by the inline resize handles. A second image
+// URL line right under the first is the dark-theme variant. Lines under the
+// URL(s) within the same paragraph are the image's caption.
 export function parseImageChunk(
   chunk: string,
-): { src: string; width?: number; caption?: string } | null {
+): { src: string; darkSrc?: string; width?: number; caption?: string } | null {
   const [first, ...rest] = chunk.trim().split("\n");
   const match = first.trim().match(/^(\S+)(?:\s+(\d+))?$/);
   if (!match || !IMAGE_URL.test(match[1])) return null;
+  const darkSrc =
+    rest.length && IMAGE_URL.test(rest[0].trim())
+      ? rest.shift()!.trim()
+      : undefined;
   const caption = rest.join(" ").replace(/\s+/g, " ").trim();
   return {
     src: match[1],
+    ...(darkSrc && { darkSrc }),
     width: match[2] ? Number(match[2]) : undefined,
     ...(caption && { caption }),
   };

@@ -81,6 +81,7 @@ export default async function PostPage({
           post={post}
           index={index}
           src={block.src}
+          darkSrc={block.darkSrc}
           width={block.width}
           caption={caption}
         />

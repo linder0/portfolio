@@ -74,13 +74,24 @@ function Block({
     case "image": {
       const captionNode = caption(block.caption);
       if (renderImage) return renderImage(block, index, captionNode);
+      const style = block.width ? { width: block.width } : undefined;
       return (
         <figure data-post-block>
+          {/* A theme pair renders both variants; CSS shows the current one. */}
           <RawImage
             src={block.src}
-            className="block h-auto max-w-full"
-            style={block.width ? { width: block.width } : undefined}
+            className={`h-auto max-w-full ${
+              block.darkSrc ? "block dark:hidden" : "block"
+            }`}
+            style={style}
           />
+          {block.darkSrc && (
+            <RawImage
+              src={block.darkSrc}
+              className="hidden h-auto max-w-full dark:block"
+              style={style}
+            />
+          )}
           {captionNode && (
             <figcaption className="copy-14 mt-2 opacity-60">
               {captionNode}
