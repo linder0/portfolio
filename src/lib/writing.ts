@@ -34,6 +34,34 @@ export type Post = {
 
 export const posts: Post[] = [
   {
+    id: "landlords",
+    slug: "landlords",
+    title: "Digital Landlords",
+    date: "2026-08-02",
+    tagline:
+      "I don’t want to sublease attention from social media algorithms anymore",
+    body: [
+      "# My relationship with content",
+      "I first came to understand the concept of content creation during the pandemic, when I found myself immersed in Minecraft SMP streaming communities. Perhaps this is when the entrepreneurial spirit of “I could probably do this myself” first struck me, and I decided I would become a streamer. In an effort to promote my channel, I would post clips on TikTok and edit voiceovers and sound effects together, copying formats from viral videos. The first video to reach over 1,000 likes was a BedWars clip, and the top comment was “I don’t understand how anyone could possibly be this bad at anything.” That comment alone had a few hundred likes, but hey, haters mean that you’re doing something right… right? Anyways, this is when the dopamine addiction started.",
+      "Eventually, the combination of Minecraft, OBS Studio, and Discord fried my 2012 MacBook Air’s battery, and I had to find another dopamine plug for my digital validation addiction. The only other skill I had developed during COVID was singing and playing guitar, so I started another account, @greenteaslurper, in the summer of 2023. Turns out, Linda’s musical talent is more consistent than her Bed Wars ability, and I churned out multiple videos every week for a few months until an acoustic cover of James Arthur’s “Say You Won’t Let Go” went giga-viral.",
+      "/images/posts/landlords/tiktok-covers.png\n“Say You Won’t Let Go” at 5.8M plays, and “Evergreen” at 1M.",
+      "I hit 50k followers overnight, and suddenly my stats were in microinfluencer territory. Having a bit of TikTok clout is really good for opening doors; One of my favorite bands of all time, Rainbow Kitten Surprise, commented on a cover my friend and I did at one of the many local bar open mics we would sneak into. I also released my first few songs that I produced without a DAW - to this day, I still don’t think I’ve found a more organic-sounding production style than aligning all the waveforms by ear in Audacity.",
+      "Sometimes I wonder if the two years where my personal identity was oriented around rolling out videos and making music are what really did me in. I’ve since stopped posting as much on the account, and engagement has dropped, but my dopamine addiction is still full-blown. I struggle with doomscrolling, and it’s hard for me to do things without thinking about documentation and social media presentability.",
+      "I still don’t know how to feel about this dilemma: on the one hand, I love being able to send links to media to easily show proof of work, but it’s nearly impossible to separate metrics from my internal benchmark for how well I executed. I suppose it’s a product of how much I attribute my self-worth to my output… but what is art if not deeply personal? What is art if not just another avenue for connection?",
+      "The utility of having eyes on what you make is undeniable, but when do you draw the line and just build in stealth for a while? Is it a matter of confidence? Maybe this is just a skill issue, and I simply don’t have the network I would like to have to look over my WIPs, but what if it isn’t a skill issue? What does the perfect platform for sharing work look like?",
+      "# Distribution and Creative Agency",
+      "The kind of platforms I’m interested in are those that mediate creative distribution - places where people publish things for other people to discover. As I see it, these platforms tend to organize themselves in one of two ways.",
+      "The first is by domain. Books belong on Goodreads. Movies belong on Letterboxd. Restaurants belong on Beli. These are good for people who are already embedded in certain spaces and allow them to connect with people who already share that with them, and they have different formats through which people can engage - usually through text.",
+      "The second is by format. Vertical videos belong on TikTok. Essays belong on Substack. Shorter reads on X. These platforms are much broader, include sub-communities where people with shared interests can interact, and offer a wider range of topics.",
+      "This organization is incredibly useful. It makes discovery efficient, as I know exactly where to go to explore specific things. But it also fragments the creative process itself. Every platform develops its own preferences. TikTok rewards immediacy. LinkedIn rewards professional milestones. Substack rewards sustained argument. None of these are inherently bad, but over time I begin thinking in the language of whichever platform I’m creating for. Instead of asking *What do I want to make?* I find myself asking, *Where does this belong?* Or worse, *What should I make for this platform?*",
+      "When the motivation for creation is for the platform rather than the work, the ownership of the work is silently surrendered to the algorithm. If I’m posting a video, I would like it to be received in the aspect ratio of my choosing; I don’t want to have to record it vertically so that the TikTok and Reels algorithms will favor it. I don’t want to have to do some stupid shit in the first three seconds so that people will break their doomscroll and sit and watch me share my message. I hate the panoptoniconic nature of social media - It’s not even a conscious thing at this point; I’m always performing for the algorithmic gaze. Whenever I scroll through videos, I inadvertently begin doing user research on myself: noting down videos that do a good job of hooking me in and reverse-engineering the attention hacks they use.",
+      "# Personal Websites",
+      "This is why I’m so bullish on being more personal, website-native. In my ideal world, we can overcome our dopamine addiction, and there will be some sort of feed for us to keep up with all of our friends’ online while simultaneously being able to come across new ideas and content serendipitously.",
+      "This said, I am attempting to practice what I preach in the latest iteration of my website. I can edit everything directly on the web, and if I want to add new functionality to support a new project, I can just commit some code.",
+      "Very fun :)",
+    ].join("\n\n"),
+  },
+  {
     id: "rl-mon",
     slug: "rl-mon",
     title: "Building Little Monsters to Learn Reinforcement Learning",
@@ -197,6 +225,9 @@ export type PostBlock =
   // Width in px (owner-resized; omitted = natural size, capped to the column).
   // Caption: any lines under the URL within the same paragraph.
   | { kind: "image"; src: string; width?: number; caption?: string }
+  // A line that is just a video URL — renders as a silent looping clip (a GIF
+  // stand-in). Caption works the same as images.
+  | { kind: "video"; src: string; caption?: string }
   // Consecutive "- "/"* " (unordered) or "1. " (ordered) lines. A numbered
   // item in its own paragraph keeps its number via `start`, so the "1." /
   // "2." style with blank lines between items renders correctly.
@@ -212,6 +243,9 @@ export type PostBlock =
 // Shared with the marginalia note renderer, which uses the same convention.
 export const IMAGE_URL =
   /^((https?:\/\/|\/)\S+\.(png|jpe?g|gif|webp|avif|svg)(\?\S*)?|\/api\/images\/[\w.-]+)$/i;
+
+// A video URL: same conventions as IMAGE_URL, for formats <video> can play.
+export const VIDEO_URL = /^(https?:\/\/|\/)\S+\.(mp4|webm|mov)(\?\S*)?$/i;
 
 // A body's paragraphs (text chunks and image lines), split on blank lines —
 // except inside ``` fences, where blank lines belong to the code. The inline
@@ -268,6 +302,16 @@ export function parseImageChunk(
   };
 }
 
+// A video paragraph: the URL on its own line; lines under it are the caption.
+export function parseVideoChunk(
+  chunk: string,
+): { src: string; caption?: string } | null {
+  const [first, ...rest] = chunk.trim().split("\n");
+  if (!VIDEO_URL.test(first.trim())) return null;
+  const caption = rest.join(" ").replace(/\s+/g, " ").trim();
+  return { src: first.trim(), ...(caption && { caption }) };
+}
+
 // A heading paragraph: one or more #s, a space, then the heading text.
 const HEADING_CHUNK = /^(#+)\s+(.*)$/;
 
@@ -311,6 +355,8 @@ export function postBlocks(body: string): PostBlock[] {
     if (code) return { kind: "code", ...code };
     const image = parseImageChunk(chunk);
     if (image) return { kind: "image", ...image };
+    const video = parseVideoChunk(chunk);
+    if (video) return { kind: "video", ...video };
     if (/^-{3,}$/.test(chunk)) return { kind: "rule" };
     const list = parseListChunk(chunk);
     if (list) return { kind: "list", ...list };
