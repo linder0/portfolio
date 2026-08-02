@@ -60,7 +60,7 @@ export const posts: Post[] = [
       "# Personal Websites",
       "This is why I’m so bullish on being more personal, website-native. In my ideal world, we can overcome our dopamine addiction, and there will be some sort of feed for us to keep up with all of our friends’ online while simultaneously being able to come across new ideas and content serendipitously.",
       "This said, I am attempting to practice what I preach in the latest iteration of my website. I can edit everything directly on the web, and if I want to add new functionality to support a new project, I can just commit some code.",
-      "/images/posts/landlords/editing-light.png\n/images/posts/landlords/editing-dark.png\nEditing the homepage inline — this screenshot follows the site theme.",
+      "/images/posts/landlords/editing-dark.png\n/images/posts/landlords/editing-light.png\nEditing the homepage inline — this screenshot follows the site theme.",
       "Very fun :)",
     ].join("\n\n"),
   },
