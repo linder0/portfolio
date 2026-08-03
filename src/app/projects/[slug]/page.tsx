@@ -10,6 +10,7 @@ import { AnnotatedText } from "@/components/annotated-text";
 import { PageMain } from "@/components/page-main";
 import { ProjectMedia } from "@/components/project-media";
 import { CreditsTable, type CreditRow } from "@/components/credits-table";
+import { isAuthenticated } from "@/lib/auth";
 
 export function generateStaticParams() {
   return projects.map((project) => ({ slug: project.slug }));
@@ -23,7 +24,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const project = getProject(slug);
 
-  if (!project) {
+  if (!project || (project.draft && !(await isAuthenticated()))) {
     return { title: "Project not found — Linda Xue" };
   }
 
@@ -90,7 +91,8 @@ export default async function ProjectPage({
   const { slug } = await params;
   const project = getProject(slug);
 
-  if (!project) {
+  // A draft is a 404 for everyone but the signed-in owner.
+  if (!project || (project.draft && !(await isAuthenticated()))) {
     notFound();
   }
 

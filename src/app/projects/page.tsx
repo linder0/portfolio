@@ -7,6 +7,7 @@ import { mergeNote, projectToNote } from "@/lib/notes";
 import { IndexRow } from "@/components/index-row";
 import { PageMain } from "@/components/page-main";
 import { AnnotatedText } from "@/components/annotated-text";
+import { isAuthenticated } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Projects — Linda Xue",
@@ -17,12 +18,13 @@ export default async function ProjectsPage() {
   const host = (await headers()).get("host") ?? "";
   const base = sectionBase(host, "projects");
   const stored = await getStoredNotes();
+  const canEdit = await isAuthenticated();
 
   // Newest first. Stable within a year, so projects sharing a year keep their
-  // authored order.
-  const ordered = [...projects].sort(
-    (a, b) => Number(b.year) - Number(a.year),
-  );
+  // authored order. Drafts only appear for the signed-in owner.
+  const ordered = [...projects]
+    .filter((project) => !project.draft || canEdit)
+    .sort((a, b) => Number(b.year) - Number(a.year));
 
   return (
     <PageMain>
@@ -38,6 +40,7 @@ export default async function ProjectsPage() {
               tagline={
                 <AnnotatedText text={project.tagline} stored={stored} />
               }
+              badge={project.draft ? "draft" : undefined}
               thumbnail={project.thumbnail}
               right={project.year}
             />

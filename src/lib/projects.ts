@@ -56,6 +56,9 @@ export type Project = {
   // and video lines with captions, lists, quotes, ``` code fences. Rendered
   // on the project page below the description.
   body?: string;
+  // Drafts are only visible to the signed-in owner — hidden from the index
+  // and a 404 on the detail page for everyone else.
+  draft?: boolean;
 };
 
 export const projects: Project[] = [
@@ -64,6 +67,7 @@ export const projects: Project[] = [
     title: "Dolly",
     tagline: "An opinionated cinematography engine for UI",
     year: "2026",
+    draft: true,
     category: ["software", "design"],
     description:
       "A Screen Studio-style macOS recorder that grew into a multi-clip video IDE. Record your screen and Dolly procedurally generates the cinematography afterwards — automatic zooms toward where you click, a smoothed synthetic cursor with click ripples, and a styled card framing. Everything stays editable until export; nothing is baked into pixels until the MP4 renders.",
