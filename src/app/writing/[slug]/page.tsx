@@ -12,7 +12,7 @@ import { PageMain } from "@/components/page-main";
 import { PostBody } from "@/components/post-body";
 import { BodyBlocks } from "@/components/body-blocks";
 import { CommentCapture } from "@/components/comment-capture";
-import { PostImage } from "@/components/post-image";
+import { PostImage, PostImageRow } from "@/components/post-image";
 import { RawImage } from "@/components/raw-image";
 
 // Posts created or renamed inline resolve dynamically; this just prebuilds
@@ -83,6 +83,17 @@ export default async function PostPage({
           src={block.src}
           darkSrc={block.darkSrc}
           width={block.width}
+          knockout={block.knockout}
+          caption={caption}
+        />
+      )}
+      renderImageRow={(block, index, caption) => (
+        <PostImageRow
+          key={index}
+          post={post}
+          index={index}
+          images={block.images}
+          gap={block.gap}
           caption={caption}
         />
       )}
@@ -98,7 +109,7 @@ export default async function PostPage({
         </p>
         <h1 className="heading-48 mt-4">{post.title}</h1>
         {post.tagline && (
-          <p className="copy-20 mt-5">
+          <p className="copy-20 mt-4">
             <AnnotatedText
               text={post.tagline}
               stored={stored}

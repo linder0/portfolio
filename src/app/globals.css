@@ -80,9 +80,10 @@
   /* Grid — named spacing/width tokens derived from the column unit (the raw
      unit lives in :root). Every width on the page is one of these. */
   --spacing-gutter: var(--grid-gutter);
-  /* Shell regions: rail = page margin + cols 1–2; margin-pane = the
-     marginalia panel + the right page margin. */
-  --spacing-rail: calc(var(--grid-gutter) + var(--span-2));
+  /* Shell regions: rail = page margin + column 1 + its gutter (8rem), so
+     the content pane's text opens on column 2; margin-pane = the marginalia
+     panel + the right page margin. */
+  --spacing-rail: calc(var(--grid-gutter) + var(--grid-col) + var(--grid-gutter));
   --spacing-margin-pane: calc(var(--panel) + var(--grid-gutter));
   /* Width caps (max-w-measure, max-w-cap-md, w-panel, ...) */
   --container-measure: var(--measure);
@@ -129,7 +130,7 @@
   /* Role tokens — what markup actually references */
   --measure: calc(6 * var(--grid-col) + 5 * var(--grid-gutter)); /* prose, 37.5rem */
   --cap-md: calc(4 * var(--grid-col) + 3 * var(--grid-gutter)); /* credits, admin, forms — 24.5rem */
-  --cap-sm: var(--span-3); /* inline subscribe — 18rem */
+  --cap-sm: var(--span-3); /* 18rem — currently unused, kept as a scale step */
   --panel: var(--span-3); /* marginalia — 18rem */
 
   /* Surfaces (semantic — these flip in dark) */
@@ -237,6 +238,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-shadow: var(--text-glow);
+    /* Stacking context, so the negative-z grain pseudos paint above the
+       body's own background (not buried under it) while staying below all
+       content. */
+    isolation: isolate;
   }
   html {
     @apply font-sans;
@@ -257,9 +262,11 @@
     background-color: var(--foreground);
     color: var(--background);
   }
-  /* Film-grain texture over everything — fixed, non-interactive overlays.
-     ::after (overlay) carries grain on mid/light surfaces; ::before (screen)
-     lifts grain into the near-black content pane so it reads everywhere. */
+  /* Film-grain texture on the page background only — fixed, non-interactive
+     layers sitting just above the body's background (negative z within the
+     body's stacking context) and below all content, so cards, media, and
+     text stay clean. ::after (overlay) carries grain on mid/light surfaces;
+     ::before (screen) lifts it on the near-black page. */
   body::after,
   body::before {
     content: "";
@@ -269,7 +276,7 @@
        inset of 0 would expose a grainless (differently shaded) strip at
        the exposed edge. */
     inset: -50vh 0;
-    z-index: 100;
+    z-index: -1;
     pointer-events: none;
     background-size: 140px 140px;
     background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='4'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR%20type='linear'%20slope='2'%20intercept='-0.5'/%3E%3CfeFuncG%20type='linear'%20slope='2'%20intercept='-0.5'/%3E%3CfeFuncB%20type='linear'%20slope='2'%20intercept='-0.5'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'/%3E%3C/svg%3E");
@@ -341,5 +348,14 @@
   .shape-glow-trigger:hover .shape-glow,
   .shape-glow-trigger:focus-visible .shape-glow {
     filter: var(--shape-glow);
+  }
+
+  /* Logo plates: multiply drops a white square on paper; screen drops a
+     black square on ink. Used by ThemedMark so glyphs sit on the page. */
+  .mark-on-paper {
+    mix-blend-mode: multiply;
+  }
+  .dark .mark-on-ink {
+    mix-blend-mode: screen;
   }
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useNote } from "@/components/marginalia";
 import { RawImage } from "@/components/raw-image";
+import { ThemedMark } from "@/components/themed-mark";
 import type { Note } from "@/lib/notes";
 
 // The one index-row pattern shared by every list page (projects, writing):
@@ -17,6 +18,9 @@ export function IndexRow({
   tagline,
   badge,
   thumbnail,
+  thumbnailDark,
+  thumbnailKind,
+  thumbnailKnockout,
   right,
 }: {
   href: string;
@@ -28,10 +32,16 @@ export function IndexRow({
   // Inline marker after the title (e.g. "draft").
   badge?: string;
   thumbnail?: string;
+  thumbnailDark?: string;
+  // "mark" = a theme-responsive logo with no plate. "photo" (the default) =
+  // the small square crop — the one thumb style shared by every list page.
+  thumbnailKind?: "mark" | "photo";
+  thumbnailKnockout?: boolean;
   // The right-hand meta column.
   right: string;
 }) {
   const handlers = useNote(note);
+  const isMark = thumbnailKind === "mark";
 
   return (
     <li className="border-border [&+li]:border-t">
@@ -43,23 +53,17 @@ export function IndexRow({
         // every row's meta starts on the same line. Gaps are the grid gutter.
         className="link-glow grid grid-cols-[1fr_auto] items-baseline gap-x-6 py-6 lg:grid-cols-[1fr_var(--span-2)]"
       >
-        <span className="flex min-w-0 items-start gap-x-6">
+        <span className="flex min-w-0 items-start gap-x-3">
           {thumbnail &&
-            // Owner uploads stream from the private Blob store, which the
-            // image optimizer can't reach; local assets get resized/converted.
-            (thumbnail.startsWith("/api/") ? (
-              <RawImage
+            (isMark ? (
+              <ThemedMark
                 src={thumbnail}
-                className="h-14 w-14 shrink-0 object-cover"
+                darkSrc={thumbnailDark}
+                knockout={thumbnailKnockout ?? !thumbnail.endsWith(".svg")}
+                className="h-8 w-8 shrink-0"
               />
             ) : (
-              <Image
-                src={thumbnail}
-                alt=""
-                width={112}
-                height={112}
-                className="h-14 w-14 shrink-0 object-cover"
-              />
+              <Thumbnail src={thumbnail} />
             ))}
           <span className="min-w-0">
             <span className="heading-24 block">
@@ -79,5 +83,17 @@ export function IndexRow({
         </span>
       </Link>
     </li>
+  );
+}
+
+function Thumbnail({ src }: { src: string }) {
+  // Owner uploads stream from the private Blob store, which the image
+  // optimizer can't reach; local assets get resized/converted.
+  const className = "h-8 w-8 shrink-0 object-cover";
+  if (src.startsWith("/api/")) {
+    return <RawImage src={src} className={className} />;
+  }
+  return (
+    <Image src={src} alt="" width={64} height={64} className={className} />
   );
 }

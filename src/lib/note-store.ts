@@ -3,7 +3,7 @@ import { recordStore } from "@/lib/record-store";
 
 /* ---------------------------------------------------------------------------
    Note store — owner-edited marginalia, keyed by note id (e.g.
-   "project:hangful", "bio:2"), merged over static defaults at render time.
+   "project:floatplay", "bio:2"), merged over static defaults at render time.
    Server-side only. (Photos embedded in notes share the post-image storage —
    see `lib/images` and `components/use-image-upload`.)
    ------------------------------------------------------------------------- */

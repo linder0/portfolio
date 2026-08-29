@@ -446,12 +446,11 @@ export function MarginaliaAnchor({
   return null;
 }
 
-// Panel placement per position variant. "content-left" hugs the bottom of the
-// content column (rail + gutter = grid column 3), clear of the photo corner.
+// Panel placement per position variant. "content-left" hugs the bottom-left
+// on the shared frame inset, clear of the home photo's corner.
 const positionClass: Record<MarginPosition, string> = {
   corner: "bottom-4 right-4 lg:bottom-6 lg:right-6",
-  "content-left":
-    "bottom-4 left-4 lg:bottom-6 lg:left-[calc(var(--spacing-rail)+var(--spacing-gutter))]",
+  "content-left": "bottom-4 left-4 lg:bottom-6 lg:left-6",
 };
 
 // The panel itself. Desktop-only (hover doesn't exist on touch), pinned on the

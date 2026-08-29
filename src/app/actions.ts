@@ -22,10 +22,17 @@ import {
   saveStoredPost,
   type StoredPost,
 } from "@/lib/post-store";
+import {
+  getAllProjects,
+  saveStoredProject,
+  type StoredProject,
+} from "@/lib/project-store";
+import { projects as staticProjects } from "@/lib/projects";
 import type { StoredNote } from "@/lib/notes";
 import { posts as staticPosts } from "@/lib/writing";
 import { parentDomain } from "@/lib/domains";
 import type { PostDraft } from "@/lib/post-draft";
+import type { ProjectDraft } from "@/lib/project-draft";
 import { saveStoredPage } from "@/lib/page-store";
 import { homeBioBody } from "@/lib/home";
 
@@ -237,6 +244,75 @@ export async function deletePost(
   await saveStoredPost(id, isStatic ? { deleted: true } : null);
   revalidatePath("/", "layout");
   return { deleted: true };
+}
+
+/* ---------------------------------------------------------------------------
+   Inline project edits — the owner edits a project (title, url, year,
+   tagline, thumbnail, description, body) on its own page. Edits are stored
+   in Redis keyed by the static slug; only fields that differ from the
+   code default are stored (so reverting a field falls back).
+   ------------------------------------------------------------------------- */
+
+const YEAR_RE = /^\d{4}$/;
+
+export async function updateProject(
+  id: string,
+  draft: ProjectDraft,
+): Promise<{ error: string } | { saved: ProjectDraft }> {
+  const denied = await ownerGuard();
+  if (denied) return denied;
+
+  const clean: ProjectDraft = {
+    slug: draft.slug.trim().toLowerCase(),
+    title: draft.title.trim(),
+    year: draft.year.trim(),
+    tagline: draft.tagline.trim(),
+    thumbnail: draft.thumbnail.trim(),
+    description: draft.description.trim(),
+    body: draft.body.trim(),
+    mediaGap:
+      typeof draft.mediaGap === "number" && Number.isFinite(draft.mediaGap)
+        ? Math.max(0, Math.round(draft.mediaGap))
+        : undefined,
+    draft: draft.draft,
+  };
+
+  if (!clean.title) return { error: "Title is required." };
+  if (!SLUG_RE.test(clean.slug)) {
+    return { error: "URL can only use lowercase letters, numbers, hyphens." };
+  }
+  if (!YEAR_RE.test(clean.year)) return { error: "Year must be YYYY." };
+
+  const base = staticProjects.find((project) => project.slug === id);
+  if (!base) return { error: "Unknown project." };
+
+  const all = await getAllProjects();
+  if (all.some((project) => projectIdOf(project) !== id && project.slug === clean.slug)) {
+    return { error: `The URL /${clean.slug} is already taken.` };
+  }
+
+  const stored: StoredProject = {};
+  if (clean.slug !== base.slug) stored.slug = clean.slug;
+  if (clean.title !== base.title) stored.title = clean.title;
+  if (clean.year !== base.year) stored.year = clean.year;
+  if (clean.tagline !== base.tagline) stored.tagline = clean.tagline;
+  if (clean.thumbnail !== (base.thumbnail ?? "")) {
+    stored.thumbnail = clean.thumbnail;
+  }
+  if (clean.description !== base.description) stored.description = clean.description;
+  if (clean.body !== (base.body ?? "")) stored.body = clean.body;
+  if (clean.mediaGap !== undefined && clean.mediaGap !== base.mediaGap) {
+    stored.mediaGap = clean.mediaGap;
+  }
+  if (clean.draft !== (base.draft ?? false)) stored.draft = clean.draft;
+  await saveStoredProject(id, Object.keys(stored).length ? stored : null);
+
+  revalidatePath("/", "layout");
+  return { saved: clean };
+}
+
+function projectIdOf(project: { id?: string; slug: string }): string {
+  return project.id ?? project.slug;
 }
 
 /* ---------------------------------------------------------------------------

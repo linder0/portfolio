@@ -21,7 +21,13 @@ export type Post = {
   // URL renders as the image itself (same convention as marginalia notes),
   // and lines under the URL in the same paragraph are the image's caption.
   // A second image URL directly under the first is the dark-theme variant —
-  // the pair renders as one figure that follows the site theme.
+  // the pair renders as one figure that follows the site theme. Append
+  // `knockout` after a logo's width to drop a baked-in white/black plate
+  // (ThemedMark); ordinary screenshot pairs omit it. Append `frame` to an
+  // image or video URL to show it as a full-pane frame — it breaks out of
+  // the reading measure and fills the content pane in a raised, padded well.
+  // A side-by-side row (` | `) can end with "gap <px>" to set the spacing
+  // between its images (the owner's gap handle writes this).
   // Block syntax: "# " section heading, "## " subheading, "- "/"* "/"1. "
   // list lines, "> " blockquote, ``` fenced code, "---" horizontal rule.
   // Inline: **bold**, *italic*, ***both*** (nesting works), ~~strike~~,
@@ -213,10 +219,11 @@ export const posts: Post[] = [
 /* ---------------------------------------------------------------------------
    Body parsing — a post body is plain text: blank lines split paragraphs, a
    paragraph that starts with an image URL renders as the image (any lines
-   under the URL in the same paragraph are its caption), and chunks with a
-   leading marker become structured blocks: "# "/"## " headings, "- "/"* "/
-   "1. " lists, "> " blockquotes, ``` fenced code, "---" rules. Parsed here
-   so the server page and the inline editor agree on the format.
+   under the URL in the same paragraph are its caption; two URLs on one line
+   joined by ` | ` sit side by side), and chunks with a leading marker become
+   structured blocks: "# "/"## " headings, "- "/"* "/"1. " lists, "> "
+   blockquotes, ``` fenced code, "---" rules. Parsed here so the server page
+   and the inline editor agree on the format.
    ------------------------------------------------------------------------- */
 
 export type PostBlock =
@@ -228,16 +235,34 @@ export type PostBlock =
   // Width in px (owner-resized; omitted = natural size, capped to the column).
   // `darkSrc`: the dark-theme variant (a second image URL line under the
   // first). Caption: any lines under the URL(s) within the same paragraph.
+  // `knockout`: treat the pair as a logo — drop the baked-in white/black
+  // plate so the mark sits on paper/ink (see ThemedMark).
+  // `frame`: a full-pane showcase — the image breaks out of the reading
+  // measure and sits in a raised, slightly rounded, padded well.
   | {
       kind: "image";
       src: string;
       darkSrc?: string;
       width?: number;
       caption?: string;
+      knockout?: boolean;
+      frame?: boolean;
+    }
+  // Two or more image URLs on one line, separated by ` | `, render as a
+  // row (each may carry its own width). Caption: lines under that row.
+  // `gap`: the spacing between the images in px (a trailing "gap <px>" on
+  // the row line, written by the owner's Figma-style gap handle; omitted =
+  // the default 24px gutter).
+  | {
+      kind: "image-row";
+      images: { src: string; width?: number }[];
+      gap?: number;
+      caption?: string;
     }
   // A line that is just a video URL — renders as a silent looping clip (a GIF
-  // stand-in). Caption works the same as images.
-  | { kind: "video"; src: string; caption?: string }
+  // stand-in). Caption works the same as images, and so does the `frame`
+  // flag (full-pane showcase).
+  | { kind: "video"; src: string; caption?: string; frame?: boolean }
   // Consecutive "- "/"* " (unordered) or "1. " (ordered) lines. A numbered
   // item in its own paragraph keeps its number via `start`, so the "1." /
   // "2." style with blank lines between items renders correctly.
@@ -295,15 +320,44 @@ export function splitChunks(body: string): string[] {
   return chunks;
 }
 
+// Trailing flags on an image or video line ("knockout", "frame"), in any
+// order after the URL and optional width. Returns the flags and the line
+// with them stripped.
+function parseImageFlags(line: string): {
+  head: string;
+  knockout: boolean;
+  frame: boolean;
+} {
+  let head = line.trim();
+  let knockout = false;
+  let frame = false;
+  for (let match; (match = head.match(/\s+(knockout|frame)$/)); ) {
+    if (match[1] === "knockout") knockout = true;
+    else frame = true;
+    head = head.slice(0, -match[0].length);
+  }
+  return { head, knockout, frame };
+}
+
 // An image paragraph: the URL on its own line, optionally followed by a pixel
-// width ("<url> 420") written by the inline resize handles. A second image
-// URL line right under the first is the dark-theme variant. Lines under the
-// URL(s) within the same paragraph are the image's caption.
+// width ("<url> 420") written by the inline resize handles, an optional
+// `knockout` flag for logos (drops the baked-in plate — see ThemedMark), and
+// an optional `frame` flag (full-pane showcase). A second image URL line
+// right under the first is the dark-theme variant. Lines under the URL(s)
+// within the same paragraph are the image's caption.
 export function parseImageChunk(
   chunk: string,
-): { src: string; darkSrc?: string; width?: number; caption?: string } | null {
+): {
+  src: string;
+  darkSrc?: string;
+  width?: number;
+  caption?: string;
+  knockout?: boolean;
+  frame?: boolean;
+} | null {
   const [first, ...rest] = chunk.trim().split("\n");
-  const match = first.trim().match(/^(\S+)(?:\s+(\d+))?$/);
+  const { head, knockout, frame } = parseImageFlags(first);
+  const match = head.match(/^(\S+)(?:\s+(\d+))?$/);
   if (!match || !IMAGE_URL.test(match[1])) return null;
   const darkSrc =
     rest.length && IMAGE_URL.test(rest[0].trim())
@@ -315,17 +369,108 @@ export function parseImageChunk(
     ...(darkSrc && { darkSrc }),
     width: match[2] ? Number(match[2]) : undefined,
     ...(caption && { caption }),
+    ...(knockout && { knockout: true }),
+    ...(frame && { frame: true }),
   };
 }
 
-// A video paragraph: the URL on its own line; lines under it are the caption.
+const IMAGE_PART = /^(\S+)(?:\s+(\d+))?$/;
+
+function parseImagePart(
+  part: string,
+): { src: string; width?: number } | null {
+  const match = part.trim().match(IMAGE_PART);
+  if (!match || !IMAGE_URL.test(match[1])) return null;
+  return {
+    src: match[1],
+    width: match[2] ? Number(match[2]) : undefined,
+  };
+}
+
+// A row-level "gap <px>" suffix on an image-row line (the spacing between
+// the row's images). Returns the gap and the line with it stripped.
+function parseRowGap(line: string): { head: string; gap?: number } {
+  const match = line.match(/\s+gap\s+(\d+)$/);
+  if (!match) return { head: line };
+  return { head: line.slice(0, -match[0].length), gap: Number(match[1]) };
+}
+
+// A row of images: two or more `url [width]` tokens on the first line,
+// separated by ` | `, with an optional trailing "gap <px>". Lines under the
+// row are the shared caption.
+export function parseImageRowChunk(chunk: string): {
+  images: { src: string; width?: number }[];
+  gap?: number;
+  caption?: string;
+} | null {
+  const [first, ...rest] = chunk.trim().split("\n");
+  const { head, gap } = parseRowGap(first);
+  const parts = head.split(/\s*\|\s*/);
+  if (parts.length < 2) return null;
+  const images: { src: string; width?: number }[] = [];
+  for (const part of parts) {
+    const image = parseImagePart(part);
+    if (!image) return null;
+    images.push(image);
+  }
+  const caption = rest.join(" ").replace(/\s+/g, " ").trim();
+  return { images, ...(gap !== undefined && { gap }), ...(caption && { caption }) };
+}
+
+// Rewrite one image's stored width inside a body chunk (a single URL line).
+// Other lines — dark-theme variant, caption — stay as they are.
+export function rewriteImageWidth(
+  chunk: string,
+  src: string,
+  width: number,
+): string {
+  const [first, ...rest] = chunk.split("\n");
+  const { head, knockout, frame } = parseImageFlags(first);
+  const next = head.split(/\s*\|\s*/).map((part) => {
+    const image = parseImagePart(part);
+    if (image?.src === src) return `${src} ${width}`;
+    return part.trim();
+  });
+  const flags = `${knockout ? " knockout" : ""}${frame ? " frame" : ""}`;
+  return [next.join(" | ") + flags, ...rest].join("\n");
+}
+
+// A side-by-side row is one object: every image in the ` | ` line gets the
+// same width so they stay locked together. A row-level gap suffix survives.
+export function rewriteImageRowWidth(chunk: string, width: number): string {
+  const [first, ...rest] = chunk.split("\n");
+  const { head, gap } = parseRowGap(first);
+  const next = head.split(/\s*\|\s*/).map((part) => {
+    const image = parseImagePart(part);
+    if (!image) return part.trim();
+    return `${image.src} ${width}`;
+  });
+  const line = next.join(" | ") + (gap !== undefined ? ` gap ${gap}` : "");
+  return [line, ...rest].join("\n");
+}
+
+// Rewrite (or add) a row's stored gap — the owner's gap handle persists the
+// spacing between the row's images here.
+export function rewriteImageRowGap(chunk: string, gap: number): string {
+  const [first, ...rest] = chunk.split("\n");
+  const { head } = parseRowGap(first);
+  return [`${head} gap ${gap}`, ...rest].join("\n");
+}
+
+// A video paragraph: the URL on its own line, with an optional trailing
+// `frame` flag; lines under it are the caption.
 export function parseVideoChunk(
   chunk: string,
-): { src: string; caption?: string } | null {
+): { src: string; caption?: string; frame?: boolean } | null {
   const [first, ...rest] = chunk.trim().split("\n");
-  if (!VIDEO_URL.test(first.trim())) return null;
+  const { head, frame } = parseImageFlags(first);
+  if (!VIDEO_URL.test(head)) return null;
   const caption = rest.join(" ").replace(/\s+/g, " ").trim();
-  return { src: first.trim(), ...(caption && { caption }) };
+  return {
+    src: head,
+    ...(caption && { caption }),
+    ...(frame && { frame: true }),
+  };
 }
 
 // A heading paragraph: one or more #s, a space, then the heading text.
@@ -369,6 +514,8 @@ export function postBlocks(body: string): PostBlock[] {
   return splitChunks(body).map((chunk): PostBlock => {
     const code = parseCodeChunk(chunk);
     if (code) return { kind: "code", ...code };
+    const imageRow = parseImageRowChunk(chunk);
+    if (imageRow) return { kind: "image-row", ...imageRow };
     const image = parseImageChunk(chunk);
     if (image) return { kind: "image", ...image };
     const video = parseVideoChunk(chunk);

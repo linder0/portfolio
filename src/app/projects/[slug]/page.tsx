@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProject, projects, type Project } from "@/lib/projects";
+import { projects } from "@/lib/projects";
+import { getProjectBySlug } from "@/lib/project-store";
 import { postBlocks } from "@/lib/writing";
 import { BodyBlocks } from "@/components/body-blocks";
 import { mergeNote, projectLinkToNote } from "@/lib/notes";
-import { getStoredNotes, type StoredNotes } from "@/lib/note-store";
+import { getStoredNotes } from "@/lib/note-store";
 import { NoteLink } from "@/components/note-link";
 import { AnnotatedText } from "@/components/annotated-text";
 import { PageMain } from "@/components/page-main";
 import { ProjectMedia } from "@/components/project-media";
-import { CreditsTable, type CreditRow } from "@/components/credits-table";
+import { ProjectBody } from "@/components/project-body";
+import { ProjectImage, ProjectImageRow } from "@/components/post-image";
 import { isAuthenticated } from "@/lib/auth";
 
 export function generateStaticParams() {
@@ -22,7 +24,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const project = getProject(slug);
+  const project = await getProjectBySlug(slug);
 
   if (!project || (project.draft && !(await isAuthenticated()))) {
     return { title: "Project not found — Linda Xue" };
@@ -47,49 +49,13 @@ export async function generateMetadata({
   };
 }
 
-function projectCredits(
-  project: Project,
-  stored: StoredNotes,
-): CreditRow[] {
-  // Grid values run through AnnotatedText so stored highlights render (and so
-  // selecting a value + "m" can pin a note to it).
-  const annotate = (text: string) => (
-    <AnnotatedText text={text} stored={stored} />
-  );
-
-  // Hangful shows only the essentials.
-  if (project.slug === "hangful") {
-    return [
-      { label: "Year", value: annotate(project.year) },
-      { label: "Stack", value: annotate(project.tools.join(" · ")) },
-    ];
-  }
-
-  const rows: (CreditRow | false | undefined)[] = [
-    { label: "Role", value: annotate(project.role) },
-    { label: "Year", value: annotate(project.year) },
-    project.client
-      ? { label: "For", value: annotate(project.client) }
-      : undefined,
-    project.duration
-      ? { label: "Duration", value: annotate(project.duration) }
-      : undefined,
-    Boolean(project.collaborators?.length) && {
-      label: "With",
-      value: annotate(project.collaborators!.join(" · ")),
-    },
-    { label: "Stack", value: annotate(project.tools.join(" · ")) },
-  ];
-  return rows.filter(Boolean) as CreditRow[];
-}
-
 export default async function ProjectPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const project = getProject(slug);
+  const project = await getProjectBySlug(slug);
 
   // A draft is a 404 for everyone but the signed-in owner.
   if (!project || (project.draft && !(await isAuthenticated()))) {
@@ -97,6 +63,7 @@ export default async function ProjectPage({
   }
 
   const stored = await getStoredNotes();
+  const blocks = project.body ? postBlocks(project.body) : [];
 
   return (
     <PageMain>
@@ -121,31 +88,59 @@ export default async function ProjectPage({
             </nav>
           ) : null}
         </div>
-        <p className="copy-20 mt-5 max-w-measure">
+        <p className="copy-20 mt-4 max-w-measure">
           <AnnotatedText text={project.tagline} stored={stored} />
         </p>
       </header>
 
-      <CreditsTable rows={projectCredits(project, stored)} className="mt-12" />
-
-      <div className="mt-12 max-w-measure">
-        <p className="copy-18">
-          <AnnotatedText text={project.description} stored={stored} />
-        </p>
-      </div>
-
-      {project.body && (
-        // The long-form case study — same block format as writing posts.
+      <ProjectBody project={project}>
         <div className="mt-12 max-w-measure">
-          <BodyBlocks blocks={postBlocks(project.body)} stored={stored} />
+          <p className="copy-18">
+            <AnnotatedText text={project.description} stored={stored} />
+          </p>
         </div>
-      )}
 
-      {project.media?.length ? (
-        <div className="max-w-measure">
-          <ProjectMedia media={project.media} />
-        </div>
-      ) : null}
+        {blocks.length > 0 && (
+          // Blocks continue the body, so they get the within-block step (24),
+          // matching the space-y-6 rhythm inside BodyBlocks.
+          <div className="mt-6 max-w-measure">
+            <BodyBlocks
+              blocks={blocks}
+              stored={stored}
+              renderImage={(block, index, caption) => (
+                <ProjectImage
+                  key={index}
+                  project={project}
+                  index={index}
+                  src={block.src}
+                  darkSrc={block.darkSrc}
+                  width={block.width}
+                  knockout={block.knockout}
+                  caption={caption}
+                />
+              )}
+              renderImageRow={(block, index, caption) => (
+                <ProjectImageRow
+                  key={index}
+                  project={project}
+                  index={index}
+                  images={block.images}
+                  gap={block.gap}
+                  caption={caption}
+                />
+              )}
+            />
+          </div>
+        )}
+
+        {/* Media lives inside ProjectBody so the owner's edit controls land
+            at the very bottom of the page, below the gallery. */}
+        {project.media?.length ? (
+          <div className="max-w-measure">
+            <ProjectMedia project={project} />
+          </div>
+        ) : null}
+      </ProjectBody>
     </PageMain>
   );
 }

@@ -119,7 +119,7 @@ Two families: serif for titles (two tiers), Helvetica for everything else:
 
 | role | family | size / line-height | used for |
 |------|--------|--------------------|----------|
-| **Large** | Newsreader (serif) | 28 / 34, tracking -0.01em | the name and page titles — the masthead, post/project titles, Writing, Playground |
+| **Large** | Newsreader (serif) | 28 / 34, tracking -0.01em | the name and page titles — the masthead, post/project titles |
 | **Medium** | Newsreader (serif) | 22 / 28, tracking -0.01em | subtitles — index row titles, post section headings |
 | **Body** | Helvetica (sans) | 15 / 22 | everything else — copy, labels, nav, metadata, links |
 
@@ -249,7 +249,6 @@ gutter. Keep this in lockstep; if it changes, change it everywhere
 |------|-------|
 | Reading measure (post/project body, home bio) | `max-w-measure` (37.5rem) |
 | Credits table, admin column, newsletter form | `max-w-cap-md` (24.5rem) |
-| Inline subscribe (writing heading row) | `max-w-cap-sm` (18rem) |
 | Index rows, headers, rules | full pane width |
 
 Content is **left-aligned** within the pane (no `mx-auto`). Prose is capped to
@@ -268,12 +267,21 @@ comes from generous, consistent gaps.
 | lg | 48 | intro → content |
 | xl | 64–96 | major section breaks |
 
+The steps are assigned by *relationship*, not position — closely related things
+sit tighter than unrelated things, and each grouping level gets a visibly
+bigger step. Concretely: title → lede is **xs** (`mt-4`); lede → credits table
+is **md** (`mt-8`, it continues the intro); credits → body is **lg** (`mt-12`,
+the intro → content break); body → media continues at the same **lg** step
+(`mt-12`) — media is body content, not a separate chapter. Captions hang off
+their media at a micro 8px (`mt-2`).
+
 ### Rules (dividers)
 
 Hairlines are the primary structural device. Always `border-border` (a
 foreground-tinted alpha, so it tracks the ink in both themes), never a solid
-gray. Index rows get a rule between items; a project's media gallery opens
-under one; the credits table and underline forms are built entirely from them.
+gray. Index rows get a rule between items; the credits table and underline
+forms are built entirely from them. Media galleries get no rule — media flows
+as part of the body, not as a separate section.
 
 ### Index pattern (`IndexRow` — /projects and /writing)
 
@@ -293,16 +301,16 @@ Gemini Clone                                   2025
   tabular numerals. On `lg` it's a real grid slot — two columns wide
   (11.5rem), not shrink-wrapped — so every row's meta starts on the same
   line; gaps within the row are gutter-sized (`gap-x-6`).
-- Writing rows may add a small square thumbnail (`3.5rem`, top-aligned,
-  square-cropped) before the text, and drafts get a boxed `mono-13` badge
+- Rows may add a thumbnail before the text (`gap-x-3` to the copy) — one
+  shared style across projects and writing: a small rounded crop (`2rem`,
+  `rounded-lg`, top-aligned). Project logos can use the "mark" variant
+  instead (theme-responsive, no plate). Drafts get a boxed `mono-13` badge
   inline after the title.
 - Rows are `py-6` with a hairline rule between items (first row drops its
   top padding so the list opens flush with the frame).
 - Hover brightens the glow (`link-glow`); nothing else animates.
 - Hovering a row pushes its note into the marginalia panel.
 
-The writing index puts the newsletter subscribe on the heading's baseline row,
-right-aligned (see underline forms below).
 
 ### Credits table (project pages)
 
@@ -330,11 +338,17 @@ card.
 2. Lede — tagline in `copy-20`, capped to the reading measure.
 3. Credits table.
 4. Body — description in `copy-18`, capped to the reading measure.
-5. Media — a single-column gallery under a hairline rule (`border-t` +
-   generous `pt-12`, items `gap-12`): images and videos sit in an
-   aspect-ratio box filled with `background-200` (so letterboxing reads as a
-   raised well), audio is a bare player. Captions are the `label-eyebrow`
-   alias. Everything is capped to the reading measure.
+5. Media — a single-column gallery that flows straight on from the body
+   (no rule, `mt-12`), like figures in a blog post. Images, videos, and
+   YouTube embeds are flush **cards**: media clipped to the slight radius
+   (`rounded-xl`) over the raised `background-200` well (letterboxing
+   reads as the well). Tweets are their own card (widget chrome) and audio
+   is a bare player. Item spacing is one adjustable value per project
+   (`mediaGap`, default 24): the owner drags the space between stacked
+   items — a Figma-style gap handle — and the same value drives the gap
+   inside paired embed rows; it persists through `updateProject` like any
+   other edit. Captions (`label`) are optional, rendered as the
+   `label-eyebrow` alias. Everything is capped to the reading measure.
 
 There is no eyebrow/category line — the page opens straight on the title.
 
@@ -362,6 +376,8 @@ There is no eyebrow/category line — the page opens straight on the title.
 | ```` ``` ```` fence | code | monospace 13px in a hairline box (`bg-gray-alpha-100`) — the one monospace + fourth size |
 | `---` | rule | `<hr>` hairline |
 | image URL line | image | aspect-boxed; a line under the URL in the same paragraph is its caption — Body (`copy-14`) at 60% opacity |
+| two+ image URLs joined by ` \| ` | image-row | side by side (`rounded-xl`), resized as one locked group; a trailing `gap <px>` sets the spacing between them (default 24) — the owner drags a Figma-style handle in the gap itself to adjust it |
+| image/video URL + `frame` | frame | full-pane showcase — breaks out of the reading measure to the pane's inner width (`PageMain` is a CSS container; the figure is `100cqw`), sitting in the raised `background-200` well with a slight radius (`rounded-xl`), a small mat of padding (`p-2`), and a tighter radius (`rounded-lg`) on the media itself. Never resizable. |
 
 There are **two** in-body heading styles (the serif section heading and the
 bold-body subheading); the two serif *display* tiers stay reserved for the
@@ -376,7 +392,8 @@ copy.
 
 All form chrome draws from one shared set of classes (`form-classes.ts`):
 
-- **Underline forms** (public: newsletter, login) — a bare `copy-16` input
+- **Underline forms** (public: login; the newsletter signup uses the same
+  voice but is currently unmounted) — a bare `copy-16` input
   and a text button sitting on one shared hairline (`border-b border-border`,
   darkening to the foreground on focus). No boxes, no fills; placeholders are
   the foreground at 40%.

@@ -3,8 +3,9 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useCanEdit } from "@/components/marginalia";
-import { splitChunks, type Post } from "@/lib/writing";
-import { draftFrom, type PostDraft } from "@/lib/post-draft";
+import { splitChunks } from "@/lib/writing";
+import { projectDraftFrom, projectId, type ProjectDraft } from "@/lib/project-draft";
+import type { Project } from "@/lib/projects";
 import {
   editorButton,
   editorField,
@@ -13,93 +14,28 @@ import {
 import { RawImage } from "@/components/raw-image";
 import { useImageUpload } from "@/components/use-image-upload";
 import { IMAGE_MOVE_TYPE } from "@/components/post-image";
-import { deletePost, updatePost } from "@/app/actions";
+import { updateProject } from "@/app/actions";
 
 /* ---------------------------------------------------------------------------
-   PostBody — wraps a post's server-rendered body (`children`) with the
-   owner's inline editing tools. Visitors just see the children. When signed
-   in:
+   ProjectBody — wraps a project's server-rendered copy (`children`) with the
+   owner's inline editing tools, mirroring PostBody. Visitors just see the
+   children. When signed in:
 
-   - "edit post" swaps the body for a form over every field: title, url
-     (slug), date, tagline, thumbnail, and the body as one text box (blank
-     lines split paragraphs; a line that is just an image URL renders as the
-     image — resize it on the rendered post after saving — and lines right
-     under the URL are the image's caption; "# "/"## " start headings, "- "
-     and "1. " lines are lists, "> " quotes, ``` fences code, "---" rules;
-     ⌘B and ⌘I wrap the selection in asterisk markers for inline bold and
-     italic, ⌘K wraps it as a [text](url) link).
+   - "edit project" swaps the copy for a form over title, url (slug), year,
+     tagline, thumbnail, description, and the body as one text box (same
+     plain-text conventions as posts; a line of two image URLs joined by
+     ` | ` renders them side by side; resize images on the rendered page
+     after saving).
    - Images can be dragged onto the *rendered* body — a hairline shows where
      they'll land between paragraphs — or dropped/pasted into the textarea.
-   - A status field switches the post between published and draft (drafts are
-     owner-only); a draft also gets a one-click "publish" button.
-   - "delete post" (with a confirm step) removes the post.
 
-   Saves go through the `updatePost` server action (stored in Blob keyed by
-   the post's stable id) and re-render via router.refresh(). Renaming the url
-   navigates to the new address; deleting returns to the index.
+   Saves go through the `updateProject` server action and re-render via
+   router.refresh(). Renaming the url navigates to the new address.
    ------------------------------------------------------------------------- */
 
 function imageFile(dt: DataTransfer): File | null {
   const file = Array.from(dt.files).find((f) => f.type.startsWith("image/"));
   return file ?? null;
-}
-
-// The edit-mode banner preview: the thumbnail in the post page's 3:1 crop.
-// When the image is taller than the crop, dragging it vertically moves the
-// focal point (draft.thumbnailY, 0–100); the value saves with the form.
-function ThumbnailBanner({
-  src,
-  y,
-  onChange,
-  disabled,
-}: {
-  src: string;
-  y: number;
-  onChange: (y: number) => void;
-  disabled: boolean;
-}) {
-  const imgRef = useRef<HTMLImageElement>(null);
-  const [dragging, setDragging] = useState(false);
-
-  const startDrag = (e: React.PointerEvent) => {
-    const img = imgRef.current;
-    if (disabled || !img?.naturalWidth) return;
-    e.preventDefault();
-    const box = img.getBoundingClientRect();
-    // The image pixels hidden by the crop — the drag's full travel. One
-    // object-position percent shifts the image by overflow/100 pixels.
-    const overflow =
-      (img.naturalHeight / img.naturalWidth) * box.width - box.height;
-    if (overflow <= 0) return;
-    const startY = e.clientY;
-    const from = y;
-    setDragging(true);
-
-    const onMove = (ev: PointerEvent) => {
-      const delta = ev.clientY - startY;
-      onChange(Math.min(100, Math.max(0, from - (delta / overflow) * 100)));
-    };
-    const onUp = () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      setDragging(false);
-    };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-  };
-
-  return (
-    <RawImage
-      ref={imgRef}
-      src={src}
-      draggable={false}
-      onPointerDown={startDrag}
-      className={`mt-3 aspect-[3/1] w-full touch-none select-none border border-border object-cover ${
-        dragging ? "cursor-grabbing" : "cursor-grab"
-      }`}
-      style={{ objectPosition: `50% ${y}%` }}
-    />
-  );
 }
 
 function Field({
@@ -119,54 +55,51 @@ function Field({
   );
 }
 
-export function PostBody({
-  post,
+export function ProjectBody({
+  project,
   children,
 }: {
-  post: Post;
+  project: Project;
   children: React.ReactNode;
 }) {
   const canEdit = useCanEdit();
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<PostDraft>(() => draftFrom(post));
+  const [draft, setDraft] = useState<ProjectDraft>(() =>
+    projectDraftFrom(project),
+  );
   const [error, setError] = useState<string | null>(null);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [pending, startTransition] = useTransition();
   const { uploading, upload } = useImageUpload();
-  // While dragging an image over the rendered body: the chunk index the drop
-  // would insert before (chunks.length = append), and the indicator's y.
   const [drop, setDrop] = useState<{ index: number; y: number } | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   const bodyFileRef = useRef<HTMLInputElement>(null);
   const thumbFileRef = useRef<HTMLInputElement>(null);
   const busy = pending || uploading;
+  const id = projectId(project);
 
   if (!canEdit) return <>{children}</>;
 
-  const set = (patch: Partial<PostDraft>) =>
+  const set = (patch: Partial<ProjectDraft>) =>
     setDraft((prev) => ({ ...prev, ...patch }));
 
   const openEditor = () => {
-    setDraft(draftFrom(post));
+    setDraft(projectDraftFrom(project));
     setError(null);
-    setConfirmingDelete(false);
     setEditing(true);
   };
 
-  const save = (next: PostDraft) => {
+  const save = (next: ProjectDraft) => {
     setError(null);
     startTransition(async () => {
-      const result = await updatePost(post.id, next);
+      const result = await updateProject(id, next);
       if ("error" in result) {
         setError(result.error);
         return;
       }
       setEditing(false);
-      if (result.saved.slug !== post.slug) {
-        // The last path segment is the slug on both /writing/<slug> and the
-        // writing subdomain's /<slug>.
+      if (result.saved.slug !== project.slug) {
         router.push(
           window.location.pathname.replace(/[^/]+\/?$/, result.saved.slug),
         );
@@ -175,22 +108,6 @@ export function PostBody({
     });
   };
 
-  const remove = () => {
-    setError(null);
-    startTransition(async () => {
-      const result = await deletePost(post.id);
-      if ("error" in result) {
-        setError(result.error);
-        return;
-      }
-      router.push(window.location.pathname.replace(/\/[^/]+\/?$/, "") || "/");
-      router.refresh();
-    });
-  };
-
-  /* ------------------------- display-mode drag/drop ---------------------- */
-
-  // Where between the rendered blocks a drop at clientY would insert.
   const dropTarget = (clientY: number): { index: number; y: number } => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return { index: 0, y: 0 };
@@ -228,19 +145,16 @@ export function PostBody({
     const target = dropTarget(e.clientY);
     setDrop(null);
 
-    // Reordering an existing image block: move its paragraph to the drop slot.
-    // Removing the source first shifts every later index down by one, so a
-    // forward move lands one slot earlier than the raw target.
     if (isMove) {
       const from = Number(e.dataTransfer.getData(IMAGE_MOVE_TYPE));
-      const chunks = splitChunks(post.body);
+      const chunks = splitChunks(project.body ?? "");
       if (!Number.isInteger(from) || from < 0 || from >= chunks.length) return;
       let to = target.index;
       if (to > from) to -= 1;
       if (to === from) return;
       const [moved] = chunks.splice(from, 1);
       chunks.splice(to, 0, moved);
-      save({ ...draftFrom(post), body: chunks.join("\n\n") });
+      save({ ...projectDraftFrom(project), body: chunks.join("\n\n") });
       return;
     }
 
@@ -249,15 +163,12 @@ export function PostBody({
     void (async () => {
       const url = await upload(file);
       if (!url) return;
-      const chunks = splitChunks(post.body);
+      const chunks = splitChunks(project.body ?? "");
       chunks.splice(target.index, 0, url);
-      save({ ...draftFrom(post), body: chunks.join("\n\n") });
+      save({ ...projectDraftFrom(project), body: chunks.join("\n\n") });
     })();
   };
 
-  /* --------------------------- edit-mode helpers ------------------------- */
-
-  // Insert an uploaded image URL as its own paragraph at the caret.
   const insertAtCaret = (url: string) => {
     const el = textRef.current;
     setDraft((prev) => {
@@ -279,9 +190,6 @@ export function PostBody({
     })();
   };
 
-  // ⌘B / ⌘I in the body textarea: wrap the selection in the marker ("**" for
-  // bold, "*" for italic) or unwrap it if that style is already applied.
-  // Restores the selection after React re-renders.
   const toggleMarker = (marker: string) => {
     const el = textRef.current;
     if (!el) return;
@@ -289,15 +197,11 @@ export function PostBody({
     const { value } = el;
     const n = marker.length;
 
-    // Fold star runs at the selection's edges out of it, so selecting
-    // "**bold**" behaves the same as selecting just "bold".
     while (end - start >= 2 && value[start] === "*" && value[end - 1] === "*") {
       start++;
       end--;
     }
 
-    // The star runs hugging the selection encode its current formatting:
-    // 1 = italic, 2 = bold, 3 = both.
     let before = 0;
     while (before < 3 && value[start - 1 - before] === "*") before++;
     let after = 0;
@@ -318,15 +222,13 @@ export function PostBody({
     });
   };
 
-  // ⌘K: wrap the selection as a [text](url) link and select the url
-  // placeholder so the destination can be typed (or pasted) right away.
   const insertLink = () => {
     const el = textRef.current;
     if (!el) return;
     const { selectionStart: start, selectionEnd: end, value } = el;
     const label = value.slice(start, end) || "text";
     const body = `${value.slice(0, start)}[${label}](url)${value.slice(end)}`;
-    const urlStart = start + label.length + 3; // past "[label]("
+    const urlStart = start + label.length + 3;
     set({ body });
     requestAnimationFrame(() => {
       el.focus();
@@ -337,8 +239,7 @@ export function PostBody({
   const uploadThumbnail = (file: File) => {
     void (async () => {
       const url = await upload(file);
-      // A different image means the old focal point is meaningless.
-      if (url) set({ thumbnail: url, thumbnailY: 50 });
+      if (url) set({ thumbnail: url });
       if (thumbFileRef.current) thumbFileRef.current.value = "";
     })();
   };
@@ -356,8 +257,6 @@ export function PostBody({
           />
         </Field>
 
-        {/* Wraps on narrow screens: url takes its own line, date + status
-            pair up beneath it. */}
         <div className="flex flex-wrap gap-4">
           <Field label="url" className="min-w-[12rem] flex-1">
             <input
@@ -368,18 +267,17 @@ export function PostBody({
               className={editorField}
             />
           </Field>
-          <Field label="date" className="min-w-[10rem] flex-1">
+          <Field label="year" className="min-w-[6rem]">
             <input
-              type="date"
-              value={draft.date}
-              onChange={(e) => set({ date: e.target.value })}
+              type="text"
+              inputMode="numeric"
+              value={draft.year}
+              onChange={(e) => set({ year: e.target.value })}
               disabled={busy}
               className={editorField}
             />
           </Field>
           <Field label="status" className="min-w-[10rem] flex-1">
-            {/* Native select chevrons hug the right edge; hide them and draw
-                our own so it can sit on the field's padding inset. */}
             <span className="relative block">
               <select
                 value={draft.draft ? "draft" : "published"}
@@ -417,19 +315,12 @@ export function PostBody({
         </Field>
 
         <div>
-          <span className="mono-13 mb-1 block">
-            thumbnail
-            {draft.thumbnail && (
-              <span className="opacity-60"> — drag the banner to reposition</span>
-            )}
-          </span>
+          <span className="mono-13 mb-1 block">thumbnail</span>
           <div className="flex items-center gap-3">
             <input
               type="text"
               value={draft.thumbnail}
-              onChange={(e) =>
-                set({ thumbnail: e.target.value, thumbnailY: 50 })
-              }
+              onChange={(e) => set({ thumbnail: e.target.value })}
               placeholder="/images/… or upload"
               disabled={busy}
               className={editorField}
@@ -454,11 +345,9 @@ export function PostBody({
             )}
           </div>
           {draft.thumbnail && (
-            <ThumbnailBanner
+            <RawImage
               src={draft.thumbnail}
-              y={draft.thumbnailY}
-              onChange={(y) => set({ thumbnailY: y })}
-              disabled={busy}
+              className="mt-3 h-14 w-14 rounded-xl object-cover"
             />
           )}
           <input
@@ -473,6 +362,15 @@ export function PostBody({
           />
         </div>
 
+        <Field label="description">
+          <textarea
+            value={draft.description}
+            onChange={(e) => set({ description: e.target.value })}
+            disabled={busy}
+            className={`${editorField} min-h-24 resize-y`}
+          />
+        </Field>
+
         <Field
           label={
             <>
@@ -480,11 +378,12 @@ export function PostBody({
               <span className="opacity-60">
                 {" "}
                 — blank line splits paragraphs · &quot;# &quot; starts a
-                section · &quot;- &quot; / &quot;1. &quot; list · &quot;&gt;
-                &quot; quote · ``` code · &quot;---&quot; rule · a line under
-                an image URL captions it · &quot;frame&quot; after an image
-                or video URL makes it a full-pane frame · ⌘B bolds · ⌘I
-                italicizes · ⌘K links
+                section · two image URLs on one line joined by &quot; | &quot;
+                sit side by side (&quot;gap 12&quot; at the end sets their
+                spacing) · &quot;knockout&quot; after a logo URL drops its
+                plate · &quot;frame&quot; after an image or video URL makes
+                it a full-pane frame · a line under an image URL captions it
+                · ⌘B bolds · ⌘I italicizes · ⌘K links
               </span>
             </>
           }
@@ -558,23 +457,11 @@ export function PostBody({
             onClick={() => {
               setEditing(false);
               setError(null);
-              setConfirmingDelete(false);
             }}
             disabled={busy}
             className={editorButton}
           >
             cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (confirmingDelete) remove();
-              else setConfirmingDelete(true);
-            }}
-            disabled={busy}
-            className={`${editorButton} ml-auto`}
-          >
-            {confirmingDelete ? "really delete?" : "delete post"}
           </button>
         </div>
       </div>
@@ -604,12 +491,12 @@ export function PostBody({
           disabled={busy}
           className={editorButton}
         >
-          {busy ? "saving…" : "edit post"}
+          {busy ? "saving…" : "edit project"}
         </button>
-        {post.draft && (
+        {project.draft && (
           <button
             type="button"
-            onClick={() => save({ ...draftFrom(post), draft: false })}
+            onClick={() => save({ ...projectDraftFrom(project), draft: false })}
             disabled={busy}
             className={editorButton}
           >

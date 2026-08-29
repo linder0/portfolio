@@ -1,4 +1,4 @@
-const socials: { label: string; href: string }[] = [
+export const socials: { label: string; href: string }[] = [
   { label: "Email", href: "mailto:xuelinda7@gmail.com" },
   { label: "X", href: "https://x.com/lindaxue" },
   { label: "Instagram", href: "https://instagram.com/_lindaxue" },

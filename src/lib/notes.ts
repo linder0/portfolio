@@ -12,7 +12,7 @@ import type { CommentDisplay } from "@/lib/comments";
 export type NoteMeta = { label: string; value: string };
 
 export type Note = {
-  // Stable identity for owner-editable notes (e.g. "project:hangful").
+  // Stable identity for owner-editable notes (e.g. "project:floatplay").
   // Notes without an id aren't editable.
   id?: string;
   // For highlight annotations: the exact page text this note is pinned to,

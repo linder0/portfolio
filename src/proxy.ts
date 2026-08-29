@@ -4,7 +4,7 @@ import { isSection, parseHost } from "@/lib/domains";
 
 // Maps section subdomains onto their app routes:
 //   projects.lindaxue.com/        -> /projects
-//   projects.lindaxue.com/hangful -> /projects/hangful
+//   projects.lindaxue.com/floatplay -> /projects/floatplay
 //   writing.lindaxue.com/         -> /writing
 // The browser URL stays on the subdomain; only the served route is rewritten.
 export function proxy(request: NextRequest) {

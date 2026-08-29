@@ -3,25 +3,118 @@ import type { StoredNote } from "@/lib/notes";
 import type { StoredComment } from "@/lib/comments";
 import { AnnotatedText, RichText } from "@/components/annotated-text";
 import { RawImage } from "@/components/raw-image";
+import { ThemedMark } from "@/components/themed-mark";
 
 /* ---------------------------------------------------------------------------
    BodyBlocks — the one renderer for parsed long-form bodies (writing posts
    and project case studies share the same plain-text block format, see
    `lib/writing`). Every top-level element carries data-post-block so the
-   post owner's drag-to-insert-image indicator can measure the gaps between
-   blocks (see PostBody); the attribute is inert on project pages.
+   owner's drag-to-insert-image indicator can measure the gaps between
+   blocks (see PostBody / ProjectBody).
 
-   Image blocks are pluggable: the writing page swaps in PostImage (owner
-   resize/reorder handles), everywhere else gets the plain figure below.
+   Image blocks are pluggable: the writing and project pages swap in
+   PostImage / ProjectImage (owner resize/reorder handles); everywhere else
+   gets the plain figure below.
    ------------------------------------------------------------------------- */
 
 type ImageBlock = Extract<PostBlock, { kind: "image" }>;
+type ImageRowBlock = Extract<PostBlock, { kind: "image-row" }>;
+
+/* ---------------------------------------------------------------------------
+   Frames — the full-pane showcase ("<url> frame", images and videos). The
+   figure escapes the reading measure and fills the content pane (PageMain
+   is a CSS container, so 100cqw is exactly the pane's inner width), sitting
+   in the raised background-200 well with a slight radius and a small mat of
+   padding — the same "framed panel" device as familyoffice.is work pages.
+   The media inside carries its own, slightly tighter radius. Frames are
+   never resizable; they always run the pane.
+   ------------------------------------------------------------------------- */
+
+function FrameFigure({
+  caption,
+  children,
+}: {
+  caption?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <figure data-post-block className="w-[100cqw] max-w-[100cqw]">
+      <div className="rounded-xl bg-background-200 p-2">{children}</div>
+      {caption && (
+        <figcaption className="copy-14 mt-2 opacity-60">{caption}</figcaption>
+      )}
+    </figure>
+  );
+}
+
+export function FrameImage({
+  block,
+  caption,
+}: {
+  block: ImageBlock;
+  caption?: React.ReactNode;
+}) {
+  return (
+    <FrameFigure caption={caption}>
+      {/* A theme pair renders both variants; CSS shows the current one. */}
+      <RawImage
+        src={block.src}
+        className={`h-auto w-full rounded-lg ${
+          block.darkSrc ? "block dark:hidden" : "block"
+        }`}
+      />
+      {block.darkSrc && (
+        <RawImage
+          src={block.darkSrc}
+          className="hidden h-auto w-full rounded-lg dark:block"
+        />
+      )}
+    </FrameFigure>
+  );
+}
+
+export function ImageRow({
+  images,
+  gap,
+  children,
+}: {
+  images: { src: string; width?: number }[];
+  // Spacing between the images in px (default: the 24px gutter).
+  gap?: number;
+  // Optional per-image slot (owner resize handles). Default is a plain img.
+  children?: (image: { src: string; width?: number }, i: number) => React.ReactNode;
+}) {
+  return (
+    <div
+      className="flex max-w-full flex-nowrap items-start"
+      style={{ columnGap: gap ?? 24 }}
+    >
+      {images.map((image, i) =>
+        children ? (
+          children(image, i)
+        ) : (
+          <RawImage
+            key={image.src}
+            src={image.src}
+            className="h-auto max-w-full rounded-xl"
+            style={
+              image.width
+                ? { width: image.width }
+                : { width: `calc(50% - ${(gap ?? 24) / 2}px)` }
+            }
+          />
+        ),
+      )}
+    </div>
+  );
+}
 
 export function BodyBlocks({
   blocks,
   stored,
   comments,
   renderImage,
+  renderImageRow,
 }: {
   blocks: PostBlock[];
   stored: Record<string, StoredNote>;
@@ -30,6 +123,11 @@ export function BodyBlocks({
   // caption already rendered through the rich-text pipeline.
   renderImage?: (
     block: ImageBlock,
+    index: number,
+    caption: React.ReactNode,
+  ) => React.ReactNode;
+  renderImageRow?: (
+    block: ImageRowBlock,
     index: number,
     caption: React.ReactNode,
   ) => React.ReactNode;
@@ -44,6 +142,7 @@ export function BodyBlocks({
           stored={stored}
           comments={comments}
           renderImage={renderImage}
+          renderImageRow={renderImageRow}
         />
       ))}
     </div>
@@ -56,6 +155,7 @@ function Block({
   stored,
   comments,
   renderImage,
+  renderImageRow,
 }: {
   block: PostBlock;
   index: number;
@@ -66,6 +166,11 @@ function Block({
     index: number,
     caption: React.ReactNode,
   ) => React.ReactNode;
+  renderImageRow?: (
+    block: ImageRowBlock,
+    index: number,
+    caption: React.ReactNode,
+  ) => React.ReactNode;
 }) {
   const caption = (text?: string) =>
     text && <RichText text={text} stored={stored} comments={comments} />;
@@ -73,25 +178,53 @@ function Block({
   switch (block.kind) {
     case "image": {
       const captionNode = caption(block.caption);
+      // Frames bypass the pluggable renderer (no resize handles — a frame
+      // always fills the pane), so every page gets them for free.
+      if (block.frame) return <FrameImage block={block} caption={captionNode} />;
       if (renderImage) return renderImage(block, index, captionNode);
       const style = block.width ? { width: block.width } : undefined;
       return (
         <figure data-post-block>
-          {/* A theme pair renders both variants; CSS shows the current one. */}
-          <RawImage
-            src={block.src}
-            className={`h-auto max-w-full ${
-              block.darkSrc ? "block dark:hidden" : "block"
-            }`}
-            style={style}
-          />
-          {block.darkSrc && (
-            <RawImage
-              src={block.darkSrc}
-              className="hidden h-auto max-w-full dark:block"
+          {block.knockout ? (
+            <ThemedMark
+              src={block.src}
+              darkSrc={block.darkSrc}
+              imgClassName="h-auto max-w-full"
               style={style}
             />
+          ) : (
+            <>
+              {/* A theme pair renders both variants; CSS shows the current one. */}
+              <RawImage
+                src={block.src}
+                className={`h-auto max-w-full ${
+                  block.darkSrc ? "block dark:hidden" : "block"
+                }`}
+                style={style}
+              />
+              {block.darkSrc && (
+                <RawImage
+                  src={block.darkSrc}
+                  className="hidden h-auto max-w-full dark:block"
+                  style={style}
+                />
+              )}
+            </>
           )}
+          {captionNode && (
+            <figcaption className="copy-14 mt-2 opacity-60">
+              {captionNode}
+            </figcaption>
+          )}
+        </figure>
+      );
+    }
+    case "image-row": {
+      const captionNode = caption(block.caption);
+      if (renderImageRow) return renderImageRow(block, index, captionNode);
+      return (
+        <figure data-post-block>
+          <ImageRow images={block.images} gap={block.gap} />
           {captionNode && (
             <figcaption className="copy-14 mt-2 opacity-60">
               {captionNode}
@@ -102,6 +235,20 @@ function Block({
     }
     case "video": {
       const captionNode = caption(block.caption);
+      if (block.frame) {
+        return (
+          <FrameFigure caption={captionNode}>
+            <video
+              src={block.src}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="block h-auto w-full rounded-lg"
+            />
+          </FrameFigure>
+        );
+      }
       return (
         <figure data-post-block>
           {/* GIF-style clip: plays silently on a loop, no chrome. */}
