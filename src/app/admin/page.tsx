@@ -6,7 +6,7 @@ import { PageMain } from "@/components/page-main";
 import { getSubscribers } from "@/lib/subscriber-store";
 
 export const metadata: Metadata = {
-  title: "Admin — Linda Xue",
+  title: "Admin · Linda Xue",
   robots: { index: false, follow: false },
 };
 
@@ -26,7 +26,7 @@ export default async function AdminPage() {
           <p className="copy-16">
             Signed in. Select any text on a page and press{" "}
             <span className="mono-13">m</span> to pin a note to that phrase
-            (select within a single paragraph) — or hover an annotatable
+            (select within a single paragraph), or hover an annotatable
             element (a bio paragraph, the photo) and press{" "}
             <span className="mono-13">m</span> with nothing selected to write
             that element&rsquo;s note. Pasted URLs become links automatically

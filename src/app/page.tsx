@@ -41,7 +41,7 @@ export default async function Page() {
   return (
     // On mobile the page is a flex column filling the remaining viewport, with
     // no bottom padding, so the photo can anchor flush to the page's end.
-    <PageMain className="flex flex-1 flex-col pb-0 lg:block lg:pb-6">
+    <PageMain className="flex flex-1 flex-col pb-0 lg:block lg:pb-frame">
       {/* The photo owns the lower-right corner here, so the margin panel
           moves to the bottom of the content column. */}
       <MarginaliaAnchor position="content-left" />

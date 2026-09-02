@@ -40,17 +40,16 @@ export function GridOverlay() {
   if (!overlay) return null;
 
   return (
-    // Above the grain (z-100) so the stripes aren't retextured.
     <div
       aria-hidden
       className="pointer-events-none fixed inset-0 z-[200] hidden lg:block"
     >
       <div
-        className="absolute inset-y-0 left-gutter right-0"
+        className="absolute inset-y-0 left-frame right-0"
         style={{ background: FIXED_COLUMNS }}
       />
       <div
-        className="absolute inset-y-0 right-gutter w-panel"
+        className="absolute inset-y-0 right-frame w-panel"
         style={{ background: FIXED_RIGHT_FLANK }}
       />
     </div>

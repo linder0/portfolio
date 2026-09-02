@@ -13,21 +13,43 @@ export async function Sidebar() {
 
   return (
     <>
-      {/* Mobile: just the masthead (name) up top. Desktop: the full fixed
-          rail with nav + socials. The rail is a grid region — page inset +
-          columns 1–2 (w-rail = 13rem); no right padding, so its usable box
-          ends exactly on column 2's edge and PageMain's own padding supplies
-          the gutter to the content pane. */}
-      <aside className="flex flex-col px-4 py-4 lg:fixed lg:inset-y-0 lg:left-0 lg:w-rail lg:py-6 lg:pl-6 lg:pr-0">
+      {/* Mobile: just the masthead (tag) up top. Desktop: the full fixed
+          rail with nav + socials. The rail is a grid region — frame inset +
+          column 1 (w-rail = 6rem); no right padding, so its usable box
+          ends exactly on column 1's right edge and PageMain's own padding
+          supplies the gutter to the content pane. */}
+      <aside className="flex flex-col p-frame lg:fixed lg:inset-y-0 lg:left-0 lg:w-rail lg:pr-0">
         <div>
+          {/* Masthead: the signature tag, doubling as the home button. It
+              overshoots the shared frame inset with negative margins (sitting
+              8px off the page's top edge) so the mark reads big without
+              moving the rail's alignment for everything below it. */}
           <a
             href={rootUrl(host)}
-            className="heading-32 link-glow inline-block"
+            aria-label="Linda Xue, home"
+            title="Home"
+            className="shape-glow-trigger -mt-2 -ml-1 inline-block transition-transform duration-200 ease-out hover:scale-105 lg:-ml-2"
           >
-            Linda Xue
+            <span
+              aria-hidden="true"
+              className="shape-glow block h-16 w-16 select-none bg-foreground lg:h-24 lg:w-24"
+              style={{
+                WebkitMaskImage: "url(/tag.png)",
+                maskImage: "url(/tag.png)",
+                WebkitMaskRepeat: "no-repeat",
+                maskRepeat: "no-repeat",
+                WebkitMaskPosition: "left center",
+                maskPosition: "left center",
+                WebkitMaskSize: "contain",
+                maskSize: "contain",
+              }}
+            />
           </a>
 
-          <nav className="mt-8 hidden flex-col gap-2 lg:flex">
+          <nav
+            aria-label="Primary"
+            className="mt-4 hidden flex-col gap-2 lg:flex"
+          >
             {nav.map((item) => (
               <a
                 key={item.section}

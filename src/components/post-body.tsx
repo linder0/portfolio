@@ -420,7 +420,7 @@ export function PostBody({
           <span className="mono-13 mb-1 block">
             thumbnail
             {draft.thumbnail && (
-              <span className="opacity-60"> — drag the banner to reposition</span>
+              <span className="opacity-60"> · drag the banner to reposition</span>
             )}
           </span>
           <div className="flex items-center gap-3">
@@ -479,11 +479,12 @@ export function PostBody({
               body
               <span className="opacity-60">
                 {" "}
-                — blank line splits paragraphs · &quot;# &quot; starts a
+                · blank line splits paragraphs · &quot;# &quot; starts a
                 section · &quot;- &quot; / &quot;1. &quot; list · &quot;&gt;
                 &quot; quote · ``` code · &quot;---&quot; rule · a line under
-                an image URL captions it · ⌘B bolds · ⌘I italicizes · ⌘K
-                links
+                an image URL captions it · &quot;frame&quot; after an image
+                or video URL makes it a full-pane frame · ⌘B bolds · ⌘I
+                italicizes · ⌘K links
               </span>
             </>
           }

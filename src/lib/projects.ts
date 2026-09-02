@@ -11,16 +11,24 @@ export type ProjectMedia =
       width: number;
       height: number;
       label?: string;
+      // Share a gallery row with the adjacent paired item (two columns)
+      // instead of running full-width. Consecutive paired items group in
+      // twos, same as embeds.
+      pair?: boolean;
+      // Override the shared-row width for small media groups.
+      columns?: 2 | 3;
       // Video-only: still frame shown before playback.
       poster?: string;
       // Video-only: play silently on a loop with no controls (a GIF stand-in).
       autoplay?: boolean;
     }
   | {
-      // Sound work, rendered as a bare audio player (no aspect box).
+      // Sound work, rendered as an audio card (play button, label, scrubber).
       type: "audio";
       src: string;
       label?: string;
+      // Share a gallery row with the adjacent paired item, same as images.
+      pair?: boolean;
     }
   | {
       // A hosted demo video, embedded as a 16:9 iframe.
@@ -33,9 +41,23 @@ export type ProjectMedia =
       type: "tweet";
       id: string;
       label?: string;
+    }
+  | {
+      // A Google Slides deck, embedded as a 16:9 iframe.
+      type: "slides";
+      id: string;
+      label?: string;
     };
 
 export type Project = {
+  // Hide the tagline lede on the project page (the index card and share
+  // metadata still use `tagline`) — for showcase pages that open straight
+  // on media.
+  hideLede?: boolean;
+  // Stable identity for stored edits — the slug as authored in this file.
+  // The URL slug may differ if renamed inline. Set when resolving from the
+  // project store; static entries use `slug`.
+  id?: string;
   slug: string;
   title: string;
   tagline: string;
@@ -48,13 +70,37 @@ export type Project = {
   collaborators?: string[];
   tools: string[];
   links: ProjectLink[];
+  // Index-card cover, independent of the project page. The card never
+  // borrows gallery/body media — set this (or `coverMark`) when the card
+  // should be a photo; otherwise it uses the thumbnail.
+  cover?: string;
+  // object-position for the cover photo. Default is center; "bottom" pins
+  // the photo to the well's bottom edge so a crop never insets the footer.
+  coverPosition?: "center" | "bottom";
+  // Logo centered on the index-card well. Wins over `cover`. Rendered as-is
+  // by default (use a transparent asset); set `coverMarkKnockout` when the
+  // file has a baked-in white/black plate that should blend away.
+  coverMark?: string;
+  coverMarkKnockout?: boolean;
   // Small square image for the index row (same convention as post thumbnails).
   thumbnail?: string;
+  // Dark-theme mark. With `thumbnailKind: "mark"`, light shows `thumbnail`
+  // and dark shows this (ThemedMark). The two files need the same glyph
+  // padding or the index mark will jump size across themes. Omit and a
+  // white-on-black plate is inverted on paper.
+  thumbnailDark?: string;
+  // "mark" = a logo sitting on the page (no rounded plate). "photo" (default)
+  // = the small rounded crop.
+  thumbnailKind?: "mark" | "photo";
+  // Marks default to knocking out a baked-in white/black plate. Transparent
+  // or colored SVGs should set this false.
+  thumbnailKnockout?: boolean;
   media?: ProjectMedia[];
   // Optional long-form case study, same plain-text conventions as post bodies
   // (see `lib/writing`): blank lines split paragraphs, "# " headings, image
-  // and video lines with captions, lists, quotes, ``` code fences. Rendered
-  // on the project page below the description.
+  // and video lines with captions (two URLs on one line, joined by ` | `,
+  // sit side by side), lists, quotes, ``` code fences. Rendered on the
+  // project page below the description.
   body?: string;
   // Drafts are only visible to the signed-in owner — hidden from the index
   // and a 404 on the detail page for everyone else.
@@ -63,6 +109,45 @@ export type Project = {
 
 export const projects: Project[] = [
   {
+    slug: "vtix",
+    title: "VROOM",
+    tagline: "A better platform for events",
+    year: "2026",
+    category: ["software"],
+    // No lede or description on purpose — the page goes straight from the
+    // title to the banner and demos.
+    hideLede: true,
+    description: "",
+    role: "Full-Stack Developer",
+    tools: [
+      "Next.js",
+      "Supabase",
+      "Stripe",
+      "React Native",
+      "Apple Wallet",
+      "Photon",
+      "Twilio",
+    ],
+    links: [{ label: "view events", url: "https://vroomevents.com" }],
+    cover: "/images/projects/vtix/banner+logo.png",
+    thumbnail: "/images/projects/vtix/mark.png",
+    thumbnailKind: "mark",
+    // Video demos — drop files into public/videos/projects/vtix/ and add
+    // body lines below the banner. Two URLs joined by ` | ` sit in a
+    // justified row (shared height, aspect-preserving, fills the pane).
+    // landing.mp4 is already in the folder.
+    body: [
+      "/images/projects/vtix/banner+logo.png",
+      "# Platform",
+      "/videos/projects/vtix/vroomhome.mp4 | /videos/projects/vtix/sidebarvroom.mp4 gap 12\nThe event workspace | Sidebar",
+      "/videos/projects/vtix/listsvroom.mp4 | /videos/projects/vtix/tasksvroom.mp4 gap 12\nProvider lists for venues, catering, and rentals | The AI planner generates task boards for each event",
+      "# Ticketing",
+      // Feature demos pulled from usevroom.com (landing-assets bucket).
+      "/videos/projects/vtix/event-creation.mp4 | /videos/projects/vtix/ticket-scan.mp4 gap 12\nCreate an event with flexible ticketing in minutes | Scan tickets at the door from the mobile app",
+      "/videos/projects/vtix/app-demo.mp4 | /videos/projects/vtix/agent-test.mp4 gap 12\nThe attendee app saves tickets to Apple Wallet with live updates | An iMessage agent answers questions and handles booking",
+    ].join("\n\n"),
+  },
+  {
     slug: "dolly",
     title: "Dolly",
     tagline: "An opinionated cinematography engine for UI",
@@ -70,7 +155,7 @@ export const projects: Project[] = [
     draft: true,
     category: ["software", "design"],
     description:
-      "A Screen Studio-style macOS recorder that grew into a multi-clip video IDE. Record your screen and Dolly procedurally generates the cinematography afterwards — automatic zooms toward where you click, a smoothed synthetic cursor with click ripples, and a styled card framing. Everything stays editable until export; nothing is baked into pixels until the MP4 renders.",
+      "A Screen Studio-style macOS recorder that grew into a multi-clip video IDE. Record your screen and Dolly procedurally generates the cinematography afterwards: automatic zooms toward where you click, a smoothed synthetic cursor with click ripples, and a styled card framing. Everything stays editable until export; nothing is baked into pixels until the MP4 renders.",
     role: "Designer & Developer",
     tools: [
       "Electron",
@@ -83,80 +168,7 @@ export const projects: Project[] = [
     ],
     links: [{ label: "GitHub", url: "https://github.com/linder0/screenlabs" }],
     thumbnail: "/images/projects/dolly/thumbnail.png",
-    body: [
-      "Screen recordings are flat: the camera never moves, the cursor jitters, and the viewer has to find the action themselves. Tools like Screen Studio fix this with beautiful auto-zooms — so I built my own engine to understand how, and then kept going until it became a small video editor. Dolly's premise is that cinematography is a *function of telemetry*: record first, and let the camera work be computed afterwards, from what actually happened on screen.",
-      "/videos/projects/dolly/dolly-demo.mp4\nThe demo — itself written as code and rendered with Remotion.",
-      "# Record, then direct",
-      "Recording starts from a floating always-on-top widget: pick a display, window, or area, and optionally enable the webcam, mic, and system audio. A Swift sidecar built on ScreenCaptureKit captures the screen with the cursor hidden, while a CGEventTap logs every mouse move, click, and keystroke into an events.jsonl beside the video. That telemetry file is the whole trick — the recording keeps the raw pixels, and everything cinematic is derived from the event log later.",
-      "/images/projects/dolly/widget.png\nThe recorder widget — display, window, or area capture, plus camera, mic, and system audio tracks.",
-      "# Cinematography as a function of telemetry",
-      "After a recording lands, a chain of pure engines turns events into camera work. An analyzer clusters clicks and typing into attention segments; a camera planner converts those segments into a deterministic, eased camera path; and a cursor engine redraws the pointer from recorded motion as a zero-lag smoothed vector cursor — scaled with the zoom, crisp at any size, with ripples on every click.",
-      "/images/projects/dolly/editor-cursor.png\nThe recorded cursor is never shown — it's redrawn from motion data, so smoothing, sizing, and click effects stay adjustable forever.",
-      "# The compositor never decides anything",
-      [
-        "```",
-        "event analyzer  -> attention segments (click clustering, typing extension)",
-        "camera planner  -> deterministic eased camera path per clip",
-        "cursor engine   -> zero-lag smoothed path, vector cursor, click ripples",
-        "sequence        -> global timeline: evaluate(t) resolves clip -> camera/cursor",
-        "edits           -> pure clip ops: split, cut range, trim, reorder",
-        "compositor      -> background -> shadow -> card -> video -> cursor -> webcam",
-        "exporter        -> WebCodecs H.264 + AAC, same evaluation as preview",
-        "```",
-      ].join("\n"),
-      "Every frame the compositor draws `evaluate(t)` — a fully described scene computed from the project document, the event logs, and the current settings. There is no hidden state and no baked-in decision: change the background, the padding, the zoom curve, or the cursor size, and the same recording re-renders differently. Preview and export share the exact same evaluation, so what you scrub is what you ship.",
-      "/images/projects/dolly/editor.png\nThe editor — styled card framing over the project background, a media shelf on the left, and a multi-clip timeline below.",
-      "# A video IDE",
-      "Recordings live inside projects. Record again and the new clip appends to the open timeline; split with S, trim clip edges, drag to reorder, set per-clip volume and zooms. Paste (⌘V) or drop any video or image and it lands in the project instantly — ⌘⇧V grabs clipboard media from anywhere, even when the app isn't focused. The webcam composites as a floating bubble, and the mic mixes into both preview and export.",
-      "# The AI layer",
-      "Whisper transcribes the timeline audio, and the transcript is synced both ways — click a sentence to seek, cut a sentence to cut the video. A local silence-remover finds dead air and trims it, and a chat agent edits the project in plain language: \"zoom in on the top right from 5s to 9s\", \"cut the first 3 seconds\", \"switch to a dark background and add padding\".",
-      "/images/projects/dolly/editor-ai.png\nThe AI tab — one-click silence removal and an editing agent that operates on the project document.",
-      "# Nothing baked until export",
-      "Export runs entirely in the renderer: WebCodecs encodes H.264 while the audio graph mixes to AAC, muxed into an MP4 (or a GIF, for short loops). Because the exporter walks the same evaluate(t) as the preview, the render is just the timeline played carefully — every zoom, ripple, and crossfade lands exactly where the scrubber showed it.",
-      "/images/projects/dolly/export-dialog.png\nExport — format, resolution, and compression presets, straight to a file, the clipboard, or a shareable link.",
-    ].join("\n\n"),
-  },
-  {
-    slug: "gemini-clone",
-    title: "Gemini Clone",
-    tagline: "Recreation of Google's Gemini AI interface",
-    year: "2025",
-    category: ["software"],
-    description:
-      "A faithful recreation of Google's Gemini AI chat interface, featuring conversation management, user authentication, and a clean modern UI. Frustrated with native Gemini image generation, I built a LangGraph agent for improved image generation with better chat memory and context retention.",
-    role: "Developer",
-    duration: "2025",
-    tools: ["SvelteKit", "LangGraph"],
-    links: [
-      { label: "Try it", url: "https://geminiclone-blue-sigma.vercel.app" },
-      { label: "GitHub", url: "https://github.com/linder0/geminiclone" },
-    ],
-    thumbnail: "/images/projects/gemini-clone/demo-poster.jpg",
-    media: [
-      {
-        type: "video",
-        src: "/videos/projects/gemini-clone/demo.mp4",
-        width: 1280,
-        height: 826,
-        label: "Demo",
-        // First second of the demo video itself, ripped via ffmpeg.
-        poster: "/images/projects/gemini-clone/demo-poster.jpg",
-      },
-      {
-        type: "image",
-        src: "/images/projects/gemini-clone/home.png",
-        width: 2704,
-        height: 1685,
-        label: "Home",
-      },
-      {
-        type: "image",
-        src: "/images/projects/gemini-clone/library.png",
-        width: 2704,
-        height: 1685,
-        label: "My stuff",
-      },
-    ],
+    thumbnailKind: "mark",
   },
   {
     slug: "monography",
@@ -164,59 +176,26 @@ export const projects: Project[] = [
     tagline: "AI-powered research paper copilot",
     year: "2025",
     category: ["software", "design"],
-    description:
-      "A full-stack web app for managing, annotating, and analyzing research papers with AI assistance. Features a LangGraph agent with autonomous multi-step reasoning, semantic search via pgvector, PDF viewing with text extraction, arXiv integration, and real-time streaming chat. Built with SvelteKit 5, Supabase, and integrations with OpenAI, Anthropic, Tavily, and ElevenLabs.",
+    description: "",
     role: "Full-Stack Developer",
     duration: "2025",
     tools: ["SvelteKit", "LangGraph", "pgvector", "Supabase", "OpenAI", "Stripe", "Vercel"],
     links: [{ label: "Visit Monography", url: "https://monography.io" }],
-    thumbnail: "/images/projects/monography/logo.png",
+    thumbnail: "/images/projects/monography/logo-inverse.png",
+    thumbnailDark: "/images/projects/monography/logo.png",
+    thumbnailKind: "mark",
+    coverMark: "/images/projects/monography/logo.png",
+    coverMarkKnockout: true,
     media: [
       {
-        type: "image",
-        src: "/images/projects/monography/logo.png",
-        width: 1200,
-        height: 1200,
-        label: "Logo",
-      },
-      {
-        type: "image",
-        src: "/images/projects/monography/homepage.png",
+        type: "video",
+        src: "/videos/projects/monography/demo.mp4",
         width: 1920,
-        height: 1080,
+        height: 1072,
         label: "App interface",
       },
       { type: "youtube", id: "3DlT9cj70Dc", label: "AI Sidebar" },
       { type: "youtube", id: "TABd8xRLewE", label: "Semantic paper search" },
-      { type: "tweet", id: "1995546938557825183", label: "Demo 1" },
-      { type: "tweet", id: "1994080526085374168", label: "Demo 2" },
-    ],
-  },
-  {
-    slug: "pookie",
-    title: "Pookie",
-    tagline: "AI unified inbox for all your messages",
-    year: "2025",
-    category: ["software", "design"],
-    description:
-      "Every message in one place. Pookie combines emails, texts, and DMs with semantic search, AI autodrafting that learns your tone, vim keyboard shortcuts, and custom smart-tagging. Native integrations for Gmail, Outlook, WhatsApp, and LinkedIn. Original idea accepted into Y Combinator F25, garnering 500k+ impressions and 2.5k waitlist signups.",
-    role: "Co-founder",
-    client: "Y Combinator F25",
-    collaborators: ["Mathias"],
-    tools: ["SvelteKit", "Semantic Search"],
-    links: [{ label: "Visit Pookie", url: "https://pookie.work" }],
-    thumbnail: "/images/projects/pookie/thumbnail.png",
-    media: [
-      {
-        type: "image",
-        src: "/images/projects/pookie/thumbnail.png",
-        width: 948,
-        height: 597,
-        label: "Overview",
-      },
-      { type: "tweet", id: "1985801327310778541", label: "Demo 1" },
-      { type: "tweet", id: "1968329094208381154", label: "Demo 2" },
-      { type: "tweet", id: "1947680537746845954", label: "Demo 3" },
     ],
   },
   {
@@ -224,11 +203,12 @@ export const projects: Project[] = [
     title: "Chameleon Gradient",
     tagline: "Color-sensing device that creates gradients from real-world colors",
     year: "2025",
+    draft: true,
     category: ["hardware", "research", "design"],
     description:
       "Digital Metaphors bring digital concepts into the real world. The Chameleon Gradient uses a color sensor to capture colors, and a gyroscope to translate angle into a gradient. In progress as UROP with Tangible Media Group @ MIT Media Lab.",
     role: "UROP Researcher",
-    client: "MIT Media Lab — Tangible Media Group",
+    client: "MIT Media Lab, Tangible Media Group",
     duration: "Ongoing",
     tools: ["CAD", "Electronics", "Color Sensor", "Gyroscope", "Silicone Molding"],
     links: [
@@ -249,6 +229,7 @@ export const projects: Project[] = [
         width: 480,
         height: 360,
         label: "Detail",
+        pair: true,
       },
       {
         type: "image",
@@ -256,6 +237,7 @@ export const projects: Project[] = [
         width: 480,
         height: 360,
         label: "Detail",
+        pair: true,
       },
       {
         type: "image",
@@ -263,6 +245,7 @@ export const projects: Project[] = [
         width: 480,
         height: 360,
         label: "Detail",
+        pair: true,
       },
       {
         type: "image",
@@ -270,13 +253,14 @@ export const projects: Project[] = [
         width: 480,
         height: 360,
         label: "Detail",
+        pair: true,
       },
     ],
   },
   {
     slug: "inflatable-chimes",
     title: "Inflatable Chimes",
-    tagline: "Modular roly-poly controllers for interactive soundscapes",
+    tagline: "Modular controllers for interactive soundscapes",
     year: "2025",
     category: ["hardware", "design"],
     description:
@@ -287,6 +271,7 @@ export const projects: Project[] = [
     tools: ["CAD", "3D Printing", "Bluetooth", "Gyroscope", "Sound Design"],
     links: [],
     thumbnail: "/images/projects/inflatable-chimes/chimes-thumbnail.jpeg",
+    cover: "/images/projects/inflatable-chimes/chimes-assembly-v3.gif",
     media: [
       {
         type: "video",
@@ -294,7 +279,7 @@ export const projects: Project[] = [
         width: 1280,
         height: 776,
         label: "Demo",
-        poster: "/images/projects/inflatable-chimes/chimes-thumb.jpg",
+        poster: "/images/projects/inflatable-chimes/chimes-demo-poster.jpg",
       },
       {
         type: "image",
@@ -302,6 +287,7 @@ export const projects: Project[] = [
         width: 480,
         height: 360,
         label: "Overview",
+        pair: true,
       },
       {
         type: "image",
@@ -309,6 +295,7 @@ export const projects: Project[] = [
         width: 480,
         height: 360,
         label: "Side view",
+        pair: true,
       },
       {
         type: "image",
@@ -316,22 +303,24 @@ export const projects: Project[] = [
         width: 480,
         height: 360,
         label: "Top view",
+        pair: true,
       },
       {
-        // Converted from the original GIF (half the bytes, hardware-decoded).
+        // Video twin of chimes-assembly.gif (smaller bytes, hardware-decoded).
         type: "video",
-        src: "/videos/projects/inflatable-chimes/chimes-gallery.mp4",
+        src: "/videos/projects/inflatable-chimes/chimes-assembly-v3.mp4",
         width: 800,
         height: 800,
         label: "Gallery",
         autoplay: true,
+        pair: true,
       },
     ],
   },
   {
     slug: "magnetic-petri-dishes",
     title: "Magnetic Petri Dishes",
-    tagline: "Automated cotton subculturing system for Galy Co.",
+    tagline: "Automated subculturing system for Galy Co.",
     year: "2024",
     category: ["hardware"],
     description:
@@ -341,28 +330,25 @@ export const projects: Project[] = [
     duration: "1 semester",
     tools: ["CAD", "3D Printing", "UR Arms"],
     links: [{ label: "Watch demo", url: "https://youtu.be/Y2sF_TRmMb8" }],
+    coverMark: "/images/projects/magnetic-petri-dishes/galy.png",
     thumbnail: "/images/projects/magnetic-petri-dishes/petri-dishes-thumb.jpg",
     media: [
       {
-        type: "image",
-        src: "/images/projects/magnetic-petri-dishes/petri-dishes-thumb.jpg",
-        width: 2066,
-        height: 2066,
-        label: "Overview",
-      },
-      {
-        type: "image",
-        src: "/images/projects/magnetic-petri-dishes/petri-dishes.png",
-        width: 942,
-        height: 1232,
-        label: "Prototype",
+        // Local rip of the YouTube demo so it can run as an autoplaying banner.
+        type: "video",
+        src: "/videos/projects/magnetic-petri-dishes/demo.mp4",
+        width: 1280,
+        height: 748,
+        label: "Demo",
+        poster: "/images/projects/magnetic-petri-dishes/demo-poster.jpg",
+        autoplay: true,
       },
     ],
   },
   {
     slug: "nanostalgia",
     title: "Nanostalgia",
-    tagline: "iPod Nano shaped mirror with playlists on USB sticks",
+    tagline: "Huge iPod",
     year: "2025",
     category: ["hardware", "design"],
     description:
@@ -379,32 +365,48 @@ export const projects: Project[] = [
         url: "https://docs.google.com/presentation/d/1nSg1uNUub7X9DMToT73ELBfUN78l4MJth-KzaMByAMc/edit?usp=drive_link",
       },
     ],
+    // Authored card cover (the page demo is a separate asset). Sides
+    // cropped to 4:3; bottom of the photo is the card's bottom edge.
+    cover: "/images/projects/nanostalgia/nano-cover.jpg",
+    coverPosition: "bottom",
     thumbnail: "/images/projects/nanostalgia/nanostalgia-thumb.jpg",
     media: [
       {
-        type: "image",
-        src: "/images/projects/nanostalgia/nanostalgia-render.png",
-        width: 960,
-        height: 540,
-        label: "Render",
+        // Local rip of the YouTube demo. Keep standard controls so visitors
+        // can scrub the walkthrough and listen to its audio.
+        type: "video",
+        src: "/videos/projects/nanostalgia/demo.mp4",
+        width: 1280,
+        height: 720,
+        label: "Demo",
+        poster: "/images/projects/nanostalgia/demo-poster.jpg",
       },
       {
         type: "image",
-        src: "/images/projects/nanostalgia/nanostalgia-thumb.jpg",
-        width: 1080,
-        height: 1080,
-        label: "Overview",
+        // High-res original pulled out of the hackathon deck's PDF export
+        // (the old 960×540 PNG was a downscaled copy of this same drawing).
+        src: "/images/projects/nanostalgia/nanostalgia-render.jpg",
+        width: 2048,
+        height: 1152,
+        label: "Render",
+        pair: true,
+      },
+      {
+        // The hackathon deck, sharing the render's row (embeds pair up).
+        type: "slides",
+        id: "1nSg1uNUub7X9DMToT73ELBfUN78l4MJth-KzaMByAMc",
+        label: "Presentation",
       },
     ],
   },
   {
     slug: "madagascar-hissing-cockroaches",
     title: "Social Isolation in Madagascar Hissing Cockroaches",
-    tagline: "Behavioral and physiological effects of isolation on G. Portentosa",
+    tagline: "",
     year: "2023",
     category: ["research"],
     description:
-      "Using Gromphadorhina Portentosa (Madagascar Hissing Cockroach) as a model organism, this independent research examines how social isolation affects exploratory behavior (via AI video analysis) and glucose metabolism (via hemolymph glucose levels). A 2x2 randomized design with four treatment groups revealed that social isolation reduced exploratory behavior—with early instars affected more than late instars—and increased glucose levels while causing weight loss in early instars. These findings highlight the behavioral and biological impacts of social isolation, with implications for understanding pandemic-era health disparities.",
+      "This independent study used Madagascar hissing cockroaches as a model. I measured how social isolation changes exploratory behavior and glucose metabolism. Awarded Regeneron STS Semifinalist, American Junior Academy of Science Delegate, NC International Science Challenge Finalist, and NC ISEF 3rd Place.",
     role: "Independent Researcher",
     client: "MIT",
     duration: "1 semester",
@@ -436,7 +438,7 @@ export const projects: Project[] = [
     description:
       "The eyes are a window to the soul. By documenting them, this project tells untold stories by projecting them onto the MIT Dome. I created the scheduling program and sound design for the experience, and worked with UR arms for visual presentations. Awarded the MIT first-year award in performance and fine arts.",
     role: "Sound Designer & Developer",
-    client: "MIT Media Lab — Critical Media Group",
+    client: "MIT Media Lab, Critical Media Group",
     duration: "1 semester",
     tools: ["Sound Design", "Python", "UR Arms", "Projection Mapping"],
     links: [{ label: "View Project", url: "https://gazetothestars.com" }],
@@ -452,12 +454,14 @@ export const projects: Project[] = [
       {
         type: "audio",
         src: "/audio/projects/gaze-to-the-stars/gaze.m4a",
-        label: "Gaze — sound design",
+        label: "Gaze",
+        pair: true,
       },
       {
         type: "audio",
         src: "/audio/projects/gaze-to-the-stars/struggle.m4a",
-        label: "Struggle — sound design",
+        label: "Struggle",
+        pair: true,
       },
       {
         type: "video",
@@ -465,6 +469,7 @@ export const projects: Project[] = [
         width: 720,
         height: 1280,
         label: "Eye display",
+        columns: 3,
       },
       {
         type: "video",
@@ -472,6 +477,7 @@ export const projects: Project[] = [
         width: 720,
         height: 1280,
         label: "Braille machine",
+        columns: 3,
       },
       {
         type: "video",
@@ -479,36 +485,7 @@ export const projects: Project[] = [
         width: 538,
         height: 960,
         label: "DJ performance",
-      },
-    ],
-  },
-  {
-    slug: "hangful",
-    title: "Hangful",
-    tagline: "Replace ads with real-world hangouts",
-    year: "2025",
-    category: ["software", "design"],
-    description:
-      "A platform that sponsors real-world social experiences for brands targeting college communities. Brands create campaigns, students participate in verified hangouts, and track results with real-time analytics. Features identity verification, viral multiplier tracking, and campus reach across UCLA and USC.",
-    role: "Co-founder",
-    duration: "2025",
-    tools: ["React"],
-    links: [{ label: "GitHub", url: "https://github.com/linder0/hangful" }],
-    thumbnail: "/images/projects/hangful/thumbnail.png",
-    media: [
-      {
-        type: "image",
-        src: "/images/projects/hangful/thumbnail.png",
-        width: 2704,
-        height: 1684,
-        label: "Overview",
-      },
-      {
-        type: "image",
-        src: "/images/projects/hangful/demo.png",
-        width: 2704,
-        height: 1682,
-        label: "App demo",
+        columns: 3,
       },
     ],
   },

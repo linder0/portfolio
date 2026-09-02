@@ -47,7 +47,7 @@ export function TweetEmbed({ id }: { id: string }) {
   }, [id]);
 
   return (
-    <div ref={ref}>
+    <div ref={ref} className="min-w-0 overflow-hidden [&_.twitter-tweet]:!my-0">
       <blockquote className="twitter-tweet" data-dnt="true">
         <a
           href={`https://twitter.com/i/status/${id}`}

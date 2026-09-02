@@ -1,8 +1,12 @@
 import { cn } from "@/lib/utils";
 
-// The shared content frame every page sits in: full width with the standard
-// inset that matches the sidebar's own padding rhythm. Keeps the one gutter
-// value in a single place instead of copy-pasted across pages.
+// The shared content frame every page sits in: the frame inset (p-frame) on
+// every edge, except on lg where the horizontal padding is a full gutter —
+// there the left pad is the gutter between the rail's column and the content
+// text, and the right pad the gutter before the marginalia panel.
+// It's also a CSS container (@container), so children capped to the reading
+// measure can break back out to the pane's inner width with 100cqw — that's
+// how full-pane frame images escape the measure (see FrameImage).
 export function PageMain({
   children,
   className,
@@ -11,7 +15,9 @@ export function PageMain({
   className?: string;
 }) {
   return (
-    <main className={cn("w-full px-4 py-4 lg:px-6 lg:py-6", className)}>
+    <main
+      className={cn("@container w-full p-frame lg:px-gutter", className)}
+    >
       {children}
     </main>
   );

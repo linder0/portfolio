@@ -115,39 +115,42 @@ than `pine-700`.
 
 ## Type — two families, three sizes
 
-Two families: serif for titles (two tiers), Helvetica for everything else:
+Two families: Helvetica for titles (two tiers) and UI labels, Space Grotesk
+for prose:
 
 | role | family | size / line-height | used for |
 |------|--------|--------------------|----------|
-| **Large** | Newsreader (serif) | 28 / 34, tracking -0.01em | the name and page titles — the masthead, post/project titles, Writing, Playground |
-| **Medium** | Newsreader (serif) | 22 / 28, tracking -0.01em | subtitles — index row titles, post section headings |
-| **Body** | Helvetica (sans) | 15 / 22 | everything else — copy, labels, nav, metadata, links |
+| **Large** | Helvetica | 22 / 28, tracking -0.01em | the name and page titles — the masthead, post/project titles |
+| **Medium** | Helvetica | 18 / 24, tracking -0.01em | subtitles — index row titles, post section headings |
+| **Body** | Space Grotesk | 15 / 22 | prose — copy, taglines, post bodies |
+| **Label** | Helvetica | 15 / 22 | UI text — nav, buttons, social links, metadata eyebrows |
 
 ```css
---font-sans:  Helvetica, "Helvetica Neue", Arial, sans-serif;   /* Body */
---font-serif: var(--font-serif-google), Georgia, serif;         /* Newsreader — titles */
+--font-sans:    var(--font-grotesk-google), Helvetica, sans-serif; /* Space Grotesk — Body */
+--font-display: Helvetica, "Helvetica Neue", Arial, sans-serif;    /* titles + labels */
 ```
 
 Rules:
-- **Serif is for titles, Helvetica is for body.** Nothing else.
-- **Three display sizes** — 28 (large), 22 (medium), 15 (body). No other
+- **Helvetica is for titles and UI labels, Space Grotesk is for prose.**
+  Nothing else.
+- **Three display sizes** — 22 (large), 18 (medium), 15 (body). No other
   steps and no uppercase eyebrow. The lone exception is **fenced code in post
   bodies**, which renders monospace at 13px (`font-mono`, `text-[13px]`) — a
   verbatim device, like the credits table is for boxes.
-- Weight is Regular (400) almost everywhere; hierarchy comes from family +
-  size + the layout (rules, columns, whitespace), not weight or color. Bold is
-  used only inside post bodies: inline `**bold**`, and the in-body **h3
-  subheading**, which is a bold Body paragraph (`copy-18 font-bold`) rather
-  than a third serif tier.
+- Weight is Regular (400) everywhere; hierarchy comes from family + size +
+  the layout (rules, columns, whitespace), never color. Bold appears only
+  inside post bodies: inline `**bold**` and the in-body **h3 subheading**, a
+  bold Body paragraph (`copy-18 font-bold`) rather than a third title tier.
 
 ### Class aliases
 
 The old scale class names are kept purely as **aliases** so existing markup keeps
 working — they collapse onto the tiers by number:
 
-- `heading-32` and up (`heading-48`, `heading-72`, …) → **Large** (serif 28).
-- `heading-24` and below → **Medium** (serif 22).
-- `copy-*`, `label-*`, `label-eyebrow`, `mono-*` → **Body** (Helvetica 15).
+- `heading-32` and up (`heading-48`, `heading-72`, …) → **Large** (22).
+- `heading-24` and below → **Medium** (18).
+- `copy-*`, `mono-*` → **Body** (15).
+- `label-*`, `label-eyebrow` → **Label** (Helvetica 15).
 
 So `<h1 className="heading-48">` renders a page title (the masthead uses the
 same tier), `heading-24` a subtitle, and `<p className="copy-16">` (or
@@ -173,15 +176,16 @@ content pane, and a margin column:
 └────────────┴─────────────────────────────┴──────────┘
 ```
 
-- **Rail** (`Sidebar`, `w-rail` = margin + grid columns 1–2 = 13rem): name
+- **Rail** (`Sidebar`, `w-rail` = frame + grid column 1 = 6rem): name
   (Title style), primary nav, socials pinned to the bottom. On `lg+` it is
   fixed full-height and doesn't scroll. No fill, no divider — it sits on the
   same paper as everything else.
 - **Content pane**: `lg:h-dvh lg:overflow-y-auto` — the page itself doesn't
   scroll; only this pane does. It's cleared past the rail on the left
   (`lg:pl-rail`) and inset on the right by the marginalia region
-  (`lg:pr-margin-pane` = panel + the page margin = 19.5rem). Its text opens
-  on grid column 3.
+  (`lg:pr-margin-pane` = panel + the frame = 19rem). `PageMain`'s
+  own padding supplies the gutter after the rail, so its text opens on grid
+  column 2.
 - **Marginalia** (`w-panel` = 3 grid columns = 18rem, desktop-only): the
   fixed lower-right panel where hovered rows, links, and footnotes push
   their notes. The home page moves it to the content column's bottom-left
@@ -213,12 +217,15 @@ Every fixed width on the page derives from a single column unit, defined in
 `globals.css`:
 
 ```css
---grid-col:    5rem;   /* column, 80px */
---grid-gutter: 1.5rem; /* gutter, 24px — doubles as the lg page inset */
+--grid-col:     5rem;   /* column, 80px */
+--grid-gutter:  1.5rem; /* gutter, 24px */
+--page-margin:  1rem;   /* the frame, 16px — every edge, every breakpoint */
 ```
 
-The grid starts one gutter in from the left edge (the page inset **is** a
-gutter). Columns 1–2 are the rail, column 3 opens the content pane's text.
+The grid starts one page margin in from the left edge. The frame is
+deliberately **tighter than the gutter** — the viewport edge reads as the
+frame, so fixed flanks (rail, panel) hug the screen while internal gutters
+stay generous. Column 1 is the rail, column 2 opens the content pane's text.
 The pane itself is fluid — it absorbs the viewport — so the right flank
 (marginalia) keeps the unit (3 columns hung from the right edge) but not the
 left-origin column lines. That's inherent to a fixed-flank/fluid-center
@@ -226,10 +233,11 @@ shell and is by design: the measure stays a fixed, print-like width on any
 monitor.
 
 Markup references **role tokens**, never raw rems and never column counts:
-`w-rail` / `pl-rail` (margin + 2 cols = 13rem), `pr-margin-pane` (panel +
-margin = 19.5rem), `max-w-measure` (prose, 6 cols = 37.5rem), `max-w-cap-md`
-(4 cols = 24.5rem), `max-w-cap-sm` (3 cols = 18rem), `w-panel` (marginalia,
-3 cols = 18rem), `gap-x-6` / `px-gutter` etc. for gutter-sized gaps.
+`w-rail` / `pl-rail` (frame + col 1 = 6rem), `pr-margin-pane` (panel +
+frame = 19rem), `p-frame` etc. for the page inset, `max-w-measure` (prose,
+6 cols = 37.5rem), `max-w-cap-md` (4 cols = 24.5rem), `max-w-cap-sm` (3 cols
+= 18rem), `w-panel` (marginalia, 3 cols = 18rem), `gap-x-6` / `px-gutter`
+etc. for gutter-sized gaps.
 
 **Grid overlay**: press `g` to toggle the column overlay (available to
 everyone in development, and to the signed-in owner in production), drawn from
@@ -239,17 +247,20 @@ columns, green = the right-flank panel region).
 ### Frame & measure
 
 A single inset is shared by **everything, on every edge** — the rail, every
-page `main` (via `PageMain`), the theme toggle, and the marginalia panel:
-`p-4` (16px) mobile → `lg:p-6` (24px). On `lg` this inset equals the grid
-gutter. Keep this in lockstep; if it changes, change it everywhere
-(`Sidebar`, `PageMain`, `SignatureTag`, `Marginalia`, and the grid tokens in
-`globals.css`).
+page `main` (via `PageMain`), and the marginalia panel: the frame,
+`p-frame` (`--page-margin`, 16px), at every breakpoint. It is deliberately
+**tighter than the gutter** (16 vs 24) — a contemporary inversion of the
+print rule; the viewport edge is the frame. The one exception: on `lg`,
+`PageMain`'s *horizontal* padding is a full gutter (`lg:px-gutter`), because
+there it isn't an edge — it's the internal gutter between the rail's column
+and the text, and between the text and the panel. Change the frame only via
+the `--page-margin` token in `globals.css`; everything (rail, margin-pane,
+the overlay) derives from it.
 
 | Role | Width |
 |------|-------|
 | Reading measure (post/project body, home bio) | `max-w-measure` (37.5rem) |
 | Credits table, admin column, newsletter form | `max-w-cap-md` (24.5rem) |
-| Inline subscribe (writing heading row) | `max-w-cap-sm` (18rem) |
 | Index rows, headers, rules | full pane width |
 
 Content is **left-aligned** within the pane (no `mx-auto`). Prose is capped to
@@ -268,12 +279,21 @@ comes from generous, consistent gaps.
 | lg | 48 | intro → content |
 | xl | 64–96 | major section breaks |
 
+The steps are assigned by *relationship*, not position — closely related things
+sit tighter than unrelated things, and each grouping level gets a visibly
+bigger step. Concretely: title → lede is **xs** (`mt-4`); lede → credits table
+is **md** (`mt-8`, it continues the intro); credits → body is **lg** (`mt-12`,
+the intro → content break); body → media continues at the same **lg** step
+(`mt-12`) — media is body content, not a separate chapter. Captions hang off
+their media at a micro 8px (`mt-2`).
+
 ### Rules (dividers)
 
 Hairlines are the primary structural device. Always `border-border` (a
 foreground-tinted alpha, so it tracks the ink in both themes), never a solid
-gray. Index rows get a rule between items; a project's media gallery opens
-under one; the credits table and underline forms are built entirely from them.
+gray. Index rows get a rule between items; the credits table and underline
+forms are built entirely from them. Media galleries get no rule — media flows
+as part of the body, not as a separate section.
 
 ### Index pattern (`IndexRow` — /projects and /writing)
 
@@ -293,16 +313,16 @@ Gemini Clone                                   2025
   tabular numerals. On `lg` it's a real grid slot — two columns wide
   (11.5rem), not shrink-wrapped — so every row's meta starts on the same
   line; gaps within the row are gutter-sized (`gap-x-6`).
-- Writing rows may add a small square thumbnail (`3.5rem`, top-aligned,
-  square-cropped) before the text, and drafts get a boxed `mono-13` badge
+- Rows may add a thumbnail before the text (`gap-x-3` to the copy) — one
+  shared style across projects and writing: a small rounded crop (`2rem`,
+  `rounded-lg`, top-aligned). Project logos can use the "mark" variant
+  instead (theme-responsive, no plate). Drafts get a boxed `mono-13` badge
   inline after the title.
 - Rows are `py-6` with a hairline rule between items (first row drops its
   top padding so the list opens flush with the frame).
 - Hover brightens the glow (`link-glow`); nothing else animates.
 - Hovering a row pushes its note into the marginalia panel.
 
-The writing index puts the newsletter subscribe on the heading's baseline row,
-right-aligned (see underline forms below).
 
 ### Credits table (project pages)
 
@@ -321,6 +341,12 @@ Borrowed from a film or magazine masthead — now an actual `<table>`
 This is the one exception to "no boxes" — a table is a print device, not a
 card.
 
+### Project cards (`ProjectCard` — /projects)
+
+The index is a card grid. Each cover is authored (`coverMark`, else `cover`,
+else the thumbnail) and never borrowed from the project page gallery — the
+card and the page are independent surfaces.
+
 ### Project page structure
 
 1. Header row — title (Title style, `heading-48` alias) on the left and the
@@ -330,11 +356,19 @@ card.
 2. Lede — tagline in `copy-20`, capped to the reading measure.
 3. Credits table.
 4. Body — description in `copy-18`, capped to the reading measure.
-5. Media — a single-column gallery under a hairline rule (`border-t` +
-   generous `pt-12`, items `gap-12`): images and videos sit in an
-   aspect-ratio box filled with `background-200` (so letterboxing reads as a
-   raised well), audio is a bare player. Captions are the `label-eyebrow`
-   alias. Everything is capped to the reading measure.
+5. Media — a single-column gallery that flows straight on from the body
+   (no rule, `mt-12`), like figures in a blog post. Images, videos, and
+   YouTube embeds are flush **cards**: media clipped to the slight radius
+   (`rounded-xl`) over the raised `background-200` well (letterboxing
+   reads as the well). Tweets are their own card (widget chrome) and audio
+   is an `AudioCard` — the same raised well holding a play button, the
+   track label, elapsed/total time, and a hairline scrubber (the label
+   lives inside the card, so audio gets no figcaption). Item spacing is
+   the fixed 12px gutter (`gap-3`) the
+   projects index grid uses between cards — both the vertical stack and
+   the gap inside paired embed rows. Captions (`label`) are optional,
+   rendered consistently as Body (`copy-14`) at 60% opacity. Everything is
+   capped to the reading measure.
 
 There is no eyebrow/category line — the page opens straight on the title.
 
@@ -355,16 +389,18 @@ There is no eyebrow/category line — the page opens straight on the title.
 | syntax | block | renders as |
 |--------|-------|------------|
 | (plain paragraph) | text | `copy-18` |
-| `# ` | section heading (level 2) | Medium serif (`heading-24`) with extra air above |
-| `## `+ | subheading (level 3) | bold Body (`copy-18 font-bold`) — not a serif tier |
+| `# ` | section heading (level 2) | Medium title (`heading-24`) with extra air above |
+| `## `+ | subheading (level 3) | bold Body (`copy-18 font-bold`) — not a title tier |
 | `- ` / `* ` / `1. ` | list (unordered / ordered) | `copy-18`, `list-disc`/`list-decimal`; ordered lists keep their start number |
 | `> ` | blockquote | italic, left hairline rule (`border-l`), `whitespace-pre-line` |
 | ```` ``` ```` fence | code | monospace 13px in a hairline box (`bg-gray-alpha-100`) — the one monospace + fourth size |
 | `---` | rule | `<hr>` hairline |
 | image URL line | image | aspect-boxed; a line under the URL in the same paragraph is its caption — Body (`copy-14`) at 60% opacity |
+| two+ image URLs joined by ` \| ` | image-row | side by side (`rounded-xl`), resized as one locked group; captions joined by ` \| ` sit under their respective cards; a trailing `gap <px>` sets the spacing between them (default 24) — the owner drags a Figma-style handle in the gap itself to adjust it |
+| image/video URL + `frame` | frame | full-pane showcase — breaks out of the reading measure to the pane's inner width (`PageMain` is a CSS container; the figure is `100cqw`), sitting in the raised `background-200` well with a slight radius (`rounded-xl`), a small mat of padding (`p-2`), and a tighter radius (`rounded-lg`) on the media itself. Never resizable. |
 
-There are **two** in-body heading styles (the serif section heading and the
-bold-body subheading); the two serif *display* tiers stay reserved for the
+There are **two** in-body heading styles (the Medium section heading and the
+bold-body subheading); the two *display* tiers stay reserved for the
 page title and the section heading.
 
 **Inline markers** (in text, headings, list items, captions): `**bold**`,
@@ -376,7 +412,8 @@ copy.
 
 All form chrome draws from one shared set of classes (`form-classes.ts`):
 
-- **Underline forms** (public: newsletter, login) — a bare `copy-16` input
+- **Underline forms** (public: login; the newsletter signup uses the same
+  voice but is currently unmounted) — a bare `copy-16` input
   and a text button sitting on one shared hairline (`border-b border-border`,
   darkening to the foreground on focus). No boxes, no fills; placeholders are
   the foreground at 40%.

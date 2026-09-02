@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { PageMain } from "@/components/page-main";
 import { AnnotatedText } from "@/components/annotated-text";
+import { MEDIA_CAPTION_CLASS } from "@/components/media-caption";
 import { getStoredNotes } from "@/lib/note-store";
 
 export const metadata: Metadata = {
-  title: "Playground — Linda Xue",
+  title: "Playground · Linda Xue",
   description: "Experiments, embeds, and things in progress.",
 };
 
@@ -19,17 +20,31 @@ const embeds: Embed[] = [];
 
 type Clip = {
   src: string;
-  aspect: string;
   label: string;
   href?: string;
 };
 
 // Short self-hosted demo clips, shown GIF-style in a compact grid. `href`
-// links the caption out to the original post/demo.
+// links the caption out to the original post/demo. Every tile is 16:9 so
+// the row stays even regardless of the source file.
 const clips: Clip[] = [
   {
+    src: "/videos/playground/gemini-clone.mp4",
+    label: "Gemini Clone",
+    href: "https://geminiclone-blue-sigma.vercel.app",
+  },
+  {
+    src: "/videos/playground/il-tabletop-arm.mp4",
+    label: "IL Tabletop Arm",
+    href: "https://x.com/lindaxue/status/2083944275986075880",
+  },
+  {
+    src: "/videos/playground/yam-arm-harness.mp4",
+    label: "YAM Arm Harness (MuJoCo + three.js)",
+    href: "https://x.com/lindaxue/status/2081766309990109505",
+  },
+  {
     src: "/videos/playground/rl-ant-demo.mp4",
-    aspect: "1254 / 720",
     label: "RL Ant (MuJoCo + PPO)",
     href: "https://x.com/lindaxue/status/2077415138831843678",
   },
@@ -40,46 +55,57 @@ export default async function PlaygroundPage() {
 
   return (
     <PageMain>
-      <h1 className="heading-48">Playground</h1>
-
       {clips.length ? (
-        <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
-          {clips.map((clip) => (
-            <figure key={clip.src} className="m-0 min-w-0">
-              <div
-                className="w-full overflow-hidden bg-background-200"
-                style={{ aspectRatio: clip.aspect }}
+        // Same card grid as /projects: full-bleed past the marginalia inset,
+        // native-aspect covers, title underneath.
+        <div className="grid grid-cols-1 gap-x-3 gap-y-8 sm:grid-cols-2 xl:grid-cols-4 lg:-mr-margin-pane">
+          {clips.map((clip) => {
+            const card = (
+              <>
+                {/* Native aspect ratio, bounded by the column width. */}
+                <span className="block w-full overflow-hidden bg-background-200">
+                  <video
+                    src={clip.src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="block h-auto w-full"
+                  />
+                </span>
+                <span className={`${MEDIA_CAPTION_CLASS} block`}>
+                  {clip.label}
+                  {clip.href && " ↗"}
+                </span>
+              </>
+            );
+            return clip.href ? (
+              <a
+                key={clip.src}
+                href={clip.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link-glow block min-w-0"
               >
-                <video
-                  src={clip.src}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="block h-full w-full object-contain"
-                />
+                {card}
+              </a>
+            ) : (
+              <div key={clip.src} className="min-w-0">
+                {card}
               </div>
-              <figcaption className="label-eyebrow mt-3">
-                {clip.href ? (
-                  <a
-                    href={clip.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="link-glow"
-                  >
-                    {clip.label} ↗
-                  </a>
-                ) : (
-                  clip.label
-                )}
-              </figcaption>
-            </figure>
-          ))}
+            );
+          })}
         </div>
       ) : null}
 
       {embeds.length ? (
-        <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2">
+        <div
+          className={
+            clips.length
+              ? "mt-12 grid grid-cols-1 gap-x-3 gap-y-8 sm:grid-cols-2 lg:-mr-margin-pane"
+              : "grid grid-cols-1 gap-x-3 gap-y-8 sm:grid-cols-2 lg:-mr-margin-pane"
+          }
+        >
           {embeds.map((embed) => (
             <figure key={embed.title} className="min-w-0">
               <div
@@ -95,14 +121,16 @@ export default async function PlaygroundPage() {
                   referrerPolicy="no-referrer"
                 />
               </div>
-              <figcaption className="mono-13 mt-3">{embed.title}</figcaption>
+              <figcaption className={MEDIA_CAPTION_CLASS}>
+                {embed.title}
+              </figcaption>
             </figure>
           ))}
         </div>
       ) : null}
 
       {!embeds.length && !clips.length ? (
-        <p className="copy-16 mt-8">
+        <p className="copy-16">
           <AnnotatedText
             text="Nothing yet."
             stored={stored}

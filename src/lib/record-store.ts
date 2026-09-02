@@ -1,3 +1,5 @@
+import "server-only";
+
 import { Redis } from "@upstash/redis";
 import { cache } from "react";
 
@@ -26,7 +28,7 @@ let client: Redis | null = null;
 // env vars are provisioned. The Vercel Marketplace Upstash integration injects
 // either UPSTASH_REDIS_REST_* or KV_REST_API_* (legacy KV naming) depending on
 // how the store was created — accept both so provisioning just works.
-function redis(): Redis {
+export function getRedis(): Redis {
   if (client) return client;
   const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
   const token =
@@ -48,7 +50,7 @@ export function recordStore<T>(key: string): {
   // share one round trip). Redis reads are strongly consistent, so no caching
   // beyond that is needed. An empty/missing hash reads as no entries.
   const read = cache(async (): Promise<Record<string, T>> => {
-    const all = await redis().hgetall<Record<string, T>>(key);
+    const all = await getRedis().hgetall<Record<string, T>>(key);
     return all ?? {};
   });
 
@@ -56,8 +58,8 @@ export function recordStore<T>(key: string): {
   // write touches only its own field, so concurrent writes to different ids
   // never conflict.
   const write = async (id: string, entry: T | null): Promise<void> => {
-    if (entry) await redis().hset(key, { [id]: entry });
-    else await redis().hdel(key, id);
+    if (entry) await getRedis().hset(key, { [id]: entry });
+    else await getRedis().hdel(key, id);
   };
 
   return { read, write };

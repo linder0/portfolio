@@ -13,6 +13,7 @@ type HostParts = {
   hostname: string;
   port: string;
   isLocal: boolean;
+  usesSectionSubdomains: boolean;
   protocol: "http" | "https";
   subdomain: string;
   root: string;
@@ -27,6 +28,9 @@ export function parseHost(host: string): HostParts {
     hostname === "localhost" ||
     hostname.endsWith(".localhost") ||
     hostname === "127.0.0.1";
+  const isProductionDomain =
+    hostname === "lindaxue.com" || hostname.endsWith(".lindaxue.com");
+  const usesSectionSubdomains = isLocal || isProductionDomain;
 
   let subdomain = "";
   let root = hostname;
@@ -36,7 +40,7 @@ export function parseHost(host: string): HostParts {
     if (labels.length > 1 && labels[labels.length - 1] === "localhost") {
       subdomain = labels[0];
     }
-  } else if (labels.length > 2) {
+  } else if (isProductionDomain && labels.length > 2) {
     subdomain = labels[0];
     root = labels.slice(1).join(".");
   }
@@ -48,6 +52,7 @@ export function parseHost(host: string): HostParts {
     hostname,
     port,
     isLocal,
+    usesSectionSubdomains,
     protocol: isLocal ? "http" : "https",
     subdomain,
     root,
@@ -63,7 +68,10 @@ function origin({ protocol, root, port }: HostParts, sub?: string): string {
 // keep subdomains too (projects.localhost:<port>) so the proxy rewrite stays
 // testable in dev.
 export function subdomainUrl(host: string, section: Section): string {
-  return origin(parseHost(host), section);
+  const parts = parseHost(host);
+  return parts.usesSectionSubdomains
+    ? origin(parts, section)
+    : `${origin(parts)}/${section}`;
 }
 
 // Absolute URL to the bare root domain, e.g. https://lindaxue.com
@@ -87,6 +95,10 @@ export function parentDomain(hostname: string): string | null {
     return "localhost";
   }
   if (/^[\d.]+$/.test(hostname)) return null; // IP address
-  const parts = hostname.split(".");
-  return parts.length > 2 ? parts.slice(-2).join(".") : hostname;
+  if (hostname === "lindaxue.com" || hostname.endsWith(".lindaxue.com")) {
+    return "lindaxue.com";
+  }
+  // Preview/development hosts (notably *.vercel.app) must use a host-only
+  // cookie. Their parent domain is either unrelated or a public suffix.
+  return null;
 }
