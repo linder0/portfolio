@@ -67,11 +67,7 @@ export default async function ProjectPage({
   const blocks = project.body ? postBlocks(project.body) : [];
 
   return (
-    // Project pages run the full pane: the main reclaims the marginalia
-    // inset — lg:w-auto lets the negative margin actually widen the box
-    // (PageMain's own w-full would pin it), and 100cqw frames track the
-    // wider container. Nothing is capped to the reading measure.
-    <PageMain className="lg:w-auto lg:-mr-margin-pane">
+    <PageMain fullWidth>
       {/* No margin panel here — the pane owns the full width. */}
       <MarginaliaAnchor position="hidden" />
       {/* pt-2 tops up the 16px frame inset so the air above the title

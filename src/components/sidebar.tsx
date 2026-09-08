@@ -15,24 +15,23 @@ export async function Sidebar() {
     <>
       {/* Mobile: just the masthead (tag) up top. Desktop: the full fixed
           rail with nav + socials. The rail is a grid region — frame inset +
-          column 1 (w-rail = 6rem); no right padding, so its usable box
+          column 1 (w-rail); no right padding, so its usable box
           ends exactly on column 1's right edge and PageMain's own padding
           supplies the gutter to the content pane. */}
-      <aside className="flex flex-col p-frame lg:fixed lg:inset-y-0 lg:left-0 lg:w-rail lg:pr-0">
+      <aside className="flex flex-col p-frame pb-0 lg:pb-frame lg:fixed lg:inset-y-0 lg:left-0 lg:w-rail lg:pr-0">
         <div>
-          {/* Masthead: the signature tag, doubling as the home button. It
-              overshoots the shared frame inset with negative margins (sitting
-              8px off the page's top edge) so the mark reads big without
-              moving the rail's alignment for everything below it. */}
+          {/* Mobile: the frame above the logo matches PageMain's frame
+              below it. A block link avoids inline baseline space. Desktop
+              fits the mark to the shared rail column. */}
           <a
             href={rootUrl(host)}
             aria-label="Linda Xue, home"
             title="Home"
-            className="shape-glow-trigger -mt-2 -ml-1 inline-block transition-transform duration-200 ease-out hover:scale-105 lg:-ml-2"
+            className="shape-glow-trigger -ml-1 block w-fit transition-transform duration-200 ease-out hover:scale-105 lg:mt-0 lg:ml-0 lg:w-full"
           >
             <span
               aria-hidden="true"
-              className="shape-glow block h-16 w-16 select-none bg-foreground lg:h-24 lg:w-24"
+              className="shape-glow block h-16 w-16 select-none bg-foreground lg:h-auto lg:w-full lg:aspect-square"
               style={{
                 WebkitMaskImage: "url(/tag.png)",
                 maskImage: "url(/tag.png)",

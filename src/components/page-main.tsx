@@ -10,13 +10,22 @@ import { cn } from "@/lib/utils";
 export function PageMain({
   children,
   className,
+  fullWidth = false,
 }: {
   children: React.ReactNode;
   className?: string;
+  fullWidth?: boolean;
 }) {
   return (
     <main
-      className={cn("@container w-full p-frame lg:px-gutter", className)}
+      data-full-width={fullWidth || undefined}
+      className={cn(
+        "@container w-full p-frame lg:px-gutter",
+        // Reclaim the note column; the exposed screen edge uses the frame
+        // inset while the rail-to-content gap stays a full gutter.
+        fullWidth && "lg:w-auto lg:-mr-margin-pane lg:pr-frame",
+        className,
+      )}
     >
       {children}
     </main>

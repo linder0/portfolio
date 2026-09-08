@@ -27,12 +27,8 @@ export default async function ProjectsPage() {
     .sort((a, b) => Number(b.year) - Number(a.year));
 
   return (
-    <PageMain>
-      {/* The card grid reclaims the marginalia inset (lg:-mr-margin-pane) so
-          it runs from the rail to the standard gutter at the right screen
-          edge. Cards don't feed the margin panel — the tagline sits under
-          each cover instead. */}
-      <ol className="grid grid-cols-1 gap-x-3 gap-y-8 sm:grid-cols-2 xl:grid-cols-3 lg:-mr-margin-pane">
+    <PageMain fullWidth>
+      <ol className="content-grid gap-y-8 [--card-span:12] sm:[--card-span:6] xl:[--card-span:4]">
         {ordered.map((project, index) => (
           <ProjectCard
             key={project.slug}

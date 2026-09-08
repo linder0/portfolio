@@ -54,11 +54,11 @@ export default async function PlaygroundPage() {
   const stored = await getStoredNotes();
 
   return (
-    <PageMain>
+    <PageMain fullWidth>
       {clips.length ? (
-        // Same card grid as /projects: full-bleed past the marginalia inset,
+        // Same full-width card grid as /projects:
         // native-aspect covers, title underneath.
-        <div className="grid grid-cols-1 gap-x-3 gap-y-8 sm:grid-cols-2 xl:grid-cols-4 lg:-mr-margin-pane">
+        <div className="content-grid gap-y-8 [--card-span:12] sm:[--card-span:6] xl:[--card-span:3]">
           {clips.map((clip) => {
             const card = (
               <>
@@ -102,8 +102,8 @@ export default async function PlaygroundPage() {
         <div
           className={
             clips.length
-              ? "mt-12 grid grid-cols-1 gap-x-3 gap-y-8 sm:grid-cols-2 lg:-mr-margin-pane"
-              : "grid grid-cols-1 gap-x-3 gap-y-8 sm:grid-cols-2 lg:-mr-margin-pane"
+              ? "mt-12 content-grid gap-y-8 [--card-span:12] sm:[--card-span:6]"
+              : "content-grid gap-y-8 [--card-span:12] sm:[--card-span:6]"
           }
         >
           {embeds.map((embed) => (

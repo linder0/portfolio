@@ -51,21 +51,23 @@ export function IndexRow({
         // The meta column is a real grid slot on lg — span-2 wide (fits the
         // longest date, "December 25, 2025") rather than shrink-wrapped — so
         // every row's meta starts on the same line. Gaps are the grid gutter.
-        className="link-glow grid grid-cols-[1fr_auto] items-baseline gap-x-6 py-6 lg:grid-cols-[1fr_var(--span-2)]"
+        className="link-glow grid grid-cols-[1fr_auto] items-baseline gap-x-gutter py-6 lg:grid-cols-[1fr_var(--span-2)]"
       >
-        <span className="flex min-w-0 items-start gap-x-3">
-          {thumbnail &&
-            (isMark ? (
-              <ThemedMark
-                src={thumbnail}
-                darkSrc={thumbnailDark}
-                knockout={thumbnailKnockout ?? !thumbnail.endsWith(".svg")}
-                className="h-8 w-8 shrink-0"
-              />
-            ) : (
-              <Thumbnail src={thumbnail} />
-            ))}
-          <span className="min-w-0">
+        <span className="flex min-w-0 items-start gap-x-[var(--card-gutter)]">
+          <span className={`${thumbnail ? "shrink-0" : "hidden lg:block"} lg:w-[var(--grid-col)]`}>
+            {thumbnail &&
+              (isMark ? (
+                <ThemedMark
+                  src={thumbnail}
+                  darkSrc={thumbnailDark}
+                  knockout={thumbnailKnockout ?? !thumbnail.endsWith(".svg")}
+                  className="h-8 w-8 shrink-0 lg:h-auto lg:w-full lg:aspect-square"
+                />
+              ) : (
+                <Thumbnail src={thumbnail} />
+              ))}
+          </span>
+          <span className="min-w-0 flex-1">
             <span className="heading-24 block">
               {title}
               {badge && (
@@ -91,7 +93,7 @@ export function IndexRow({
 function Thumbnail({ src }: { src: string }) {
   // Owner uploads stream from the private Blob store, which the image
   // optimizer can't reach; local assets get resized/converted.
-  const className = "h-11 w-11 shrink-0 rounded-[3px] object-cover";
+  const className = "h-11 w-11 shrink-0 rounded-[3px] object-cover lg:h-auto lg:w-full lg:aspect-square";
   if (src.startsWith("/api/")) {
     return <RawImage src={src} className={className} />;
   }

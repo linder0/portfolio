@@ -2,18 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-/* Column overlay (mounted from the root layout — for everyone in dev, for the
-   signed-in owner on prod). Press "g" to toggle it. Drawn from the live grid
-   tokens so it always
-   tracks the real layout: the left-origin columns (rose) plus the marginalia
-   panel region hung from the right edge (green). The pane between them is
-   fluid — it absorbs the viewport — so the right flank keeps the unit but not
-   the left-origin column lines, by design. */
-
-const FIXED_COLUMNS =
-  "repeating-linear-gradient(to right, rgba(214, 82, 120, 0.14) 0, rgba(214, 82, 120, 0.14) var(--grid-col), transparent var(--grid-col), transparent calc(var(--grid-col) + var(--grid-gutter)))";
-const FIXED_RIGHT_FLANK =
-  "repeating-linear-gradient(to left, rgba(50, 120, 80, 0.16) 0, rgba(50, 120, 80, 0.16) var(--grid-col), transparent var(--grid-col), transparent calc(var(--grid-col) + var(--grid-gutter)))";
+/* Press "g" to show the same centered 13-column grid used by the shell:
+   one rail column, twelve content columns, and equal outer margins.
+   Collections draw their nested guides in CSS while this retains the rail. */
 
 export function GridOverlay() {
   const [overlay, setOverlay] = useState(false);
@@ -42,16 +33,17 @@ export function GridOverlay() {
   return (
     <div
       aria-hidden
+      data-grid-overlay
       className="pointer-events-none fixed inset-0 z-[200] hidden lg:block"
     >
       <div
-        className="absolute inset-y-0 left-frame right-0"
-        style={{ background: FIXED_COLUMNS }}
-      />
-      <div
-        className="absolute inset-y-0 right-frame w-panel"
-        style={{ background: FIXED_RIGHT_FLANK }}
-      />
+        className="page-grid-guide absolute inset-y-0 inset-x-frame grid gap-x-gutter"
+        style={{ gridTemplateColumns: "repeat(13, minmax(0, 1fr))" }}
+      >
+        {Array.from({ length: 13 }, (_, index) => (
+          <div key={index} style={{ background: "rgba(214, 82, 120, 0.14)" }} />
+        ))}
+      </div>
     </div>
   );
 }

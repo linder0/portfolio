@@ -161,8 +161,8 @@ titles, `heading-24` for subtitles, `copy-16` for body.
 
 ## Shell — fixed rail, scrolling pane
 
-The site is **not** a centered column. On `lg+` it's a fixed rail, a scrolling
-content pane, and a margin column:
+On `lg+`, a centered grid holds a fixed rail, a scrolling content pane,
+and a margin column:
 
 ```
 ┌────────────┬─────────────────────────────┬──────────┐
@@ -176,24 +176,24 @@ content pane, and a margin column:
 └────────────┴─────────────────────────────┴──────────┘
 ```
 
-- **Rail** (`Sidebar`, `w-rail` = frame + grid column 1 = 6rem): name
+- **Rail** (`Sidebar`, `w-rail` = frame + grid column 1): name
   (Title style), primary nav, socials pinned to the bottom. On `lg+` it is
   fixed full-height and doesn't scroll. No fill, no divider — it sits on the
   same paper as everything else.
 - **Content pane**: `lg:h-dvh lg:overflow-y-auto` — the page itself doesn't
   scroll; only this pane does. It's cleared past the rail on the left
   (`lg:pl-rail`) and inset on the right by the marginalia region
-  (`lg:pr-margin-pane` = panel + the frame = 19rem). `PageMain`'s
+  (`lg:pr-margin-pane` = panel + the frame). `PageMain`'s
   own padding supplies the gutter after the rail, so its text opens on grid
   column 2.
-- **Marginalia** (`w-panel` = 3 grid columns = 18rem, desktop-only): the
+- **Marginalia** (`w-panel` = 3 grid columns, desktop-only): the
   fixed lower-right panel where hovered rows, links, and footnotes push
   their notes. The home page moves it to the content column's bottom-left
   because the photo owns that corner.
-- **Signature tag**: the masked logo shape in the top-right; it is the theme
-  toggle. Fixed on `lg+` (`6rem` square); on mobile it's smaller (`4rem`) and
-  absolutely positioned so it scrolls away with the page.
-- **Mobile (`<lg`)**: masthead (name) up top, page scrolls normally, primary
+- **Signature tag**: the masked logo at the top of the left rail links home.
+  On desktop it fits the rail column. On mobile it is 4rem square, scrolls
+  with the page, and has equal 16px spacing above and below.
+- **Mobile (`<lg`)**: masthead (logo) up top, page scrolls normally, primary
   nav lives in a fixed bar along the bottom edge (`3rem` + safe-area). The
   marginalia panel doesn't exist (no hover). Socials appear only on the home
   page, above the photo.
@@ -202,8 +202,8 @@ content pane, and a margin column:
 
 Within the content pane it reads like a printed index, not a dashboard. One
 column, left-aligned, lots of air. Structure comes from **hairline rules and
-whitespace**, never from cards, fills, or shadows (the credits table is the
-one boxed exception — see below).
+whitespace** on reading pages. Project and playground collections use
+image cards with compact spacing.
 
 Interaction has one voice: the **glow**. Every letter carries a faint ink
 bloom (`--text-glow` on `body`); interactive text brightens it on hover/focus
@@ -211,60 +211,33 @@ bloom (`--text-glow` on `body`); interactive text brightens it on hover/focus
 `.shape-glow`. Color never changes on interaction — pine stays a reserved
 accent token (currently defined in the palette but unused by any markup).
 
-### Grid — one fixed column unit
+### Grid — one centered system
 
-Every fixed width on the page derives from a single column unit, defined in
-`globals.css`:
+Desktop uses 13 equal fluid columns between matching 16px screen margins.
+Every structural gutter is 24px. The rail occupies column 1, and the content starts on
+column 2. `--grid-col` is calculated from the viewport after subtracting the
+two margins and twelve gutters; all width tokens derive from it.
 
-```css
---grid-col:     5rem;   /* column, 80px */
---grid-gutter:  1.5rem; /* gutter, 24px */
---page-margin:  1rem;   /* the frame, 16px — every edge, every breakpoint */
-```
+Reading pages occupy columns 2–10. Margin notes occupy columns 11–13,
+separated from the content by one gutter. Writing thumbnails occupy column
+2; titles and descriptions follow with a compact 12px internal gap, matching
+the card collections. Dates occupy columns 9–10.
+Dividers end at column 10. Prose uses a six-column reading measure; smaller
+content caps span four or three columns.
 
-The grid starts one page margin in from the left edge. The frame is
-deliberately **tighter than the gutter** — the viewport edge reads as the
-frame, so fixed flanks (rail, panel) hug the screen while internal gutters
-stay generous. Column 1 is the rail, column 2 opens the content pane's text.
-The pane itself is fluid — it absorbs the viewport — so the right flank
-(marginalia) keeps the unit (3 columns hung from the right edge) but not the
-left-origin column lines. That's inherent to a fixed-flank/fluid-center
-shell and is by design: the measure stays a fixed, print-like width on any
-monitor.
+Full-width projects and playground reclaim the note columns and occupy all
+12 columns after the rail. Projects span four columns per card on wide
+screens; playground clips span three. Collections use a nested 12-column
+grid with 12px horizontal gaps and 32px row gaps. Their outer edges remain aligned to the page grid. The `g` overlay
+shows the nested tracks within collections and the structural grid elsewhere.
 
-Markup references **role tokens**, never raw rems and never column counts:
-`w-rail` / `pl-rail` (frame + col 1 = 6rem), `pr-margin-pane` (panel +
-frame = 19rem), `p-frame` etc. for the page inset, `max-w-measure` (prose,
-6 cols = 37.5rem), `max-w-cap-md` (4 cols = 24.5rem), `max-w-cap-sm` (3 cols
-= 18rem), `w-panel` (marginalia, 3 cols = 18rem), `gap-x-6` / `px-gutter`
-etc. for gutter-sized gaps.
+On mobile, the outer frame is 16px. Cards occupy the full content width,
+changing to two per row at 420px. The logo has 16px above and below it. On
+desktop, the frame remains 16px and the logo fits the rail column.
 
-**Grid overlay**: press `g` to toggle the column overlay (available to
-everyone in development, and to the signed-in owner in production), drawn from
-the live tokens — everything should land on it (rose = the left-origin
-columns, green = the right-flank panel region).
-
-### Frame & measure
-
-A single inset is shared by **everything, on every edge** — the rail, every
-page `main` (via `PageMain`), and the marginalia panel: the frame,
-`p-frame` (`--page-margin`, 16px), at every breakpoint. It is deliberately
-**tighter than the gutter** (16 vs 24) — a contemporary inversion of the
-print rule; the viewport edge is the frame. The one exception: on `lg`,
-`PageMain`'s *horizontal* padding is a full gutter (`lg:px-gutter`), because
-there it isn't an edge — it's the internal gutter between the rail's column
-and the text, and between the text and the panel. Change the frame only via
-the `--page-margin` token in `globals.css`; everything (rail, margin-pane,
-the overlay) derives from it.
-
-| Role | Width |
-|------|-------|
-| Reading measure (post/project body, home bio) | `max-w-measure` (37.5rem) |
-| Credits table, admin column, newsletter form | `max-w-cap-md` (24.5rem) |
-| Index rows, headers, rules | full pane width |
-
-Content is **left-aligned** within the pane (no `mx-auto`). Prose is capped to
-the reading measure; headings and rules run the pane.
+Content is left-aligned within its assigned columns. Change the shared grid
+tokens in `globals.css` to adjust the shell, content, notes, and overlay
+together.
 
 ### Vertical rhythm
 
@@ -311,11 +284,11 @@ Gemini Clone                                   2025
   Body (`copy-14`). No category/eyebrow line — project tags were dropped.
 - Right column (year / date), right-aligned, top-aligned with the title,
   tabular numerals. On `lg` it's a real grid slot — two columns wide
-  (11.5rem), not shrink-wrapped — so every row's meta starts on the same
-  line; gaps within the row are gutter-sized (`gap-x-6`).
+  (`--span-2`), so every row's metadata starts on the same line. The gap
+  between the text group and metadata is 24px.
 - Rows may add a thumbnail before the text (`gap-x-3` to the copy) — one
-  shared style across projects and writing: a small rounded crop (`2rem`,
-  `rounded-lg`, top-aligned). Project logos can use the "mark" variant
+  shared style for index rows: a 44px crop on mobile, one column square
+  on desktop, with 3px rounded corners and top alignment. Logos can use the "mark" variant
   instead (theme-responsive, no plate). Drafts get a boxed `mono-13` badge
   inline after the title.
 - Rows are `py-6` with a hairline rule between items (first row drops its
