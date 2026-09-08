@@ -219,8 +219,8 @@ column 2. `--grid-col` is calculated from the viewport after subtracting the
 two margins and twelve gutters; all width tokens derive from it.
 
 Reading pages occupy columns 2–10. Margin notes occupy columns 11–13,
-separated from the content by one gutter. Writing thumbnails occupy column
-2; titles and descriptions follow with a compact 12px internal gap, matching
+separated from the content by one gutter. Writing thumbnails start on column
+2 and stay 44px square; titles and descriptions follow with a compact 12px internal gap, matching
 the card collections. Dates occupy columns 9–10.
 Dividers end at column 10. Prose uses a six-column reading measure; smaller
 content caps span four or three columns.
@@ -287,8 +287,8 @@ Gemini Clone                                   2025
   (`--span-2`), so every row's metadata starts on the same line. The gap
   between the text group and metadata is 24px.
 - Rows may add a thumbnail before the text (`gap-x-3` to the copy) — one
-  shared style for index rows: a 44px crop on mobile, one column square
-  on desktop, with 3px rounded corners and top alignment. Logos can use the "mark" variant
+  shared style for index rows: a 44px square crop at every breakpoint,
+  with 3px rounded corners and top alignment. Logos can use the "mark" variant
   instead (theme-responsive, no plate). Drafts get a boxed `mono-13` badge
   inline after the title.
 - Rows are `py-6` with a hairline rule between items (first row drops its

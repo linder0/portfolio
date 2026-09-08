@@ -54,7 +54,7 @@ export function IndexRow({
         className="link-glow grid grid-cols-[1fr_auto] items-baseline gap-x-gutter py-6 lg:grid-cols-[1fr_var(--span-2)]"
       >
         <span className="flex min-w-0 items-start gap-x-[var(--card-gutter)]">
-          <span className={`${thumbnail ? "shrink-0" : "hidden lg:block"} lg:w-[var(--grid-col)]`}>
+          <span className={`${thumbnail ? "shrink-0" : "hidden lg:block"} lg:w-11`}>
             {thumbnail &&
               (isMark ? (
                 <ThemedMark
@@ -93,7 +93,7 @@ export function IndexRow({
 function Thumbnail({ src }: { src: string }) {
   // Owner uploads stream from the private Blob store, which the image
   // optimizer can't reach; local assets get resized/converted.
-  const className = "h-11 w-11 shrink-0 rounded-[3px] object-cover lg:h-auto lg:w-full lg:aspect-square";
+  const className = "h-11 w-11 shrink-0 rounded-[3px] object-cover";
   if (src.startsWith("/api/")) {
     return <RawImage src={src} className={className} />;
   }
