@@ -28,6 +28,30 @@ type Clip = {
 // links the caption out to the original post/demo.
 const clips: Clip[] = [
   {
+    src: "/videos/playground/patrick-sailboxes.mp4",
+    aspect: "480 / 360",
+    label: "One Sailbox per pixel (9,408 total)",
+    href: "https://x.com/lindaxue/status/2118755037627511137",
+  },
+  {
+    src: "/videos/playground/monsterse-weekend.mp4",
+    aspect: "648 / 360",
+    label: "Monsterse after a weekend of training",
+    href: "https://x.com/lindaxue/status/2114777893717115211",
+  },
+  {
+    src: "/videos/playground/monsterse-training.mp4",
+    aspect: "648 / 360",
+    label: "Monsterse learning to walk and find food",
+    href: "https://x.com/lindaxue/status/2113324136827380042",
+  },
+  {
+    src: "/videos/playground/nautical-flags.mp4",
+    aspect: "480 / 800",
+    label: "Nautical signal flags in motion",
+    href: "https://x.com/lindaxue/status/2105476568634331605",
+  },
+  {
     src: "/videos/playground/rl-ant-demo.mp4",
     aspect: "1254 / 720",
     label: "RL Ant (MuJoCo + PPO)",
