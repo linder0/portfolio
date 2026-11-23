@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 export function ClipPreview({
   sources,
@@ -9,6 +9,7 @@ export function ClipPreview({
   width,
   height,
   fullResolution = false,
+  optimizedPreview = false,
 }: {
   sources: string[];
   label: string;
@@ -16,14 +17,16 @@ export function ClipPreview({
   width: number;
   height: number;
   fullResolution?: boolean;
+  optimizedPreview?: boolean;
 }) {
+  const previewsRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const activeSource = activeIndex === null ? undefined : sources[activeIndex];
-  // The grid streams the lighter copies. Load the matching HD file on demand.
+  // Load the matching HD file only in the expanded player.
   const expandedSource = fullResolution
     ? activeSource?.replace(/\.mp4$/, "-hd.mp4")
     : activeSource;
@@ -33,9 +36,34 @@ export function ClipPreview({
       ? `${label} (${activeIndex + 1} of ${sources.length})`
       : label;
 
+  useEffect(() => {
+    const previews = previewsRef.current;
+    if (!previews || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const { target, intersectionRatio } of entries) {
+          if (!(target instanceof HTMLVideoElement)) continue;
+          const source = target.dataset.previewSrc;
+
+          if (intersectionRatio >= 0.1 && source) {
+            if (!target.getAttribute("src")) target.src = source;
+            if (target.paused) void target.play().catch(() => {});
+          } else {
+            target.pause();
+          }
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    previews.querySelectorAll("video").forEach((video) => observer.observe(video));
+    return () => observer.disconnect();
+  }, [sources]);
+
   return (
     <>
-      <div className="grid w-full grid-flow-col auto-cols-fr gap-2">
+      <div ref={previewsRef} className="grid w-full grid-flow-col auto-cols-fr gap-2">
         {sources.map((src, index) => (
           <button
             key={src}
@@ -55,10 +83,15 @@ export function ClipPreview({
             }}
           >
             <video
-              src={src}
+              data-preview-src={
+                optimizedPreview ? src.replace(/\.mp4$/, "-preview.mp4") : src
+              }
+              poster={
+                optimizedPreview ? src.replace(/\.mp4$/, "-poster.jpg") : undefined
+              }
               width={width}
               height={height}
-              autoPlay
+              preload="none"
               muted
               loop
               playsInline

@@ -24,6 +24,7 @@ type Clip = {
   src: string;
   pairedSrc?: string;
   fullResolution?: boolean;
+  optimizedPreview?: boolean;
   width: number;
   height: number;
   date: string;
@@ -38,6 +39,7 @@ type Clip = {
 const clips = ([
   {
     src: "/videos/playground/patrick-sailboxes.mp4",
+    optimizedPreview: true,
     fullResolution: true,
     width: 480,
     height: 360,
@@ -47,6 +49,7 @@ const clips = ([
   },
   {
     src: "/videos/playground/monsterse-weekend.mp4",
+    optimizedPreview: true,
     fullResolution: true,
     width: 648,
     height: 360,
@@ -56,6 +59,7 @@ const clips = ([
   },
   {
     src: "/videos/playground/monsterse-training.mp4",
+    optimizedPreview: true,
     fullResolution: true,
     width: 648,
     height: 360,
@@ -65,6 +69,7 @@ const clips = ([
   },
   {
     src: "/videos/playground/sail-bart-campaign.mp4",
+    optimizedPreview: true,
     fullResolution: true,
     width: 1280,
     height: 504,
@@ -73,6 +78,7 @@ const clips = ([
   },
   {
     src: "/videos/playground/nautical-flags.mp4",
+    optimizedPreview: true,
     pairedSrc: "/videos/playground/nautical-flags-2.mp4",
     fullResolution: true,
     width: 480,
@@ -83,6 +89,7 @@ const clips = ([
   },
   {
     src: "/videos/playground/gemini-clone.mp4",
+    optimizedPreview: true,
     width: 1280,
     height: 826,
     date: "2025-12-08",
@@ -91,6 +98,7 @@ const clips = ([
   },
   {
     src: "/videos/playground/il-tabletop-arm.mp4",
+    optimizedPreview: true,
     width: 1280,
     height: 720,
     date: "2026-08-02",
@@ -99,6 +107,7 @@ const clips = ([
   },
   {
     src: "/videos/playground/yam-arm-harness.mp4",
+    optimizedPreview: true,
     width: 1366,
     height: 720,
     date: "2026-07-27",
@@ -107,6 +116,7 @@ const clips = ([
   },
   {
     src: "/videos/playground/rl-ant-demo.mp4",
+    optimizedPreview: true,
     width: 1254,
     height: 720,
     date: "2026-07-15",
@@ -116,8 +126,6 @@ const clips = ([
 ] satisfies Clip[]).toSorted((a, b) => b.date.localeCompare(a.date));
 
 export default async function PlaygroundPage() {
-  const stored = await getStoredNotes();
-
   return (
     <PageMain fullWidth>
       {clips.length ? (
@@ -131,6 +139,7 @@ export default async function PlaygroundPage() {
                 width={clip.width}
                 height={clip.height}
                 fullResolution={clip.fullResolution}
+                optimizedPreview={clip.optimizedPreview}
               />
               {clip.href ? (
                 <a
@@ -184,7 +193,7 @@ export default async function PlaygroundPage() {
         <p className="copy-16">
           <AnnotatedText
             text="Nothing yet."
-            stored={stored}
+            stored={await getStoredNotes()}
           />
         </p>
       ) : null}
