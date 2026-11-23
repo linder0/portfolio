@@ -3,6 +3,8 @@ import { PageMain } from "@/components/page-main";
 import { AnnotatedText } from "@/components/annotated-text";
 import { MEDIA_CAPTION_CLASS } from "@/components/media-caption";
 import { getStoredNotes } from "@/lib/note-store";
+import { ClipPreview } from "./clip-preview";
+import { MasonryGrid } from "./masonry-grid";
 
 export const metadata: Metadata = {
   title: "Playground · Linda Xue",
@@ -20,55 +22,98 @@ const embeds: Embed[] = [];
 
 type Clip = {
   src: string;
+  pairedSrc?: string;
+  fullResolution?: boolean;
+  width: number;
+  height: number;
+  date: string;
   label: string;
   href?: string;
 };
 
 // Short self-hosted demo clips, shown GIF-style in a compact grid. `href`
-// links the caption out to the original post/demo. Every tile is 16:9 so
-// the row stays even regardless of the source file.
-const clips: Clip[] = [
+// links the caption out to the original post or demo when available.
+// Dimensions reserve space at the video's native aspect ratio before loading.
+// Use the original publish date, or the source video's creation date for uploads.
+const clips = ([
   {
     src: "/videos/playground/patrick-sailboxes.mp4",
-    label: "One Sailbox per pixel (9,408 total)",
+    fullResolution: true,
+    width: 480,
+    height: 360,
+    date: "2026-11-06",
+    label: "Geeked Patrick render",
     href: "https://x.com/lindaxue/status/2118755037627511137",
   },
   {
     src: "/videos/playground/monsterse-weekend.mp4",
-    label: "Monsterse after a weekend of training",
+    fullResolution: true,
+    width: 648,
+    height: 360,
+    date: "2026-10-26",
+    label: "Monsters after a weekend of training",
     href: "https://x.com/lindaxue/status/2114777893717115211",
   },
   {
     src: "/videos/playground/monsterse-training.mp4",
-    label: "Monsterse learning to walk and find food",
+    fullResolution: true,
+    width: 648,
+    height: 360,
+    date: "2026-10-22",
+    label: "Monsters learning to walk and find food",
     href: "https://x.com/lindaxue/status/2113324136827380042",
   },
   {
+    src: "/videos/playground/sail-bart-campaign.mp4",
+    fullResolution: true,
+    width: 1280,
+    height: 504,
+    date: "2026-10-01",
+    label: "Sail Research BART campaign",
+  },
+  {
     src: "/videos/playground/nautical-flags.mp4",
-    label: "Nautical signal flags in motion",
+    pairedSrc: "/videos/playground/nautical-flags-2.mp4",
+    fullResolution: true,
+    width: 480,
+    height: 800,
+    date: "2026-10-01",
+    label: "Nautical flag shifting field",
     href: "https://x.com/lindaxue/status/2105476568634331605",
   },
   {
     src: "/videos/playground/gemini-clone.mp4",
-    label: "Gemini Clone",
+    width: 1280,
+    height: 826,
+    date: "2025-12-08",
+    label: "Gemini clone",
     href: "https://geminiclone-blue-sigma.vercel.app",
   },
   {
     src: "/videos/playground/il-tabletop-arm.mp4",
-    label: "IL Tabletop Arm",
+    width: 1280,
+    height: 720,
+    date: "2026-08-02",
+    label: "IL tabletop arm",
     href: "https://x.com/lindaxue/status/2083944275986075880",
   },
   {
     src: "/videos/playground/yam-arm-harness.mp4",
-    label: "YAM Arm Harness (MuJoCo + three.js)",
+    width: 1366,
+    height: 720,
+    date: "2026-07-27",
+    label: "YAM arm harness (MuJoCo + three.js)",
     href: "https://x.com/lindaxue/status/2081766309990109505",
   },
   {
     src: "/videos/playground/rl-ant-demo.mp4",
-    label: "RL Ant (MuJoCo + PPO)",
+    width: 1254,
+    height: 720,
+    date: "2026-07-15",
+    label: "RL ant (MuJoCo + PPO)",
     href: "https://x.com/lindaxue/status/2077415138831843678",
   },
-];
+] satisfies Clip[]).toSorted((a, b) => b.date.localeCompare(a.date));
 
 export default async function PlaygroundPage() {
   const stored = await getStoredNotes();
@@ -76,46 +121,32 @@ export default async function PlaygroundPage() {
   return (
     <PageMain fullWidth>
       {clips.length ? (
-        // Same full-width card grid as /projects:
-        // native-aspect covers, title underneath.
-        <div className="content-grid gap-y-8 [--card-span:12] sm:[--card-span:6] xl:[--card-span:3]">
-          {clips.map((clip) => {
-            const card = (
-              <>
-                {/* Native aspect ratio, bounded by the column width. */}
-                <span className="block w-full overflow-hidden bg-background-200">
-                  <video
-                    src={clip.src}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="block h-auto w-full"
-                  />
-                </span>
-                <span className={`${MEDIA_CAPTION_CLASS} block`}>
-                  {clip.label}
-                  {clip.href && " ↗"}
-                </span>
-              </>
-            );
-            return clip.href ? (
-              <a
-                key={clip.src}
+        <MasonryGrid>
+          {clips.map((clip) => (
+            <div key={clip.src} className="min-w-0">
+              <ClipPreview
+                sources={clip.pairedSrc ? [clip.src, clip.pairedSrc] : [clip.src]}
+                label={clip.label}
                 href={clip.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="link-glow block min-w-0"
-              >
-                {card}
-              </a>
-            ) : (
-              <div key={clip.src} className="min-w-0">
-                {card}
-              </div>
-            );
-          })}
-        </div>
+                width={clip.width}
+                height={clip.height}
+                fullResolution={clip.fullResolution}
+              />
+              {clip.href ? (
+                <a
+                  href={clip.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${MEDIA_CAPTION_CLASS} link-glow block w-fit`}
+                >
+                  {clip.label} ↗
+                </a>
+              ) : (
+                <p className={MEDIA_CAPTION_CLASS}>{clip.label}</p>
+              )}
+            </div>
+          ))}
+        </MasonryGrid>
       ) : null}
 
       {embeds.length ? (

@@ -350,6 +350,18 @@
     min-width: 0;
   }
 
+  .content-grid[data-masonry-ready] {
+    height: var(--masonry-height);
+  }
+
+  .content-grid[data-masonry-ready] > * {
+    position: absolute;
+    grid-column: auto;
+    width: var(--masonry-card-width);
+    left: var(--masonry-x, 0px);
+    top: var(--masonry-y, 0px);
+  }
+
 }
 
 /* One centered desktop grid: one rail column and twelve content columns.
