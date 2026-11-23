@@ -78,33 +78,15 @@ export function ClipPreview({
 
     previews.querySelectorAll("video").forEach((video) => observer.observe(video));
     return () => observer.disconnect();
-  }, [sources]);
+  }, [canExpand, sources]);
 
   return (
     <>
       <div ref={previewsRef} className="grid w-full grid-flow-col auto-cols-fr gap-2">
-        {sources.map((src, index) => (
-          <button
-            key={src}
-            type="button"
-            className="block min-w-0 enabled:cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-2"
-            disabled={!canExpand}
-            aria-hidden={!canExpand}
-            aria-haspopup={canExpand ? "dialog" : undefined}
-            aria-label={
-              canExpand
-                ? sources.length > 1
-                  ? `Expand ${label} (${index + 1} of ${sources.length})`
-                  : `Expand ${label}`
-                : undefined
-            }
-            onClick={(event) => {
-              triggerRef.current = event.currentTarget;
-              setActiveIndex(index);
-              dialogRef.current?.showModal();
-              closeRef.current?.focus({ preventScroll: true });
-            }}
-          >
+        {sources.map((src, index) => {
+          const previewLabel =
+            sources.length > 1 ? `${label} (${index + 1} of ${sources.length})` : label;
+          const video = (
             <video
               data-preview-src={
                 optimizedPreview ? src.replace(/\.mp4$/, "-preview.mp4") : src
@@ -120,8 +102,49 @@ export function ClipPreview({
               playsInline
               className="block h-auto w-full bg-background-200"
             />
-          </button>
-        ))}
+          );
+
+          if (canExpand) {
+            return (
+              <button
+                key={src}
+                type="button"
+                className="block min-w-0 cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-2"
+                aria-haspopup="dialog"
+                aria-label={`Expand ${previewLabel}`}
+                onClick={(event) => {
+                  triggerRef.current = event.currentTarget;
+                  setActiveIndex(index);
+                  dialogRef.current?.showModal();
+                  closeRef.current?.focus({ preventScroll: true });
+                }}
+              >
+                {video}
+              </button>
+            );
+          }
+
+          if (href) {
+            return (
+              <a
+                key={src}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={previewLabel}
+                className="block min-w-0 focus-visible:outline-2 focus-visible:outline-offset-2"
+              >
+                {video}
+              </a>
+            );
+          }
+
+          return (
+            <div key={src} className="min-w-0">
+              {video}
+            </div>
+          );
+        })}
       </div>
       <dialog
         ref={dialogRef}
