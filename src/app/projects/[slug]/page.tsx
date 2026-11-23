@@ -7,6 +7,7 @@ import { BodyBlocks } from "@/components/body-blocks";
 import { mergeNote, projectLinkToNote } from "@/lib/notes";
 import { getStoredNotes } from "@/lib/note-store";
 import { NoteLink } from "@/components/note-link";
+import { OutboundArrow } from "@/components/outbound-arrow";
 import { MarginaliaAnchor } from "@/components/marginalia";
 import { AnnotatedText } from "@/components/annotated-text";
 import { PageMain } from "@/components/page-main";
@@ -86,7 +87,8 @@ export default async function ProjectPage({
                     note={mergeNote(note, stored[note.id])}
                     className="mono-13 link-glow"
                   >
-                    {link.label} ↗
+                    {link.label}
+                    <OutboundArrow />
                   </NoteLink>
                 );
               })}

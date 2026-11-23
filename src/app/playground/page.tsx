@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageMain } from "@/components/page-main";
 import { AnnotatedText } from "@/components/annotated-text";
 import { MEDIA_CAPTION_CLASS } from "@/components/media-caption";
+import { OutboundArrow } from "@/components/outbound-arrow";
 import { getStoredNotes } from "@/lib/note-store";
 import { ClipPreview } from "./clip-preview";
 import { MasonryGrid } from "./masonry-grid";
@@ -151,7 +152,8 @@ export default async function PlaygroundPage() {
                   rel="noopener noreferrer"
                   className={`${MEDIA_CAPTION_CLASS} link-glow block w-fit`}
                 >
-                  {clip.label} ↗
+                  {clip.label}
+                  <OutboundArrow />
                 </a>
               ) : (
                 <p className={MEDIA_CAPTION_CLASS}>{clip.label}</p>

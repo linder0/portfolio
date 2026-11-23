@@ -1,6 +1,16 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { OutboundArrow } from "@/components/outbound-arrow";
+
+// Match the lg breakpoint that switches the site to its desktop layout.
+const desktopQuery = "(min-width: 1024px)";
+
+function subscribeToDesktopLayout(onChange: () => void) {
+  const query = window.matchMedia(desktopQuery);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
 
 export function ClipPreview({
   sources,
@@ -24,6 +34,11 @@ export function ClipPreview({
   const closeRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
+  const canExpand = useSyncExternalStore(
+    subscribeToDesktopLayout,
+    () => window.matchMedia(desktopQuery).matches,
+    () => false,
+  );
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const activeSource = activeIndex === null ? undefined : sources[activeIndex];
   // Load the matching HD file only in the expanded player.
@@ -35,6 +50,10 @@ export function ClipPreview({
     sources.length > 1 && activeIndex !== null
       ? `${label} (${activeIndex + 1} of ${sources.length})`
       : label;
+
+  useEffect(() => {
+    if (!canExpand) dialogRef.current?.close();
+  }, [canExpand]);
 
   useEffect(() => {
     const previews = previewsRef.current;
@@ -68,12 +87,16 @@ export function ClipPreview({
           <button
             key={src}
             type="button"
-            className="block min-w-0 cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-2"
-            aria-haspopup="dialog"
+            className="block min-w-0 enabled:cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-2"
+            disabled={!canExpand}
+            aria-hidden={!canExpand}
+            aria-haspopup={canExpand ? "dialog" : undefined}
             aria-label={
-              sources.length > 1
-                ? `Expand ${label} (${index + 1} of ${sources.length})`
-                : `Expand ${label}`
+              canExpand
+                ? sources.length > 1
+                  ? `Expand ${label} (${index + 1} of ${sources.length})`
+                  : `Expand ${label}`
+                : undefined
             }
             onClick={(event) => {
               triggerRef.current = event.currentTarget;
@@ -132,7 +155,8 @@ export function ClipPreview({
                 rel="noopener noreferrer"
                 className="link-glow"
               >
-                {activeLabel} ↗
+                {activeLabel}
+                <OutboundArrow />
               </a>
             ) : (
               activeLabel
