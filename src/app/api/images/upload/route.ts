@@ -11,8 +11,8 @@ export async function POST(request: Request) {
     return Response.json({ error: "Not signed in." }, { status: 401 });
   }
 
-  const body = (await request.json()) as HandleUploadBody;
   try {
+    const body = (await request.json()) as HandleUploadBody;
     const result = await handleUpload({
       request,
       body,

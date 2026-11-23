@@ -42,8 +42,10 @@ import { deleteComment, updateNote } from "@/app/actions";
    ------------------------------------------------------------------------- */
 
 // Where the fixed panel sits. "corner" is the default lower-right; pages can
-// claim another spot when that corner is occupied (the home page's photo).
-type MarginPosition = "corner" | "content-left";
+// claim another spot when that corner is occupied (the home page's photo),
+// or opt out of the panel entirely ("hidden" — project pages, which run the
+// full pane width).
+type MarginPosition = "corner" | "content-left" | "hidden";
 
 // The margin is split into two contexts on purpose. `note`/`editingId`/
 // `position` change on every hover and editor toggle, but the actions never
@@ -447,11 +449,12 @@ export function MarginaliaAnchor({
 }
 
 // Panel placement per position variant. "content-left" hugs the bottom of the
-// content column (rail + gutter = grid column 3), clear of the photo corner.
+// content column (rail + gutter), clear of the photo corner.
 const positionClass: Record<MarginPosition, string> = {
-  corner: "bottom-4 right-4 lg:bottom-6 lg:right-6",
+  corner: "bottom-frame right-frame",
   "content-left":
-    "bottom-4 left-4 lg:bottom-6 lg:left-[calc(var(--spacing-rail)+var(--spacing-gutter))]",
+    "bottom-frame left-frame lg:left-[calc(var(--spacing-rail)+var(--spacing-gutter))]",
+  hidden: "",
 };
 
 // The panel itself. Desktop-only (hover doesn't exist on touch), pinned on the
@@ -460,6 +463,7 @@ export function Marginalia() {
   const { note, editingId, position } = useMarginState();
   const { canEdit, setEditingId } = useMarginActions();
   const asideRef = useRef<HTMLElement>(null);
+  const hidden = position === "hidden";
 
   // Content-less notes only appear while their editor is open (a fresh
   // highlight being written); closing it without content fades the panel out.
@@ -488,6 +492,11 @@ export function Marginalia() {
       document.removeEventListener("pointerdown", onPointerDown, true);
     };
   }, [editing, setEditingId]);
+
+  // Pages that claim the "hidden" position get no panel at all — hover
+  // sources still fire, they just have nowhere to land. (After the hooks,
+  // so the hook order is stable across position changes.)
+  if (hidden) return null;
 
   return (
     <aside

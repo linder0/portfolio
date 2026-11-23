@@ -1,17 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Newsreader } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/sidebar";
-import { SignatureTag } from "@/components/signature-tag";
 import { MarginProvider, Marginalia } from "@/components/marginalia";
 import { AnnotationCapture } from "@/components/annotation-capture";
 import { GridOverlay } from "@/components/grid-overlay";
 import { isAuthenticated } from "@/lib/auth";
 
-const serif = Newsreader({
+const grotesk = Space_Grotesk({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-serif-google",
+  variable: "--font-grotesk-google",
 });
 
 export const metadata: Metadata = {
@@ -32,14 +31,6 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-// Set the theme before paint to avoid a flash of the wrong color scheme.
-// Sections live on separate subdomains (separate origins), so the preference is
-// shared two ways: a cookie scoped to the parent domain (works in production)
-// and a `?theme=` URL param carried across cross-subdomain nav (works in dev on
-// *.localhost, where browsers reject a shared cookie). Priority:
-// URL param > cookie > legacy localStorage > OS preference.
-const themeInit = `(function(){try{var p=new URLSearchParams(location.search).get('theme');var t=(p==='dark'||p==='light')?p:null;if(!t){var m=document.cookie.match(/(?:^|; )theme=([^;]*)/);t=m?decodeURIComponent(m[1]):null;}if(!t){try{t=localStorage.getItem('theme');}catch(e){}}var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);if(p){try{localStorage.setItem('theme',d?'dark':'light');}catch(e){}var u=new URL(location.href);u.searchParams.delete('theme');history.replaceState(null,'',u.pathname+u.search+u.hash);}}catch(e){}})();`;
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -48,26 +39,18 @@ export default async function RootLayout({
   const canEdit = await isAuthenticated();
 
   return (
-    <html
-      lang="en"
-      className={`${serif.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
-      </head>
+    // The site is always dark — the `dark` class is baked into the markup
+    // (no toggle, no OS preference, no pre-paint script).
+    <html lang="en" className={`${grotesk.variable} dark h-full antialiased`}>
       {/* Mobile: a min-h-dvh flex column reserving exactly the fixed nav
-          bar's height (h-12 + safe area) at the bottom. Overscroll
-          rubber-banding is intentionally left on; the grain overlay
-          overshoots the viewport so bounced edges stay textured. Desktop
-          clears the bar via the fixed rail. */}
+          bar's height (h-12 + safe area) at the bottom. Desktop clears the
+          bar via the fixed rail. */}
       <body className="flex min-h-dvh flex-col pb-[calc(3rem+env(safe-area-inset-bottom))] lg:block lg:h-dvh lg:overflow-hidden lg:pb-0">
         <MarginProvider canEdit={canEdit}>
-          <SignatureTag />
           <div className="flex flex-1 flex-col lg:block lg:h-dvh">
             <Sidebar />
             {/* Content column: cleared past the fixed rail on the left (page
-                inset + grid cols 1–2), and inset on the right by the
+                inset + grid column 1), and inset on the right by the
                 marginalia region (span-3 panel + the page inset), so with
                 PageMain's own padding a single gutter separates content from
                 each flank. Both insets are grid tokens — see globals.css. */}

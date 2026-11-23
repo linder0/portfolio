@@ -13,21 +13,42 @@ export async function Sidebar() {
 
   return (
     <>
-      {/* Mobile: just the masthead (name) up top. Desktop: the full fixed
-          rail with nav + socials. The rail is a grid region — page inset +
-          columns 1–2 (w-rail = 13rem); no right padding, so its usable box
-          ends exactly on column 2's edge and PageMain's own padding supplies
-          the gutter to the content pane. */}
-      <aside className="flex flex-col px-4 py-4 lg:fixed lg:inset-y-0 lg:left-0 lg:w-rail lg:py-6 lg:pl-6 lg:pr-0">
+      {/* Mobile: just the masthead (tag) up top. Desktop: the full fixed
+          rail with nav + socials. The rail is a grid region — frame inset +
+          column 1 (w-rail); no right padding, so its usable box
+          ends exactly on column 1's right edge and PageMain's own padding
+          supplies the gutter to the content pane. */}
+      <aside className="flex flex-col p-frame pb-0 lg:pb-frame lg:fixed lg:inset-y-0 lg:left-0 lg:w-rail lg:pr-0">
         <div>
+          {/* Mobile: the frame above the logo matches PageMain's frame
+              below it. A block link avoids inline baseline space. Desktop
+              fits the mark to the shared rail column. */}
           <a
             href={rootUrl(host)}
-            className="heading-32 link-glow inline-block"
+            aria-label="Linda Xue, home"
+            title="Home"
+            className="shape-glow-trigger -ml-1 block w-fit transition-transform duration-200 ease-out hover:scale-105 lg:mt-0 lg:ml-0 lg:w-full"
           >
-            Linda Xue
+            <span
+              aria-hidden="true"
+              className="shape-glow block h-16 w-16 select-none bg-foreground lg:h-auto lg:w-full lg:aspect-square"
+              style={{
+                WebkitMaskImage: "url(/tag.png)",
+                maskImage: "url(/tag.png)",
+                WebkitMaskRepeat: "no-repeat",
+                maskRepeat: "no-repeat",
+                WebkitMaskPosition: "left center",
+                maskPosition: "left center",
+                WebkitMaskSize: "contain",
+                maskSize: "contain",
+              }}
+            />
           </a>
 
-          <nav className="mt-8 hidden flex-col gap-2 lg:flex">
+          <nav
+            aria-label="Primary"
+            className="mt-4 hidden flex-col gap-2 lg:flex"
+          >
             {nav.map((item) => (
               <a
                 key={item.section}

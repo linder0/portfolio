@@ -28,7 +28,7 @@ export function SocialLinks({ horizontal = false }: { horizontal?: boolean }) {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="copy-14 link-glow text-foreground"
+          className="label-14 link-glow text-foreground"
         >
           {label}
         </a>

@@ -276,7 +276,6 @@ export function CommentCapture({
           browser verbatim. Matches ::selection so a commented passage keeps the
           look of a live selection after the native one is cleared. */}
       <style
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: `::highlight(${HIGHLIGHT_NAME}){background-color:var(--foreground);color:var(--background);}`,
         }}
