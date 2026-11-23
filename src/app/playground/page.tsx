@@ -19,6 +19,7 @@ type Embed = {
 
 // Drop new experiments in here — each becomes an embedded frame below.
 const embeds: Embed[] = [];
+const mediaOrigin = "https://t3yt8c1wodbqpdkv.public.blob.vercel-storage.com";
 
 type Clip = {
   src: string;
@@ -38,7 +39,7 @@ type Clip = {
 // Use the original publish date, or the source video's creation date for uploads.
 const clips = ([
   {
-    src: "/videos/playground/patrick-sailboxes.mp4",
+    src: "patrick-sailboxes.mp4",
     optimizedPreview: true,
     fullResolution: true,
     width: 480,
@@ -48,7 +49,7 @@ const clips = ([
     href: "https://x.com/lindaxue/status/2118755037627511137",
   },
   {
-    src: "/videos/playground/monsterse-weekend.mp4",
+    src: "monsterse-weekend.mp4",
     optimizedPreview: true,
     fullResolution: true,
     width: 648,
@@ -58,7 +59,7 @@ const clips = ([
     href: "https://x.com/lindaxue/status/2114777893717115211",
   },
   {
-    src: "/videos/playground/monsterse-training.mp4",
+    src: "monsterse-training.mp4",
     optimizedPreview: true,
     fullResolution: true,
     width: 648,
@@ -68,7 +69,7 @@ const clips = ([
     href: "https://x.com/lindaxue/status/2113324136827380042",
   },
   {
-    src: "/videos/playground/sail-bart-campaign.mp4",
+    src: "sail-bart-campaign.mp4",
     optimizedPreview: true,
     fullResolution: true,
     width: 1280,
@@ -77,9 +78,9 @@ const clips = ([
     label: "Sail Research BART campaign",
   },
   {
-    src: "/videos/playground/nautical-flags.mp4",
+    src: "nautical-flags.mp4",
     optimizedPreview: true,
-    pairedSrc: "/videos/playground/nautical-flags-2.mp4",
+    pairedSrc: "nautical-flags-2.mp4",
     fullResolution: true,
     width: 480,
     height: 800,
@@ -88,7 +89,7 @@ const clips = ([
     href: "https://x.com/lindaxue/status/2105476568634331605",
   },
   {
-    src: "/videos/playground/gemini-clone.mp4",
+    src: "gemini-clone.mp4",
     optimizedPreview: true,
     width: 1280,
     height: 826,
@@ -97,7 +98,7 @@ const clips = ([
     href: "https://geminiclone-blue-sigma.vercel.app",
   },
   {
-    src: "/videos/playground/il-tabletop-arm.mp4",
+    src: "il-tabletop-arm.mp4",
     optimizedPreview: true,
     width: 1280,
     height: 720,
@@ -106,7 +107,7 @@ const clips = ([
     href: "https://x.com/lindaxue/status/2083944275986075880",
   },
   {
-    src: "/videos/playground/yam-arm-harness.mp4",
+    src: "yam-arm-harness.mp4",
     optimizedPreview: true,
     width: 1366,
     height: 720,
@@ -115,7 +116,7 @@ const clips = ([
     href: "https://x.com/lindaxue/status/2081766309990109505",
   },
   {
-    src: "/videos/playground/rl-ant-demo.mp4",
+    src: "rl-ant-demo.mp4",
     optimizedPreview: true,
     width: 1254,
     height: 720,
@@ -133,7 +134,9 @@ export default async function PlaygroundPage() {
           {clips.map((clip) => (
             <div key={clip.src} className="min-w-0">
               <ClipPreview
-                sources={clip.pairedSrc ? [clip.src, clip.pairedSrc] : [clip.src]}
+                sources={(clip.pairedSrc ? [clip.src, clip.pairedSrc] : [clip.src]).map(
+                  (file) => `${mediaOrigin}/${file}`,
+                )}
                 label={clip.label}
                 href={clip.href}
                 width={clip.width}
