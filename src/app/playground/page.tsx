@@ -29,6 +29,26 @@ type Clip = {
 // the row stays even regardless of the source file.
 const clips: Clip[] = [
   {
+    src: "/videos/playground/patrick-sailboxes.mp4",
+    label: "One Sailbox per pixel (9,408 total)",
+    href: "https://x.com/lindaxue/status/2118755037627511137",
+  },
+  {
+    src: "/videos/playground/monsterse-weekend.mp4",
+    label: "Monsterse after a weekend of training",
+    href: "https://x.com/lindaxue/status/2114777893717115211",
+  },
+  {
+    src: "/videos/playground/monsterse-training.mp4",
+    label: "Monsterse learning to walk and find food",
+    href: "https://x.com/lindaxue/status/2113324136827380042",
+  },
+  {
+    src: "/videos/playground/nautical-flags.mp4",
+    label: "Nautical signal flags in motion",
+    href: "https://x.com/lindaxue/status/2105476568634331605",
+  },
+  {
     src: "/videos/playground/gemini-clone.mp4",
     label: "Gemini Clone",
     href: "https://geminiclone-blue-sigma.vercel.app",
