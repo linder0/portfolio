@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { OutboundArrow } from "@/components/outbound-arrow";
 import { isDarkTheme } from "@/lib/theme";
 
 declare global {
@@ -55,7 +56,8 @@ export function TweetEmbed({ id }: { id: string }) {
           rel="noopener noreferrer"
           className="link-glow"
         >
-          View post on X ↗
+          View post on X
+          <OutboundArrow />
         </a>
       </blockquote>
     </div>
