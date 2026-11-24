@@ -822,7 +822,7 @@ export function postExcerpt(body: string): string | undefined {
 }
 
 // "2026-07-01" -> "July 1, 2026".
-export function formatPostDate(post: Post): string {
+export function formatPostDate(post: Pick<Post, "date">): string {
   const [year, month, day] = post.date.split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-US", {
     month: "long",

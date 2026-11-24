@@ -16,18 +16,49 @@ export const metadata: Metadata = {
   description: "Notes and writing by Linda Xue.",
 };
 
+const externalArticles = [
+  {
+    title: "How to pick your sandbox",
+    date: "2026-11-10",
+    tagline: "A guide to choosing a sandbox provider for your AI workload.",
+    href: "https://www.sailresearch.com/blog/how-to-pick-your-sandbox",
+    thumbnail: "/images/posts/how-to-pick-your-sandbox/thumbnail.gif",
+  },
+];
+
 export default async function WritingPage() {
   const host = (await headers()).get("host") ?? "";
   const base = sectionBase(host, "writing");
-  const stored = await getStoredNotes();
-  const canEdit = await isAuthenticated();
+  const [stored, canEdit, posts] = await Promise.all([
+    getStoredNotes(),
+    isAuthenticated(),
+    getAllPosts(),
+  ]);
   // Drafts only appear for the signed-in owner.
-  const posts = (await getAllPosts()).filter((post) => !post.draft || canEdit);
+  const entries = [
+    ...posts.filter((post) => !post.draft || canEdit),
+    ...externalArticles,
+  ].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
     <PageMain>
       <ol className="[&>li:first-child>a]:pt-0">
-        {posts.map((post) => {
+        {entries.map((post) => {
+          if ("href" in post) {
+            return (
+              <IndexRow
+                key={post.href}
+                href={post.href}
+                note={null}
+                title={post.title}
+                tagline={post.tagline}
+                thumbnail={post.thumbnail}
+                thumbnailKind="photo"
+                right={formatPostDate(post)}
+              />
+            );
+          }
+
           const note = postToNote(post);
           return (
             <IndexRow
